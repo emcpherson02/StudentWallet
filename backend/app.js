@@ -136,7 +136,7 @@ app.get('/user-transactions', async (req, res) => {
         }
 
         const Transaction = TransactionsSnapshot.docs.map((doc) => ({
-            type: doc.id,
+            type: doc.data().Description,
             amount: doc.data().Amount,
             date: doc.data().Date,
         }));
@@ -294,6 +294,7 @@ app.post('/add_transaction', async (req, res) => {
         const transaction = {
             Amount : amount,
             date :new Date(date),
+            Description : description,
         };
 
         const userDocRef = await db.collection('users').doc(userId);
@@ -304,7 +305,7 @@ app.post('/add_transaction', async (req, res) => {
         }
 
         const transactionsRef = userDocRef.collection('Transactions');
-        await transactionsRef.doc(description).set(transaction);
+        const docRef = await transactionsRef.add(transaction);
 
         res.status(200).json({ message: 'Transaction added successfully' });
     } catch (error) {
