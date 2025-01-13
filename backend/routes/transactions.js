@@ -73,7 +73,7 @@ router.get('/user-transactions', async (req, res) => {
         const Transaction = TransactionsSnapshot.docs.map((doc) => ({
             type: doc.data().Description,
             amount: doc.data().Amount,
-            date: doc.data().Date,
+            date: doc.data().date,
         }));
 
         res.json({ linkedBank: true, Transaction });
