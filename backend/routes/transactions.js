@@ -83,4 +83,34 @@ router.get('/user-transactions', async (req, res) => {
     }
 });
 
+
+// Delete a transaction
+router.delete('/delete_transaction/:transactionId', async (req, res) => {
+    const { transactionId } = req.params;
+    const { userId } = req.body;
+
+    if (!transactionId || !userId) {
+        return res.status(400).json({ error: 'Missing required parameters: transactionId and userId' });
+    }
+
+    try {
+        // Reference to the user's transaction
+        const transactionRef = db.collection('users').doc(userId).collection('Transactions').doc(transactionId);
+
+        // Check if the transaction exists
+        const transactionDoc = await transactionRef.get();
+        if (!transactionDoc.exists) {
+            return res.status(404).json({ error: 'Transaction not found' });
+        }
+
+        // Delete the transaction
+        await transactionRef.delete();
+
+        res.status(200).json({ message: 'Transaction deleted successfully' });
+    } catch (error) {
+        console.error('Error deleting transaction:', error);
+        res.status(500).json({ error: 'Failed to delete transaction' });
+    }
+});
+
 module.exports = router;
