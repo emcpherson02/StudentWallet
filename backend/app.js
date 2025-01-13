@@ -28,6 +28,7 @@ const port = process.env.PORT || 3001;
 const budgetRoutes = require('./routes/budget');
 const plaidRoutes = require('./routes/plaidRoutes');
 const transactionsRoutes = require('./routes/transactions');
+const userRoutes = require('./routes/userRoutes');
 
 
 app.use(auth);
@@ -40,6 +41,7 @@ app.use(cors());
 app.use('/budget', budgetRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/plaid', plaidRoutes);
+app.use('/user', userRoutes);
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./utils/swagger');
@@ -101,43 +103,6 @@ app.listen(port, () => {
     console.log(`Backend server is running on port ${port}`);
 });
 
-
-app.get('/user-data', async (req, res) => {
-    const { userId } = req.query;
-
-    if (!userId) {
-        return res.status(400).json({ message: 'Missing userId parameter' });
-    }
-
-    try {
-        const userDoc = await db.collection('users').doc(userId).get();
-        if (!userDoc.exists) {
-            return res.status(404).json({ message: 'User not found' });
-        }
-
-        const linkedBank = userDoc.data().linkedBank || false;
-
-        if (!linkedBank) {
-            return res.json({ linkedBank: false });
-        }
-
-        // Fetch accounts from the 'linkedaccount' subcollection
-        const accountsSnapshot = await db.collection('users')
-            .doc(userId)
-            .collection('LinkedAccounts')
-            .get();
-
-        const accounts = accountsSnapshot.docs.map(doc => ({
-            type: doc.id, // Use the document ID as the account type
-            balance: doc.data().Balance,
-        }));
-
-        res.json({ linkedBank: true, accounts });
-    } catch (error) {
-        console.error('Error fetching user data:', error);
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
 
 /**
  * @swagger

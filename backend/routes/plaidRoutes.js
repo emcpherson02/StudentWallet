@@ -1,6 +1,6 @@
 const express = require('express');
 const admin = require('firebase-admin');
-
+const { createLinkToken, exchangePublicToken, fetchTransactions } = require('../plaid');
 
 const router = express.Router();
 const db = admin.firestore();
