@@ -38,7 +38,7 @@ function PlaidLink() {
 
         const fetchTransactions = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/user-transactions`, {
+                const response = await axios.get(`http://localhost:3001/transactions/user-transactions`, {
                     params: { userId: currentUser.uid },
                 });
 
@@ -59,16 +59,17 @@ function PlaidLink() {
 
     const startPlaidLink = async () => {
         try {
-            const response = await axios.post('http://localhost:3001/create_link_token', {
+            const response = await axios.post('http://localhost:3001/plaid/create_link_token', {
                 userId: currentUser.uid,
             });
             const linkToken = response.data.linkToken;
+
 
             const handler = window.Plaid.create({
                 token: linkToken,
                 onSuccess: async (publicToken) => {
                     try {
-                        await axios.post('http://localhost:3001/exchange_public_token', {
+                        await axios.post('http://localhost:3001/plaid/exchange_public_token', {
                             publicToken,
                             userId: currentUser.uid,
                         });
