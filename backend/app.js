@@ -108,11 +108,11 @@ app.get('/', (req, res) => {
     res.send('Hello, StudentWallet Backend!');
 });
 
-
 // Start the server
 app.listen(port, () => {
     console.log(`Backend server is running on port ${port}`);
 });
+
 app.get('/user-transactions', async (req, res) => {
     const { userId } = req.query; //Extract the userId from the query parameters
     if (!userId) {
@@ -122,7 +122,7 @@ app.get('/user-transactions', async (req, res) => {
         //Retrieve the user document from Firestore
         const userDoc = await db.collection('users').doc(userId).get();
         if (!userDoc.exists) {
-            return res.status(404).json({ message: 'User not found' });
+            return res.status(404).json({ MESSAGE_USER_NOT_FOUND });
         }
 
         //Retrieve the Transactions subcollection
@@ -186,7 +186,6 @@ app.get('/user-data', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 
 /**
  * @swagger
@@ -283,7 +282,6 @@ app.post('/get_transactions', async (req, res) => {
     }
 });
 
-
 // Add Transactions
 app.post('/add_transaction', async (req, res) => {
     const { userId, amount, date, description } = req.body; //Extract required parameters from request body
@@ -306,7 +304,7 @@ app.post('/add_transaction', async (req, res) => {
         const userDoc = await userDocRef.get();
         // Check if the user exists
         if (!userDoc.exists) {
-            return res.status(404).json({ error: 'User not found' });
+            return res.status(404).json({MESSAGE_USER_NOT_FOUND});
         }
 
         // Reference to the Transactions subcollection
