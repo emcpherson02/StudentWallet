@@ -24,7 +24,7 @@ function PlaidLink() {
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/user-data`, {
+                const response = await axios.get(`http://localhost:3001/user/user-data`, {
                     params: { userId: currentUser.uid },
                 });
 
@@ -187,7 +187,7 @@ function PlaidLink() {
                             <p>No transactions available.</p>
                         )
                     ) : (
-                        <p>Link your bank account to view transactions.</p>
+                        <p>Link your bank account or Add Transactions Manually to view transactions.</p>
                     )}
                 </div>
 
