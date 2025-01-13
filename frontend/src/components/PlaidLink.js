@@ -12,6 +12,7 @@ function PlaidLink() {
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]); // State to store accounts
     const [transactions, setTransactions] = useState([]);
+    const [budgets, setBudgets] = useState([]);
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -50,9 +51,22 @@ function PlaidLink() {
             }
         };
 
+        const fetchBudgets = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
+                    params: { userId: currentUser.uid },
+                });
+                setBudgets(response.data.budgets || []);
+            } catch (error) {
+                console.error('Error fetching budgets:', error);
+                setMessage('Failed to fetch budgets.');
+            }
+        };
+
         if (currentUser) {
             fetchUserDetails();  // Fetch accounts and linkedBank status
             fetchTransactions(); // Fetch transactions
+            fetchBudgets();      // Fetch budgets
         }
     }, [currentUser]);
 
@@ -176,6 +190,29 @@ function PlaidLink() {
                         <p>Link your bank account to view transactions.</p>
                     )}
                 </div>
+
+                <div className={`${styles.card} ${styles.budgetsSection}`}>
+                    <h2>Budgets</h2>
+                    {budgets.length > 0 ? (
+                        <ul>
+                            {budgets.map((budget, index) => (
+                                <li key={index} className={styles.budgetItem}>
+                                    <div><strong>Category:</strong> {budget.category}</div>
+                                    <div><strong>Amount:</strong> £{budget.amount}</div>
+                                    <div><strong>Spent:</strong> £{budget.spent}</div>
+                                    <div><strong>Period:</strong> {budget.period}</div>
+                                    <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}
+                                    </div>
+                                    <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
+                    ) : (
+                        <p>No budgets available. Add your first budget to get started.</p>
+                    )}
+                </div>
+
             </div>
         </div>
     );

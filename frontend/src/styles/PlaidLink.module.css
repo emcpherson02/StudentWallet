@@ -292,3 +292,17 @@
 .transactions-list::-webkit-scrollbar-thumb:hover {
     background: #555;
 }
+
+.budgetsSection {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.budgetItem {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
