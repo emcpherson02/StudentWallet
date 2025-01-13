@@ -113,18 +113,19 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Backend server is running on port ${port}`);
 });
-
 app.get('/user-transactions', async (req, res) => {
-    const { userId } = req.query;
+    const { userId } = req.query; //Extract the userId from the query parameters
     if (!userId) {
-        return res.status(400).json({ message: 'Missing userId parameter' });
+        return res.status(400).json({ message: 'Missing userId parameter' }); //Validate the userId parameter
     }
     try {
+        //Retrieve the user document from Firestore
         const userDoc = await db.collection('users').doc(userId).get();
         if (!userDoc.exists) {
             return res.status(404).json({ message: 'User not found' });
         }
 
+        //Retrieve the Transactions subcollection
         const TransactionsSnapshot = await db
             .collection('users')
             .doc(userId)
@@ -135,6 +136,7 @@ app.get('/user-transactions', async (req, res) => {
             return res.json({ linkedBank: true, Transaction: [] });
         }
 
+        //Map the Transactions subcollection documents to an array of transactions
         const Transaction = TransactionsSnapshot.docs.map((doc) => ({
             type: doc.data().Description,
             amount: doc.data().Amount,
@@ -284,31 +286,38 @@ app.post('/get_transactions', async (req, res) => {
 
 // Add Transactions
 app.post('/add_transaction', async (req, res) => {
-    const { userId, amount, date, description } = req.body;
+    const { userId, amount, date, description } = req.body; //Extract required parameters from request body
 
+    // Validate required parameters
     if (!userId || !amount || !date || !description) {
         return res.status(400).json({ error: 'Missing required parameters' });
     }
 
     try {
+        // Create a new transaction object
         const transaction = {
-            Amount : amount,
-            date :new Date(date),
-            Description : description,
+            Amount : amount, // Store the transaction amount
+            date :new Date(date), //Convert the date string to a Date object
+            Description : description, //Store the transaction description
         };
 
+        // Reference to the user document
         const userDocRef = await db.collection('users').doc(userId);
         const userDoc = await userDocRef.get();
-
+        // Check if the user exists
         if (!userDoc.exists) {
             return res.status(404).json({ error: 'User not found' });
         }
 
+        // Reference to the Transactions subcollection
         const transactionsRef = userDocRef.collection('Transactions');
+        // Add the transaction to the Transactions subcollection
         const docRef = await transactionsRef.add(transaction);
 
+        // Respond with a success message
         res.status(200).json({ message: 'Transaction added successfully' });
     } catch (error) {
+        // Log and respond with an error message
         console.error('Error adding transaction:', error);
         res.status(500).json({ error: 'Failed to add transaction' });
     }
