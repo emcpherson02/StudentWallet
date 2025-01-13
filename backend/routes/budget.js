@@ -79,5 +79,25 @@ router.put('/update_budget/:budgetId', async (req, res) => {
     }
 });
 
+router.delete('/delete_budget/:budgetId', async (req, res) => {
+    const {userId} = req.body;
+    const {budgetId} = req.params;
+
+    if (!userId || !budgetId) {
+        return res.status(400).json({error: 'Missing fields'});
+    }
+
+    try {
+        const budgetRef = db.collection('users').doc(userId).collection('budgets').doc(budgetId);
+        await budgetRef.delete();
+
+        res.status(200).json({message: 'Budget deleted successfully'});
+    }catch (error) {
+        console.error('Error Deleting Budget: ', error);
+        return res.status(500).json({error: 'Failed to delete Budget'});
+    }
+
+});
+
 
 module.exports = router; // Export the router
