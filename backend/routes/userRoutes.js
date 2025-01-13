@@ -41,4 +41,33 @@ router.get('/user-data', async (req, res) => {
     }
 });
 
+router.put('/update_user/:userId', async (req, res) => {
+    const { userId } = req.params;
+    const updates = req.body;
+
+    if (!userId || !Object.keys(updates).length) {
+        return res.status(400).json({ error: 'Invalid request. Provide a userId and at least one field to update.' });
+    }
+
+    try {
+        // Construct the dynamic updates object
+        const userUpdates = {};
+        if (updates.displayName) userUpdates.displayName = updates.displayName;
+        if (updates.email) userUpdates.email = updates.email;
+        if (updates.dob) userUpdates.dob = new Date(updates.dob);
+        if (updates.linkedBank !== undefined) userUpdates.linkedBank = updates.linkedBank;
+
+        // Reference to the user document
+        const userRef = db.collection('users').doc(userId);
+
+        // Perform the update
+        await userRef.update(userUpdates);
+
+        res.status(200).json({ message: 'User details updated successfully' });
+    } catch (error) {
+        console.error('Error updating user details:', error);
+        res.status(500).json({ error: 'Failed to update user details' });
+    }
+});
+
 module.exports = router;
