@@ -22,6 +22,10 @@ const app = express();
 const port = process.env.PORT || 3001;
 const db = admin.firestore();
 
+const budgetRoutes = require('./budget');
+
+
+
 app.use(auth);
 // Error Constants
 const DB_COLLECTION_USERS = 'users';
@@ -40,6 +44,7 @@ const MESSAGE_INVALID_TOKEN = 'Invalid token';
 // Middleware
 app.use(bodyParser.json());
 app.use(cors());
+app.use('/budget', budgetRoutes);
 
 const swaggerUi = require('swagger-ui-express');
 const swaggerJsdoc = require('swagger-jsdoc');
