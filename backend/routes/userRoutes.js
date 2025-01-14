@@ -4,6 +4,7 @@ const admin = require('firebase-admin');
 const router = express.Router();
 const db = admin.firestore();
 
+// Get user data
 router.get('/user-data', async (req, res) => {
     const { userId } = req.query; // Extract the userId from the query parameters
 
@@ -42,6 +43,7 @@ router.get('/user-data', async (req, res) => {
     }
 });
 
+// Update user details
 router.put('/update_user/:userId', async (req, res) => {
     const { userId } = req.params; // Extract the userId from the request parameters
     const updates = req.body; // Extract the updates object from the request body

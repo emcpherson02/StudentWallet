@@ -24,24 +24,22 @@ const { admin, db } = require('./utils/firebase');
 const app = express();
 const port = process.env.PORT || 3001;
 
-
+// Routes
 const budgetRoutes = require('./routes/budget');
 const plaidRoutes = require('./routes/plaidRoutes');
 const transactionsRoutes = require('./routes/transactions');
 const userRoutes = require('./routes/userRoutes');
-
-
-app.use(auth);
-
-
+const utilRoutes = require('./routes/utilRoutes');
 
 // Middleware
+app.use(auth)
 app.use(bodyParser.json());
 app.use(cors());
 app.use('/budget', budgetRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/plaid', plaidRoutes);
 app.use('/user', userRoutes);
+app.user('/util', utilRoutes);
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./utils/swagger');
@@ -102,7 +100,6 @@ app.get('/', (req, res) => {
 app.listen(port, () => {
     console.log(`Backend server is running on port ${port}`);
 });
-
 
 /**
  * @swagger

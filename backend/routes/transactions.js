@@ -1,6 +1,6 @@
 const express = require ('express');
 const admin = require ('firebase-admin');
-const {
+const { // Import the constants from the constants file
     MESSAGE_USER_NOT_FOUND
 } = require('../utils/constants');
 
@@ -8,6 +8,7 @@ const {
 const router = express.Router ();
 const db = admin.firestore ();
 
+// Add a transaction
 router.post('/add_transaction', async (req, res) => {
     const { userId, amount, date, description } = req.body; //Extract required parameters from request body
 
@@ -46,6 +47,7 @@ router.post('/add_transaction', async (req, res) => {
     }
 });
 
+// Get all transactions
 router.get('/user-transactions', async (req, res) => {
     const { userId } = req.query; //Extract the userId from the query parameters
     if (!userId) {
