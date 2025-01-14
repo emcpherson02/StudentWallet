@@ -2,8 +2,9 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {loginUser} from "../utils/authService";
 import styles from '../styles/Login.module.css';
-import { googleAuthProvider, auth } from '../utils/firebase'; // Import Google provider and auth
+import { googleAuthProvider, auth, db} from '../utils/firebase'; // Import Google provider and auth
 import { signInWithPopup} from 'firebase/auth';
+import { doc, getDoc, setDoc } from 'firebase/firestore';
 
 /**
  * Login component that handles user authentication.
@@ -46,8 +47,26 @@ function Login() {
     const handleGoogleLogin = async () => {
         try {
             const result = await signInWithPopup(auth, googleAuthProvider);
+            const user = result.user
             console.log('Google login successful:', result.user);
+
+            const userRef = doc(db, 'users', user.uid);
+            const userDoc = await getDoc(userRef);
+
+            if (!userDoc.exists()) {
+                await setDoc(userRef, {
+                    displayName: user.displayName,
+                    email: user.email,
+                    dob: '',
+                    linkedBank: false,
+                    createdAt: new Date(),
+                });
+                console.log("User Profile created in firestore");
+            }else {
+                console.log("User already exists in firestore");
+            }
             navigate('/plaid-link'); // Redirect to Plaid Link page
+
         } catch (error) {
             console.error('Google login failed:', error);
             setMessage('Failed to log in with Google.');
