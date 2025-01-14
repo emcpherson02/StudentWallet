@@ -1,4 +1,9 @@
 node_modules/
 .idea/
 .env/
+serviceAccountKey.json
+frontend/src/.env
+backend/.env
 .env
+backend/package.json
+
