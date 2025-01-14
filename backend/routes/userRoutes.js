@@ -73,4 +73,58 @@ router.put('/update_user/:userId', async (req, res) => {
     }
 });
 
+// Delete user account
+router.delete('/delete_user/:userId', async (req, res) => {
+    const { userId } = req.params;
+
+    if (!userId) {
+        return res.status(400).json({ error: 'Missing userId parameter' });
+    }
+
+    try {
+        const result = await deleteUserAndData(userId);
+        res.status(200).json(result);
+    } catch (error) {
+        console.error('Error deleting user and associated data:', error);
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Function to delete user and associated data
+const deleteUserAndData = async (userId) => {
+    const userRef = db.collection('users').doc(userId);
+
+    // Check if user exists
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) {
+        throw new Error('User not found');
+    }
+
+    // Delete all subcollections if they exist
+    const subcollections = ['budgets', 'transactions'];
+    for (const subcollection of subcollections) {
+        const subcollectionSnapshot = await userRef.collection(subcollection).get();
+        if (!subcollectionSnapshot.empty) {
+            const batch = db.batch();
+            subcollectionSnapshot.forEach((doc) => batch.delete(doc.ref));
+            await batch.commit();
+        }
+    }
+
+    // Check if Plaid token exists and delete it if it does
+    const plaidTokenRef = db.collection('plaid_tokens').doc(userId);
+    const plaidTokenDoc = await plaidTokenRef.get();
+    if (plaidTokenDoc.exists) {
+        await plaidTokenRef.delete();
+    }
+
+    // Delete user document
+    await userRef.delete();
+
+    // Remove user from Firebase Authentication
+    await admin.auth().deleteUser(userId);
+
+    return { success: true, message: 'User and associated data deleted successfully' };
+};
+
 module.exports = router;
