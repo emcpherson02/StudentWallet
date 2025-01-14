@@ -39,7 +39,7 @@ app.use('/budget', budgetRoutes);
 app.use('/transactions', transactionsRoutes);
 app.use('/plaid', plaidRoutes);
 app.use('/user', userRoutes);
-app.user('/util', utilRoutes);
+app.use('/util', utilRoutes);
 
 // Swagger
 const { swaggerUi, swaggerSpec } = require('./utils/swagger');
