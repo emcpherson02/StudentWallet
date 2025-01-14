@@ -1,4 +1,3 @@
-// utils/constants.js
 module.exports = {
     DB_COLLECTION_USERS: 'users',
     STATUS_FAIL: 'fail',
