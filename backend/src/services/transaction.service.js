@@ -1,9 +1,10 @@
 const { DatabaseError, NotFoundError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
+const { transactionModel } = require('../models');
 
 class TransactionService {
-    constructor(db) {
-        this.db = db;
+    constructor() {
+        this.db = transactionModel;
     }
 
     async addTransaction(userId, transactionData) {

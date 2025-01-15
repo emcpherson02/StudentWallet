@@ -10,7 +10,7 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger.config');
 const initializePassport = require('./config/passport.config');
 
 // Import models
-const { UserModel, TransactionModel, BudgetModel } = require('./models');
+const { UserModel, TransactionModel, BudgetModel, userModel, transactionModel, budgetModel} = require('./models');
 
 // Import services
 const AuthService = require('./services/auth.service');
@@ -39,12 +39,7 @@ const setupUserRoutes = require('./routes/user.routes');
 const app = express();
 const port = process.env.PORT || 3001;
 
-// Initialize models
-const userModel = new UserModel(db);
-const transactionModel = new TransactionModel(db);
-const budgetModel = new BudgetModel(db);
-
-// Initialize services
+// Initialize services with models
 const authService = new AuthService(db, userModel);
 const userService = new UserService(db, userModel);
 const plaidService = new PlaidService(db);

@@ -1,8 +1,9 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
+const { budgetModel } = require('../models');
 
 class BudgetService {
-    constructor(db) {
-        this.db = db;
+    constructor() {
+        this.db = budgetModel;
     }
 
     async addBudget(userId, budgetData) {

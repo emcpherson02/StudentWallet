@@ -1,9 +1,10 @@
 const { DatabaseError, NotFoundError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
+const { userModel } = require('../models');
 
 class UserService {
-    constructor(db) {
-        this.db = db;
+    constructor() {
+        this.db = userModel;
     }
 
     async getUserData(userId) {
