@@ -3,7 +3,7 @@ const { budgetModel } = require('../models');
 
 class BudgetService {
     constructor() {
-        this.db = budgetModel;
+        this.budgetModel = budgetModel;
     }
 
     async addBudget(userId, budgetData) {
@@ -23,11 +23,7 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate) : null,
             };
 
-            const userRef = this.db.collection('users').doc(userId);
-            const budgetsRef = userRef.collection('budgets');
-            await budgetsRef.add(budget);
-
-            return budget;
+            return await this.budgetModel.create(userId, budget);
         } catch (error) {
             throw new DatabaseError('Failed to add Budget');
         }
@@ -39,16 +35,7 @@ class BudgetService {
         }
 
         try {
-            const budgetSnapshot = await this.db
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .get();
-
-            return budgetSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            return await this.budgetModel.findByUserId(userId);
         } catch (error) {
             throw new DatabaseError('Failed to get Budgets');
         }
@@ -60,17 +47,6 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.db
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
-                throw new NotFoundError('Budget not found');
-            }
-
             const budgetUpdates = {
                 ...(updates.category && { category: updates.category }),
                 ...(updates.amount && { amount: updates.amount }),
@@ -80,8 +56,11 @@ class BudgetService {
                 ...(updates.endDate && { endDate: new Date(updates.endDate) }),
             };
 
-            await budgetRef.update(budgetUpdates);
-            return { id: budgetId, ...budgetUpdates };
+            const budget = await this.budgetModel.update(userId, budgetId, budgetUpdates);
+            if (!budget) {
+                throw new NotFoundError('Budget not found');
+            }
+            return budget;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -96,18 +75,10 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.db
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
+            const deleted = await this.budgetModel.delete(userId, budgetId);
+            if (!deleted) {
                 throw new NotFoundError('Budget not found');
             }
-
-            await budgetRef.delete();
             return true;
         } catch (error) {
             if (error instanceof NotFoundError) {

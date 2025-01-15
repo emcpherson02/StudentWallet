@@ -4,83 +4,47 @@ const { transactionModel } = require('../models');
 
 class TransactionService {
     constructor() {
-        this.db = transactionModel;
+        this.transactionModel = transactionModel;
     }
 
     async addTransaction(userId, transactionData) {
         try {
             const { amount, date, description } = transactionData;
-            const userRef = this.db.collection('users').doc(userId);
-            const userDoc = await userRef.get();
 
-            if (!userDoc.exists) {
-                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
-            }
-
+            // Create transaction object
             const transaction = {
                 Amount: amount,
                 date: new Date(date),
                 Description: description,
             };
 
-            const transactionsRef = userRef.collection('Transactions');
-            await transactionsRef.add(transaction);
-
-            return transaction;
+            return await this.transactionModel.create(userId, transaction);
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
             throw new DatabaseError('Failed to add transaction');
         }
     }
 
     async getUserTransactions(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
+            const transactions = await this.transactionModel.findByUserId(userId);
 
-            if (!userDoc.exists) {
-                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
-            }
-
-            const transactionsSnapshot = await this.db
-                .collection('users')
-                .doc(userId)
-                .collection('Transactions')
-                .get();
-
-            if (transactionsSnapshot.empty) {
-                return [];
-            }
-
-            return transactionsSnapshot.docs.map(doc => ({
+            return transactions.map(doc => ({
                 id: doc.id,
-                type: doc.data().Description,
-                amount: doc.data().Amount,
-                date: doc.data().date,
+                type: doc.Description,
+                amount: doc.Amount,
+                date: doc.date,
             }));
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
             throw new DatabaseError('Failed to fetch transactions');
         }
     }
 
     async deleteTransaction(userId, transactionId) {
         try {
-            const transactionRef = this.db
-                .collection('users')
-                .doc(userId)
-                .collection('Transactions')
-                .doc(transactionId);
-
-            const transactionDoc = await transactionRef.get();
-            if (!transactionDoc.exists) {
+            const deleted = await this.transactionModel.delete(userId, transactionId);
+            if (!deleted) {
                 throw new NotFoundError('Transaction not found');
             }
-
-            await transactionRef.delete();
             return true;
         } catch (error) {
             if (error instanceof NotFoundError) {

@@ -4,36 +4,22 @@ const { userModel } = require('../models');
 
 class UserService {
     constructor() {
-        this.db = userModel;
+        this.userModel = userModel;
     }
 
     async getUserData(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
-
-            if (!userDoc.exists) {
+            const userData = await this.userModel.findById(userId);
+            if (!userData) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            const userData = userDoc.data();
             const linkedBank = userData.linkedBank || false;
-
             if (!linkedBank) {
                 return { linkedBank: false };
             }
 
-            // Get linked accounts if bank is connected
-            const accountsSnapshot = await this.db
-                .collection('users')
-                .doc(userId)
-                .collection('LinkedAccounts')
-                .get();
-
-            const accounts = accountsSnapshot.docs.map(doc => ({
-                type: doc.id,
-                balance: doc.data().Balance,
-            }));
-
+            const accounts = await this.userModel.getLinkedAccounts(userId);
             return { linkedBank: true, accounts };
         } catch (error) {
             if (error instanceof NotFoundError) {
@@ -45,22 +31,11 @@ class UserService {
 
     async updateUser(userId, updates) {
         try {
-            const userRef = this.db.collection('users').doc(userId);
-            const userDoc = await userRef.get();
-
-            if (!userDoc.exists) {
+            const updated = await this.userModel.update(userId, updates);
+            if (!updated) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
-
-            const userUpdates = {
-                ...(updates.displayName && { displayName: updates.displayName }),
-                ...(updates.email && { email: updates.email }),
-                ...(updates.dob && { dob: new Date(updates.dob) }),
-                ...(updates.linkedBank !== undefined && { linkedBank: updates.linkedBank })
-            };
-
-            await userRef.update(userUpdates);
-            return { id: userId, ...userUpdates };
+            return updated;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -70,39 +45,15 @@ class UserService {
     }
 
     async deleteUser(userId) {
-        const userRef = db.collection('users').doc(userId);
-
-        // Check if user exists
-        const userDoc = await userRef.get();
-        if (!userDoc.exists) {
-            throw new Error('User not found');
-        }
-
-        // Delete all subcollections if they exist
-        const subcollections = ['budgets', 'transactions'];
-        for (const subcollection of subcollections) {
-            const subcollectionSnapshot = await userRef.collection(subcollection).get();
-            if (!subcollectionSnapshot.empty) {
-                const batch = db.batch();
-                subcollectionSnapshot.forEach((doc) => batch.delete(doc.ref));
-                await batch.commit();
+        try {
+            const deleted = await this.userModel.delete(userId);
+            if (!deleted) {
+                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
+            return { success: true, message: 'User and associated data deleted successfully' };
+        } catch (error) {
+            throw new DatabaseError('Failed to delete user');
         }
-
-        // Check if Plaid token exists and delete it if it does
-        const plaidTokenRef = db.collection('plaid_tokens').doc(userId);
-        const plaidTokenDoc = await plaidTokenRef.get();
-        if (plaidTokenDoc.exists) {
-            await plaidTokenRef.delete();
-        }
-
-        // Delete user document
-        await userRef.delete();
-
-        // Remove user from Firebase Authentication
-        await admin.auth().deleteUser(userId);
-
-        return { success: true, message: 'User and associated data deleted successfully' };
     }
 }
 
