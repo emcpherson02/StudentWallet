@@ -6,11 +6,11 @@ services:
     volumes:
       - ./backend:/app
       - /app/node_modules
-    command: ["npx", "nodemon","--legacy-watch", "/app/app.js"]
+    command: ["npx", "nodemon","--legacy-watch", "/app/src/app.js"]
     ports:
-      - "3001:3001"     # Expose backend on port 3001
+      - "3001:3001"
     environment:
-      - PORT=3001       # Ensure the backend service listens on port 3001
+      - PORT=3001
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET}
     env_file:
@@ -19,11 +19,11 @@ services:
     build:
       context: ./frontend
     volumes:
-        - ./frontend:/app
-        - /app/node_modules
+      - ./frontend:/app
+      - /app/node_modules
     command: ["npm", "start"]
     ports:
-      - "3000:3000"     # Expose frontend on port 3000
+      - "3000:3000"
     depends_on:
       - backend
     environment:

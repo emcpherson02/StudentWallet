@@ -1,20 +1,22 @@
-# Use the official Node.js image
 FROM node:18
 
-# Set the working directory inside the container
 WORKDIR /app
 
-# Copy package.json and package-lock.json
+# Copy package files
 COPY package*.json ./
 
 # Install dependencies
 RUN npm install
 
-# Copy the rest of the application code
+# Copy source code
 COPY . .
 
-# Expose the backend port
+# Create src directory if it doesn't exist
+RUN mkdir -p src
+
+# Make sure all necessary directories are created and files are in place
+RUN mkdir -p src/models src/services src/controllers src/routes src/middleware src/config src/utils
+
 EXPOSE 3001
 
-# Start the application
-CMD ["node", "app.js"]
+CMD ["npm", "run", "dev"]
