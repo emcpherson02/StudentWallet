@@ -24,8 +24,12 @@ function PlaidLink() {
     useEffect(() => {
         const fetchUserDetails = async () => {
             try {
+                const token = await currentUser.getIdToken();
                 const response = await axios.get(`http://localhost:3001/user/user-data`, {
                     params: { userId: currentUser.uid },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 });
 
                 const { linkedBank, accounts } = response.data;
@@ -39,54 +43,76 @@ function PlaidLink() {
 
         const fetchTransactions = async () => {
             try {
+                const token = await currentUser.getIdToken();
                 const response = await axios.get(`http://localhost:3001/transactions/user-transactions`, {
                     params: { userId: currentUser.uid },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 });
 
                 const { Transaction } = response.data;
                 setTransactions(Transaction || []);
             } catch (error) {
                 console.error('Error fetching transactions:', error);
-                setMessage('Failed to fetch transactions.');
             }
         };
 
         const fetchBudgets = async () => {
             try {
+                const token = await currentUser.getIdToken();
                 const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
                     params: { userId: currentUser.uid },
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
                 });
                 setBudgets(response.data.budgets || []);
             } catch (error) {
                 console.error('Error fetching budgets:', error);
-                setMessage('Failed to fetch budgets.');
             }
         };
 
         if (currentUser) {
-            fetchUserDetails();  // Fetch accounts and linkedBank status
-            fetchTransactions(); // Fetch transactions
-            fetchBudgets();      // Fetch budgets
+            fetchUserDetails();
+            fetchTransactions();
+            fetchBudgets();
         }
     }, [currentUser]);
 
 
     const startPlaidLink = async () => {
         try {
-            const response = await axios.post('http://localhost:3001/plaid/create_link_token', {
-                userId: currentUser.uid,
-            });
-            const linkToken = response.data.linkToken;
+            // Get the Firebase token
+            const token = await currentUser.getIdToken();
 
+            const response = await axios.post('http://localhost:3001/plaid/create_link_token',
+                {
+                    userId: currentUser.uid,
+                },
+                {
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                }
+            );
+            const linkToken = response.data.linkToken;
 
             const handler = window.Plaid.create({
                 token: linkToken,
                 onSuccess: async (publicToken) => {
                     try {
-                        await axios.post('http://localhost:3001/plaid/exchange_public_token', {
-                            publicToken,
-                            userId: currentUser.uid,
-                        });
+                        await axios.post('http://localhost:3001/plaid/exchange_public_token',
+                            {
+                                publicToken,
+                                userId: currentUser.uid,
+                            },
+                            {
+                                headers: {
+                                    Authorization: `Bearer ${token}`
+                                }
+                            }
+                        );
                         setMessage('Plaid account linked successfully!');
                         setLinkedBank(true);
                     } catch (error) {

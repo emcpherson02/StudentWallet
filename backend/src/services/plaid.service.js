@@ -1,21 +1,10 @@
-const { Configuration, PlaidApi, PlaidEnvironments } = require('plaid');
 const { DatabaseError } = require('../utils/errors');
+const { plaidClient, plaidSettings } = require('../config/plaid.config');
 
 class PlaidService {
     constructor(db) {
         this.db = db;
-        this.plaidClient = new PlaidApi(
-            new Configuration({
-                basePath: PlaidEnvironments.sandbox,
-                baseOptions: {
-                    headers: {
-                        'PLAID-CLIENT-ID': process.env.PLAID_CLIENT_ID,
-                        'PLAID-SECRET': process.env.PLAID_SECRET,
-                        'Plaid-Version': '2020-09-14',
-                    },
-                },
-            })
-        );
+        this.plaidClient = plaidClient;
     }
 
     async createLinkToken(userId) {
@@ -36,14 +25,14 @@ class PlaidService {
 
     async exchangePublicToken(publicToken, userId) {
         try {
-            // Exchange public token - exact same logic as original
+            // Exchange public token
             const tokenResponse = await this.plaidClient.itemPublicTokenExchange({
                 public_token: publicToken
             });
 
             const { access_token: accessToken, item_id: itemId } = tokenResponse.data;
 
-            // Store tokens - exact same logic as original
+            // Store tokens
             await this.db.collection('plaid_tokens').doc(userId).set({
                 linkedBank: true,
                 accessToken,
@@ -60,7 +49,6 @@ class PlaidService {
 
     async fetchTransactions(accessToken, startDate, endDate) {
         try {
-            // Exact same logic as original
             const transactionsResponse = await this.plaidClient.transactionsGet({
                 access_token: accessToken,
                 start_date: startDate,
