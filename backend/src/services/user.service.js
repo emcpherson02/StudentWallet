@@ -68,6 +68,42 @@ class UserService {
             throw new DatabaseError('Failed to update user details');
         }
     }
+
+    async deleteUser(userId) {
+        const userRef = db.collection('users').doc(userId);
+
+        // Check if user exists
+        const userDoc = await userRef.get();
+        if (!userDoc.exists) {
+            throw new Error('User not found');
+        }
+
+        // Delete all subcollections if they exist
+        const subcollections = ['budgets', 'transactions'];
+        for (const subcollection of subcollections) {
+            const subcollectionSnapshot = await userRef.collection(subcollection).get();
+            if (!subcollectionSnapshot.empty) {
+                const batch = db.batch();
+                subcollectionSnapshot.forEach((doc) => batch.delete(doc.ref));
+                await batch.commit();
+            }
+        }
+
+        // Check if Plaid token exists and delete it if it does
+        const plaidTokenRef = db.collection('plaid_tokens').doc(userId);
+        const plaidTokenDoc = await plaidTokenRef.get();
+        if (plaidTokenDoc.exists) {
+            await plaidTokenRef.delete();
+        }
+
+        // Delete user document
+        await userRef.delete();
+
+        // Remove user from Firebase Authentication
+        await admin.auth().deleteUser(userId);
+
+        return { success: true, message: 'User and associated data deleted successfully' };
+    }
 }
 
 module.exports = UserService;

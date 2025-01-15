@@ -15,6 +15,11 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.updateUser.bind(userController)
     );
 
+    router.delete(
+        '/delete_user/:userId',
+        userController.deleteUser.bind(userController)
+    )
+
     return router;
 };
 

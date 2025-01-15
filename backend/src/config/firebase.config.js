@@ -15,5 +15,5 @@ const initializeFirebase = () => {
         db: admin.firestore()
     };
 };
-
-module.exports = initializeFirebase();
+const { db } = initializeFirebase();
+module.exports = { admin, db };
