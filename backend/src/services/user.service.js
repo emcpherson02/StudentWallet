@@ -10,7 +10,7 @@ class UserService {
 
     async getUserData(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
+            const userDoc = await db.collection('users').doc(userId).get();
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
@@ -24,7 +24,7 @@ class UserService {
             }
 
             // Get linked accounts if bank is connected
-            const accountsSnapshot = await this.db
+            const accountsSnapshot = await db
                 .collection('users')
                 .doc(userId)
                 .collection('LinkedAccounts')
@@ -46,7 +46,7 @@ class UserService {
 
     async updateUser(userId, updates) {
         try {
-            const userRef = this.db.collection('users').doc(userId);
+            const userRef = db.collection('users').doc(userId);
             const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
