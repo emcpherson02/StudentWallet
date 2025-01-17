@@ -1,16 +1,15 @@
 const { DatabaseError, NotFoundError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
-const { transactionModel } = require('../models');
 
 class TransactionService {
-    constructor() {
-        this.db = transactionModel;
+    constructor(transactionModel) {
+        this.transactionModel = transactionModel;
     }
 
     async addTransaction(userId, transactionData) {
         try {
             const { amount, date, description } = transactionData;
-            const userRef = this.db.collection('users').doc(userId);
+            const userRef = this.transactionModel.collection('users').doc(userId);
             const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
@@ -37,15 +36,14 @@ class TransactionService {
 
     async getUserTransactions(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
+            const userRef = this.transactionModel.collection('users').doc(userId);
+            const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            const transactionsSnapshot = await this.db
-                .collection('users')
-                .doc(userId)
+            const transactionsSnapshot = await userRef
                 .collection('Transactions')
                 .get();
 
@@ -60,6 +58,8 @@ class TransactionService {
                 date: doc.data().date,
             }));
         } catch (error) {
+            console.error('Transaction fetch error:', error);
+
             if (error instanceof NotFoundError) {
                 throw error;
             }
@@ -67,9 +67,10 @@ class TransactionService {
         }
     }
 
+
     async deleteTransaction(userId, transactionId) {
         try {
-            const transactionRef = this.db
+            const transactionRef = this.transactionModel
                 .collection('users')
                 .doc(userId)
                 .collection('Transactions')

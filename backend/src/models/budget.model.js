@@ -17,6 +17,38 @@ class BudgetModel {
             .get();
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
+
+    async update(userId, budgetId, updates) {
+        const budgetRef = this.db
+            .collection('users')
+            .doc(userId)
+            .collection('budgets')
+            .doc(budgetId);
+
+        const budgetDoc = await budgetRef.get();
+        if (!budgetDoc.exists) {
+            return null;
+        }
+
+        await budgetRef.update(updates);
+        return { id: budgetId, ...updates };
+    }
+
+    async delete(userId, budgetId) {
+        const budgetRef = this.db
+            .collection('users')
+            .doc(userId)
+            .collection('budgets')
+            .doc(budgetId);
+
+        const budgetDoc = await budgetRef.get();
+        if (!budgetDoc.exists) {
+            return false;
+        }
+
+        await budgetRef.delete();
+        return true;
+    }
 }
 
 module.exports = BudgetModel;

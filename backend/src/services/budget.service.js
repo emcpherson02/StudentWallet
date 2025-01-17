@@ -1,9 +1,9 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
-const { budgetModel } = require('../models');
+
 
 class BudgetService {
-    constructor() {
-        this.db = budgetModel;
+    constructor(BudgetModel) {
+        this.budgetModel = BudgetModel;
     }
 
     async addBudget(userId, budgetData) {
@@ -23,7 +23,7 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate) : null,
             };
 
-            const userRef = this.db.collection('users').doc(userId);
+            const userRef = this.budgetModel.collection('users').doc(userId);
             const budgetsRef = userRef.collection('budgets');
             await budgetsRef.add(budget);
 
@@ -39,7 +39,7 @@ class BudgetService {
         }
 
         try {
-            const budgetSnapshot = await this.db
+            const budgetSnapshot = await this.budgetModel
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
@@ -60,7 +60,7 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.db
+            const budgetRef = this.budgetModel
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
@@ -96,7 +96,7 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.db
+            const budgetRef = this.budgetModel
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
