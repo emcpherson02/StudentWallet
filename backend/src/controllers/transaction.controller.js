@@ -1,6 +1,8 @@
 class TransactionController {
     constructor(transactionService) {
         this.transactionService = transactionService;
+
+
     }
 
     async addTransaction(req, res, next) {

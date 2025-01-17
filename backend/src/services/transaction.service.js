@@ -3,8 +3,10 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { transactionModel } = require('../models');
 
 class TransactionService {
-    constructor(db) {
+    constructor(db, transactionModel, userModel) {
         this.db = db;
+        this.transactionModel = transactionModel;
+        this.userModel = userModel;
     }
 
     async addTransaction(userId, transactionData) {
@@ -37,15 +39,14 @@ class TransactionService {
 
     async getUserTransactions(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
+            const userRef = this.db.collection('users').doc(userId);
+            const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            const transactionsSnapshot = await this.db
-                .collection('users')
-                .doc(userId)
+            const transactionsSnapshot = await userRef
                 .collection('Transactions')
                 .get();
 
@@ -60,12 +61,15 @@ class TransactionService {
                 date: doc.data().date,
             }));
         } catch (error) {
+            console.error('Transaction fetch error:', error);
+
             if (error instanceof NotFoundError) {
                 throw error;
             }
             throw new DatabaseError('Failed to fetch transactions');
         }
     }
+
 
     async deleteTransaction(userId, transactionId) {
         try {

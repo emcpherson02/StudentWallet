@@ -1,12 +1,10 @@
 const { DatabaseError, NotFoundError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
-const { userModel } = require('../models');
 const {admin} = require('../config/firebase.config');
 
 class UserService {
     constructor(db) {
         this.db = db;
-        this.collection = 'users';
     }
 
     async getUserData(userId) {

@@ -1,6 +1,7 @@
 class TransactionModel {
     constructor(db) {
         this.db = db;
+        this.collection = 'users';
     }
 
     async create(userId, transactionData) {
