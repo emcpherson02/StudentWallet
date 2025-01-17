@@ -1,17 +1,16 @@
 const { DatabaseError, NotFoundError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { transactionModel } = require('../models');
-const { db } = require('../config/firebase.config');
 
 class TransactionService {
-    constructor() {
-        this.db = transactionModel;
+    constructor(db) {
+        this.db = db;
     }
 
     async addTransaction(userId, transactionData) {
         try {
             const { amount, date, description } = transactionData;
-            const userRef = db.collection('users').doc(userId);
+            const userRef = this.db.collection('users').doc(userId);
             const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
@@ -38,13 +37,13 @@ class TransactionService {
 
     async getUserTransactions(userId) {
         try {
-            const userDoc = await db.collection('users').doc(userId).get();
+            const userDoc = await this.db.collection('users').doc(userId).get();
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            const transactionsSnapshot = await db
+            const transactionsSnapshot = await this.db
                 .collection('users')
                 .doc(userId)
                 .collection('Transactions')
@@ -70,7 +69,7 @@ class TransactionService {
 
     async deleteTransaction(userId, transactionId) {
         try {
-            const transactionRef = db
+            const transactionRef = this.db
                 .collection('users')
                 .doc(userId)
                 .collection('Transactions')

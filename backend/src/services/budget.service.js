@@ -1,10 +1,9 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
-const { budgetModel } = require('../models');
-const { db } = require('../config/firebase.config');
+
 
 class BudgetService {
-    constructor() {
-        this.db = budgetModel;
+    constructor(db) {
+        this.db = db;
         this.usersCollection = 'users';
     }
 
@@ -25,7 +24,7 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate) : null,
             };
 
-            const userRef = db.collection('users').doc(userId);
+            const userRef = this.db.collection('users').doc(userId);
             const budgetsRef = userRef.collection('budgets');
             await budgetsRef.add(budget);
 
@@ -41,7 +40,7 @@ class BudgetService {
         }
 
         try {
-            const budgetSnapshot = await db
+            const budgetSnapshot = await this.db
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
@@ -62,7 +61,7 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = db
+            const budgetRef = this.db
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
@@ -98,7 +97,7 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = db
+            const budgetRef = this.db
                 .collection('users')
                 .doc(userId)
                 .collection('budgets')
