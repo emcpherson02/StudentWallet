@@ -1,9 +1,9 @@
 const { DatabaseError } = require('../utils/errors');
-const { plaidClient, plaidSettings } = require('../config/plaid.config');
+const { plaidClient } = require('../config/plaid.config');
 
 class PlaidService {
-    constructor(db) {
-        this.db = db;
+    constructor(plaidModel) {  // Remove db parameter
+        this.plaidModel = plaidModel;
         this.plaidClient = plaidClient;
     }
 
@@ -25,21 +25,13 @@ class PlaidService {
 
     async exchangePublicToken(publicToken, userId) {
         try {
-            // Exchange public token
             const tokenResponse = await this.plaidClient.itemPublicTokenExchange({
                 public_token: publicToken
             });
 
             const { access_token: accessToken, item_id: itemId } = tokenResponse.data;
 
-            // Store tokens
-            await this.db.collection('plaid_tokens').doc(userId).set({
-                linkedBank: true,
-                accessToken,
-                itemId,
-                createdAt: new Date(),
-            });
-
+            await this.plaidModel.storeTokens(userId, { accessToken, itemId });
             return { success: true };
         } catch (error) {
             console.error('Error exchanging public token:', error.response?.data || error.message);
@@ -47,10 +39,15 @@ class PlaidService {
         }
     }
 
-    async fetchTransactions(accessToken, startDate, endDate) {
+    async fetchTransactions(userId, startDate, endDate) {
         try {
+            const tokens = await this.plaidModel.getTokens(userId);
+            if (!tokens) {
+                throw new DatabaseError('User or access token not found');
+            }
+
             const transactionsResponse = await this.plaidClient.transactionsGet({
-                access_token: accessToken,
+                access_token: tokens.accessToken,
                 start_date: startDate,
                 end_date: endDate,
             });
