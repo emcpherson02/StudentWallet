@@ -3,13 +3,13 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const {admin} = require('../config/firebase.config');
 
 class UserService {
-    constructor(db) {
-        this.db = db;
+    constructor(userModel) {
+        this.userModel = userModel;
     }
 
     async getUserData(userId) {
         try {
-            const userDoc = await this.db.collection('users').doc(userId).get();
+            const userDoc = await this.userModel.collection('users').doc(userId).get();
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
@@ -23,7 +23,7 @@ class UserService {
             }
 
             // Get linked accounts if bank is connected
-            const accountsSnapshot = await this.db
+            const accountsSnapshot = await this.userModel
                 .collection('users')
                 .doc(userId)
                 .collection('LinkedAccounts')
@@ -45,7 +45,7 @@ class UserService {
 
     async updateUser(userId, updates) {
         try {
-            const userRef = this.db.collection('users').doc(userId);
+            const userRef = this.userModel.collection('users').doc(userId);
             const userDoc = await userRef.get();
 
             if (!userDoc.exists) {
@@ -70,7 +70,7 @@ class UserService {
     }
 
     async deleteUser(userId) {
-        const userRef = this.db.collection('users').doc(userId);
+        const userRef = this.userModel.collection('users').doc(userId);
 
         // Check if user exists
         const userDoc = await userRef.get();
@@ -83,14 +83,14 @@ class UserService {
         for (const subcollection of subcollections) {
             const subcollectionSnapshot = await userRef.collection(subcollection).get();
             if (!subcollectionSnapshot.empty) {
-                const batch = this.db.batch();
+                const batch = this.userModel.batch();
                 subcollectionSnapshot.forEach((doc) => batch.delete(doc.ref));
                 await batch.commit();
             }
         }
 
         // Check if Plaid token exists and delete it if it does
-        const plaidTokenRef = this.db.collection('plaid_tokens').doc(userId);
+        const plaidTokenRef = this.userModel.collection('plaid_tokens').doc(userId);
         const plaidTokenDoc = await plaidTokenRef.get();
         if (plaidTokenDoc.exists) {
             await plaidTokenRef.delete();
