@@ -175,6 +175,40 @@ class BudgetService {
             throw new DatabaseError('Failed to get Budget Summary');
         }
     }
+
+    async getBudgetById(userId, budgetId) {
+        try {
+            // Get the budget document reference
+            const budgetRef = this.budgetModel
+                .collection('users')
+                .doc(userId)
+                .collection('Budgets')
+                .doc(budgetId);
+
+            // Get the budget document
+            const budgetDoc = await budgetRef.get();
+
+            // Check if the budget exists
+            if (!budgetDoc.exists) {
+                throw new NotFoundError('Budget not found');
+            }
+
+            // Return the budget data with its ID
+            return {
+                id: budgetDoc.id,
+                ...budgetDoc.data()
+            };
+        } catch (error) {
+            // If it's already a NotFoundError, rethrow it
+            if (error instanceof NotFoundError) {
+                throw error;
+            }
+            // Otherwise, wrap it in a DatabaseError
+            throw new DatabaseError('Failed to get budget');
+        }
+    }
+
+
 }
 
 module.exports = BudgetService;

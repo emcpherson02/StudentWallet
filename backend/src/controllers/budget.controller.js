@@ -1,3 +1,5 @@
+const ValidationError = require('../middleware/error.middleware');
+
 class BudgetController {
     constructor(budgetService) {
         this.budgetService = budgetService;
@@ -30,6 +32,27 @@ class BudgetController {
             res.status(200).json({
                 status: 'success',
                 budgets
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getBudgetById(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const { budgetId } = req.body;
+
+            // Validate input parameters
+            if (!userId || !budgetId) {
+                throw new ValidationError('Missing required parameters');
+            }
+
+            const budget = await this.budgetService.getBudgetById(userId, budgetId);
+
+            res.status(200).json({
+                status: 'success',
+                data: budget
             });
         } catch (error) {
             next(error);
