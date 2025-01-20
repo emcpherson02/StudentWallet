@@ -43,7 +43,7 @@ const port = process.env.PORT || 3001;
 const authService = new AuthService(db, userModel);
 const userService = new UserService(db, userModel);
 const plaidService = new PlaidService(plaidModel);
-const transactionService = new TransactionService(db, transactionModel);
+const transactionService = new TransactionService(db, transactionModel, budgetModel);
 const budgetService = new BudgetService(db, budgetModel, transactionModel);
 
 // Initialize controllers

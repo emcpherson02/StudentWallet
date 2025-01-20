@@ -1,5 +1,5 @@
 class TransactionModel {
-    constructor(db) {
+    constructor(db, budgetModel) {
         this.db = db;
         this.collection = 'users';
     }
