@@ -8,7 +8,7 @@ class TransactionService {
 
     async addTransaction(userId, transactionData) {
         try {
-            const { amount, date, description } = transactionData;
+            const { amount,category, date, description } = transactionData;
             const userRef = this.transactionModel.collection('users').doc(userId);
             const userDoc = await userRef.get();
 
@@ -18,6 +18,7 @@ class TransactionService {
 
             const transaction = {
                 Amount: amount,
+                category: category,
                 date: new Date(date),
                 Description: description,
             };
@@ -53,6 +54,7 @@ class TransactionService {
 
             return transactionsSnapshot.docs.map(doc => ({
                 id: doc.id,
+                category: doc.data().category,
                 type: doc.data().Description,
                 amount: doc.data().Amount,
                 date: doc.data().date,
