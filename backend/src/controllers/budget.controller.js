@@ -7,13 +7,10 @@ class BudgetController {
         try {
             const { userId, category, amount, period, startDate, endDate } = req.body;
 
-            const budget = await this.budgetService.addBudget(userId, {
-                category,
-                amount,
-                period,
-                startDate,
-                endDate
-            });
+            const budget = await this.budgetService.addBudget(
+                userId,
+                { category, amount, period, startDate, endDate }
+            );
 
             res.status(201).json({
                 status: 'success',
@@ -28,7 +25,7 @@ class BudgetController {
     async getBudgets(req, res, next) {
         try {
             const { userId } = req.query;
-            const budgets = await this.budgetService.getBudgets(userId);
+            const budgets = await this.budgetService.findByUserId(userId);
 
             res.status(200).json({
                 status: 'success',
@@ -72,6 +69,19 @@ class BudgetController {
                 message: 'Budget deleted successfully'
             });
         } catch (error) {
+            next(error);
+        }
+    }
+
+    async getBudgetSummary(req, res, next) {
+        try{
+            const { userId } = req.query;
+            const budgetSummary = await this.budgetService.getBudgetSummary(userId);
+            res.status(200).json({
+                status: 'success',
+                data: budgetSummary
+            });
+        }catch(error){
             next(error);
         }
     }

@@ -2,13 +2,28 @@ const { DatabaseError, ValidationError, NotFoundError } = require('../utils/erro
 
 
 class BudgetService {
-    constructor(BudgetModel) {
-        this.budgetModel = BudgetModel;
+    constructor(budgetModel, transactionModel) {
+        this.budgetModel = budgetModel;
+        this.transactionModel = transactionModel;
+        this.db = budgetModel.db;
     }
 
+    async findByUserId(userId) {
+        try {
+            const snapshot = await this.budgetModel
+                .collection('users')
+                .doc(userId)
+                .collection('Budgets')
+                .get();
+            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        } catch (error) {
+            throw new DatabaseError('Failed to get Budgets');
+        }
+    }
     async addBudget(userId, budgetData) {
         const { category, amount, period, startDate, endDate } = budgetData;
-
+        const userRef = this.budgetModel.collection('users').doc(userId);
+        const userDoc = await userRef.get();
         if (!category || !amount || !period) {
             throw new ValidationError('Missing required fields');
         }
@@ -23,34 +38,10 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate) : null,
             };
 
-            const userRef = this.budgetModel.collection('users').doc(userId);
-            const budgetsRef = userRef.collection('budgets');
-            await budgetsRef.add(budget);
-
-            return budget;
+            const budgetRef = userRef.collection('Budgets');
+            await budgetRef.add(budget);
         } catch (error) {
             throw new DatabaseError('Failed to add Budget');
-        }
-    }
-
-    async getBudgets(userId) {
-        if (!userId) {
-            throw new ValidationError('Missing userId');
-        }
-
-        try {
-            const budgetSnapshot = await this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .get();
-
-            return budgetSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-        } catch (error) {
-            throw new DatabaseError('Failed to get Budgets');
         }
     }
 
@@ -63,7 +54,7 @@ class BudgetService {
             const budgetRef = this.budgetModel
                 .collection('users')
                 .doc(userId)
-                .collection('budgets')
+                .collection('Budgets')
                 .doc(budgetId);
 
             const budgetDoc = await budgetRef.get();
@@ -114,6 +105,74 @@ class BudgetService {
                 throw error;
             }
             throw new DatabaseError('Failed to delete Budget');
+        }
+    }
+
+    async getBudgetSummary(userId) {
+        try {
+            // Fetch all budgets for the user
+            const budgetSnapshot = await this.budgetModel
+                .collection('users')
+                .doc(userId)
+                .collection('Budgets')
+                .get();
+
+            const budgets = budgetSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Fetch all transactions for the user
+            const transactionsSnapshot = await this.transactionModel.db
+                .collection('users')
+                .doc(userId)
+                .collection('Transactions')
+                .get();
+
+            const transactions = transactionsSnapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+
+            // Calculate total budget amount across all categories
+            const totalBudgets = budgets.reduce((sum, budget) =>
+                sum + (Number(budget.amount) || 0), 0);
+
+            // Calculate total amount spent across all transactions
+            const totalSpent = transactions.reduce((sum, transaction) =>
+                sum + (Number(transaction.Amount) || 0), 0);
+
+            // Generate detailed breakdown for each budget category
+            const categoryBreakdown = budgets.map(budget => {
+                // Find transactions that match this budget category
+                const categoryTransactions = transactions.filter(
+                    transaction => transaction.Description === budget.category
+                );
+
+                // Calculate total spent in this category
+                const spent = categoryTransactions.reduce((sum, transaction) =>
+                    sum + (Number(transaction.Amount) || 0), 0);
+
+                // Return comprehensive information for this category
+                return {
+                    category: budget.category,
+                    budgetAmount: Number(budget.amount) || 0,
+                    spent: spent,
+                    remaining: (Number(budget.amount) || 0) - spent,
+                    percentageUsed: budget.amount ? ((spent / budget.amount) * 100).toFixed(2) : "0.00"
+                };
+            });
+
+            // Return complete budget summary
+            return {
+                totalBudgets,
+                totalSpent,
+                remaining: totalBudgets - totalSpent,
+                categoryBreakdown
+            };
+
+        } catch (error) {
+            throw new DatabaseError('Failed to get Budget Summary');
         }
     }
 }

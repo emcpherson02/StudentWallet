@@ -1,11 +1,13 @@
 class BudgetModel {
     constructor(db) {
         this.db = db;
+        this.collection = db.collection('users');
+
     }
 
     async create(userId, budgetData) {
         const userRef = this.db.collection('users').doc(userId);
-        const budgetRef = await userRef.collection('budgets').add(budgetData);
+        const budgetRef = await userRef.collection('Budgets').add(budgetData);
         return { id: budgetRef.id, ...budgetData };
     }
 
@@ -13,7 +15,7 @@ class BudgetModel {
         const snapshot = await this.db
             .collection('users')
             .doc(userId)
-            .collection('budgets')
+            .collection('Budgets')
             .get();
         return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
     }
@@ -38,7 +40,7 @@ class BudgetModel {
         const budgetRef = this.db
             .collection('users')
             .doc(userId)
-            .collection('budgets')
+            .collection('Budgets')
             .doc(budgetId);
 
         const budgetDoc = await budgetRef.get();

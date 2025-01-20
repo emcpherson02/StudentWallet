@@ -92,6 +92,17 @@ class TransactionService {
             throw new DatabaseError('Failed to delete transaction');
         }
     }
+
+    async findUserById(userId) {
+        const userRef = this.transactionModel.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
+        }
+
+        return userDoc.data();
+    }
 }
 
 module.exports = TransactionService;

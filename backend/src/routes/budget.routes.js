@@ -29,6 +29,12 @@ const setupBudgetRoutes = (router, budgetController, authMiddleware) => {
         budgetController.deleteBudget.bind(budgetController)
     );
 
+    router.get(
+        '/analytics/summary',
+        authMiddleware.verifyToken,
+        budgetController.getBudgetSummary.bind(budgetController)
+    );
+
     return router;
 };
 

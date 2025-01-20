@@ -44,7 +44,7 @@ const authService = new AuthService(db, userModel);
 const userService = new UserService(db, userModel);
 const plaidService = new PlaidService(plaidModel);
 const transactionService = new TransactionService(db, transactionModel);
-const budgetService = new BudgetService(db, budgetModel);
+const budgetService = new BudgetService(db, budgetModel, transactionModel);
 
 // Initialize controllers
 const authController = new AuthController(authService);
