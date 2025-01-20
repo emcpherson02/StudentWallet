@@ -1,5 +1,5 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
-
+const { validateCategory } = require('../utils/constants');
 
 class BudgetService {
     constructor(budgetModel, transactionModel) {
@@ -28,14 +28,18 @@ class BudgetService {
             throw new ValidationError('Missing required fields');
         }
 
+        if (!validateCategory(category)) {
+            throw new ValidationError('Invalid category');
+        }
+
         try {
             const budget = {
                 category,
                 amount,
                 period,
                 spent: 0,
-                startDate: startDate ? new Date(startDate) : null,
-                endDate: endDate ? new Date(endDate) : null,
+                startDate: startDate ? new Date(startDate).toISOString().split('T')[0] : null,
+                endDate: endDate ? new Date(endDate).toISOString().split('T')[0] : null,
             };
 
             const budgetRef = userRef.collection('Budgets');
