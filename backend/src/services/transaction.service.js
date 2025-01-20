@@ -11,16 +11,9 @@ class TransactionService {
 
     async addTransaction(userId, transactionData) {
         try {
-            console.log('Starting addTransaction with:', { userId, transactionData });
-
             const { amount, category, date, description } = transactionData;
-            console.log('Parsed transaction data:', { amount, category, date, description });
-
             const userRef = this.db.collection('users').doc(userId);
-            console.log('User ref created');
-
             const userDoc = await userRef.get();
-            console.log('User doc exists:', userDoc.exists);
 
             if (!userDoc.exists) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
@@ -29,36 +22,27 @@ class TransactionService {
             const transaction = {
                 Amount: amount,
                 category,
-                date: new Date(date),
+                date: new Date(date).toISOString().split('T')[0],
                 Description: description,
             };
-            console.log('Transaction object created:', transaction);
 
             const transactionsRef = userRef.collection('Transactions');
-            console.log('About to add transaction');
-
             const result = await transactionsRef.add(transaction);
-            console.log('Transaction added with ID:', result.id);
 
-            // Find and update corresponding budget
             const budgetSnapshot = await userRef
                 .collection('Budgets')
                 .where('category', '==', category)
                 .get();
-            console.log('Budget snapshot empty:', budgetSnapshot.empty);
 
             if (!budgetSnapshot.empty) {
                 const budgetDoc = budgetSnapshot.docs[0];
                 const currentBudget = budgetDoc.data();
                 const newSpent = (currentBudget.spent || 0) + Number(amount);
-
                 await budgetDoc.ref.update({ spent: newSpent });
-                console.log('Budget updated with new spent amount:', newSpent);
             }
 
             return { id: result.id, ...transaction };
         } catch (error) {
-            console.error('Error in addTransaction:', error);
             throw new DatabaseError('Failed to add transaction');
         }
     }
@@ -100,7 +84,7 @@ class TransactionService {
 
     async deleteTransaction(userId, transactionId) {
         try {
-            const transactionRef = this.transactionModel
+            const transactionRef = this.db
                 .collection('users')
                 .doc(userId)
                 .collection('Transactions')
@@ -122,7 +106,7 @@ class TransactionService {
     }
 
     async findUserById(userId) {
-        const userRef = this.transactionModel.collection('users').doc(userId);
+        const userRef = this.db.collection('users').doc(userId);
         const userDoc = await userRef.get();
 
         if (!userDoc.exists) {
