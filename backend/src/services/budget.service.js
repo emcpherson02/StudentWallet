@@ -1,9 +1,10 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
-
+const { validateCategory } = require('../utils/constants');
 
 class BudgetService {
-    constructor(BudgetModel) {
-        this.budgetModel = BudgetModel;
+    constructor(budgetModel, transactionModel) {
+        this.budgetModel = budgetModel;
+        this.transactionModel = transactionModel;
     }
 
     async addBudget(userId, budgetData) {
@@ -13,21 +14,21 @@ class BudgetService {
             throw new ValidationError('Missing required fields');
         }
 
+        if (!validateCategory(category)) {
+            throw new ValidationError('Invalid category');
+        }
+
         try {
             const budget = {
                 category,
                 amount,
                 period,
                 spent: 0,
-                startDate: startDate ? new Date(startDate) : null,
-                endDate: endDate ? new Date(endDate) : null,
+                startDate: startDate ? new Date(startDate).toISOString().split('T')[0] : null,
+                endDate: endDate ? new Date(endDate).toISOString().split('T')[0] : null,
             };
 
-            const userRef = this.budgetModel.collection('users').doc(userId);
-            const budgetsRef = userRef.collection('budgets');
-            await budgetsRef.add(budget);
-
-            return budget;
+            return await this.budgetModel.create(userId, budget);
         } catch (error) {
             throw new DatabaseError('Failed to add Budget');
         }
@@ -39,16 +40,7 @@ class BudgetService {
         }
 
         try {
-            const budgetSnapshot = await this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .get();
-
-            return budgetSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            return await this.budgetModel.findByUserId(userId);
         } catch (error) {
             throw new DatabaseError('Failed to get Budgets');
         }
@@ -60,28 +52,11 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
+            const updated = await this.budgetModel.update(userId, budgetId, updates);
+            if (!updated) {
                 throw new NotFoundError('Budget not found');
             }
-
-            const budgetUpdates = {
-                ...(updates.category && { category: updates.category }),
-                ...(updates.amount && { amount: updates.amount }),
-                ...(updates.period && { period: updates.period }),
-                ...(updates.spent !== undefined && { spent: updates.spent }),
-                ...(updates.startDate && { startDate: new Date(updates.startDate) }),
-                ...(updates.endDate && { endDate: new Date(updates.endDate) }),
-            };
-
-            await budgetRef.update(budgetUpdates);
-            return { id: budgetId, ...budgetUpdates };
+            return updated;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -96,24 +71,77 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
+            const deleted = await this.budgetModel.delete(userId, budgetId);
+            if (!deleted) {
                 throw new NotFoundError('Budget not found');
             }
-
-            await budgetRef.delete();
             return true;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
             }
             throw new DatabaseError('Failed to delete Budget');
+        }
+    }
+
+    async getBudgetSummary(userId) {
+        try {
+            // Get all budgets and transactions from models
+            const budgets = await this.budgetModel.findByUserId(userId);
+            const transactions = await this.transactionModel.findByUserId(userId);
+
+            // Calculate total budget amount across all categories
+            const totalBudgets = budgets.reduce((sum, budget) =>
+                sum + (Number(budget.amount) || 0), 0);
+
+            // Calculate total amount spent across all transactions
+            const totalSpent = transactions.reduce((sum, transaction) =>
+                sum + (Number(transaction.Amount) || 0), 0);
+
+            // Generate detailed breakdown for each budget category
+            const categoryBreakdown = budgets.map(budget => {
+                // Find transactions that match this budget category
+                const categoryTransactions = transactions.filter(
+                    transaction => transaction.category === budget.category
+                );
+
+                // Calculate total spent in this category
+                const spent = categoryTransactions.reduce((sum, transaction) =>
+                    sum + (Number(transaction.Amount) || 0), 0);
+
+                // Return comprehensive information for this category
+                return {
+                    category: budget.category,
+                    budgetAmount: Number(budget.amount) || 0,
+                    spent: spent,
+                    remaining: (Number(budget.amount) || 0) - spent,
+                    percentageUsed: budget.amount ? ((spent / budget.amount) * 100).toFixed(2) : "0.00"
+                };
+            });
+
+            return {
+                totalBudgets,
+                totalSpent,
+                remaining: totalBudgets - totalSpent,
+                categoryBreakdown
+            };
+        } catch (error) {
+            throw new DatabaseError('Failed to get Budget Summary');
+        }
+    }
+
+    async getBudgetById(userId, budgetId) {
+        try {
+            const budget = await this.budgetModel.findById(userId, budgetId);
+            if (!budget) {
+                throw new NotFoundError('Budget not found');
+            }
+            return budget;
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                throw error;
+            }
+            throw new DatabaseError('Failed to get budget');
         }
     }
 }

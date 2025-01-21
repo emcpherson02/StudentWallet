@@ -1,3 +1,20 @@
+const TRANSACTION_CATEGORIES = {
+    GROCERIES: 'Groceries',
+    RENT: 'Rent',
+    UTILITIES: 'Utilities',
+    TRANSPORTATION: 'Transportation',
+    ENTERTAINMENT: 'Entertainment',
+    EDUCATION: 'Education',
+    SHOPPING: 'Shopping',
+    HEALTH: 'Health',
+    DINING: 'Dining Out',
+    OTHER: 'Other'
+};
+
+const validateCategory = (category) => {
+    return Object.values(TRANSACTION_CATEGORIES).includes(category);
+};
+
 module.exports = {
     DB_COLLECTION_USERS: 'users',
     STATUS_FAIL: 'fail',
@@ -10,4 +27,6 @@ module.exports = {
     MESSAGE_UNAUTHORIZED: 'Unauthorized',
     MESSAGE_USER_NOT_FOUND: 'User not found',
     MESSAGE_INVALID_TOKEN: 'Invalid token',
+    TRANSACTION_CATEGORIES,
+    validateCategory
 };

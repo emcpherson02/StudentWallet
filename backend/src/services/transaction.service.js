@@ -1,31 +1,39 @@
-const { DatabaseError, NotFoundError } = require('../utils/errors');
+const { DatabaseError, NotFoundError, ValidationError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
+const { validateCategory } = require('../utils/constants');
 
 class TransactionService {
-    constructor(transactionModel) {
+    constructor(transactionModel, budgetModel) {
         this.transactionModel = transactionModel;
+        this.budgetModel = budgetModel;
     }
 
     async addTransaction(userId, transactionData) {
         try {
-            const { amount, date, description } = transactionData;
-            const userRef = this.transactionModel.collection('users').doc(userId);
-            const userDoc = await userRef.get();
+            const { amount, category, date, description } = transactionData;
 
-            if (!userDoc.exists) {
-                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
-            }
-
+            // Check if user exists first
             const transaction = {
                 Amount: amount,
-                date: new Date(date),
+                category,
+                date: new Date(date).toISOString().split('T')[0],
                 Description: description,
             };
 
-            const transactionsRef = userRef.collection('Transactions');
-            await transactionsRef.add(transaction);
+            // Create transaction using the model
+            const createdTransaction = await this.transactionModel.create(userId, transaction);
 
-            return transaction;
+            // If category exists, update the corresponding budget
+            if (category) {
+                const budgets = await this.budgetModel.findByCategory(userId, category);
+                if (budgets.length > 0) {
+                    const budget = budgets[0];
+                    const newSpent = (budget.spent || 0) + Number(amount);
+                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                }
+            }
+
+            return createdTransaction;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -36,30 +44,15 @@ class TransactionService {
 
     async getUserTransactions(userId) {
         try {
-            const userRef = this.transactionModel.collection('users').doc(userId);
-            const userDoc = await userRef.get();
-
-            if (!userDoc.exists) {
-                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
-            }
-
-            const transactionsSnapshot = await userRef
-                .collection('Transactions')
-                .get();
-
-            if (transactionsSnapshot.empty) {
-                return [];
-            }
-
-            return transactionsSnapshot.docs.map(doc => ({
+            const transactions = await this.transactionModel.findByUserId(userId);
+            return transactions.map(doc => ({
                 id: doc.id,
-                type: doc.data().Description,
-                amount: doc.data().Amount,
-                date: doc.data().date,
+                type: doc.Description,
+                category: doc.category,
+                amount: doc.Amount,
+                date: doc.date,
             }));
         } catch (error) {
-            console.error('Transaction fetch error:', error);
-
             if (error instanceof NotFoundError) {
                 throw error;
             }
@@ -67,21 +60,29 @@ class TransactionService {
         }
     }
 
-
     async deleteTransaction(userId, transactionId) {
         try {
-            const transactionRef = this.transactionModel
-                .collection('users')
-                .doc(userId)
-                .collection('Transactions')
-                .doc(transactionId);
-
-            const transactionDoc = await transactionRef.get();
-            if (!transactionDoc.exists) {
+            const transaction = await this.transactionModel.findById(userId, transactionId);
+            if (!transaction) {
                 throw new NotFoundError('Transaction not found');
             }
 
-            await transactionRef.delete();
+            // If the transaction has a category, update the corresponding budget
+            if (transaction.category) {
+                const budgets = await this.budgetModel.findByCategory(userId, transaction.category);
+                if (budgets.length > 0) {
+                    const budget = budgets[0];
+                    const newSpent = (budget.spent || 0) - Number(transaction.Amount);
+                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                }
+            }
+
+            // Delete the transaction
+            const deleted = await this.transactionModel.delete(userId, transactionId);
+            if (!deleted) {
+                throw new NotFoundError('Transaction not found');
+            }
+
             return true;
         } catch (error) {
             if (error instanceof NotFoundError) {

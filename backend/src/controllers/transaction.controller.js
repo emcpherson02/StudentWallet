@@ -5,11 +5,11 @@ class TransactionController {
 
     async addTransaction(req, res, next) {
         try {
-            const { userId, amount, date, description } = req.body;
+            const { userId, amount,category, date, description } = req.body;
 
             const transaction = await this.transactionService.addTransaction(
                 userId,
-                { amount, date, description }
+                { amount,category ,date, description }
             );
 
             res.status(200).json({
