@@ -8,12 +8,21 @@ class PlaidModel {
             throw new Error('Missing required parameters');
         }
 
-        await this.db.collection('plaid_tokens').doc(userId).set({
-            linkedBank: true,
+        // Get the user document reference
+        const userRef = this.db.collection('users').doc(userId);
+
+        // Store tokens in a 'plaidTokens' subcollection
+        await userRef.collection('plaidTokens').doc('tokens').set({
             accessToken,
             itemId,
             createdAt: new Date(),
         });
+
+        // Update the linkedBank status in the user document
+        await userRef.update({
+            linkedBank: true
+        });
+
         return true;
     }
 
@@ -22,11 +31,17 @@ class PlaidModel {
             throw new Error('UserId is required');
         }
 
-        const doc = await this.db.collection('plaid_tokens').doc(userId).get();
-        if (!doc.exists) {
+        const tokensDoc = await this.db
+            .collection('users')
+            .doc(userId)
+            .collection('plaidTokens')
+            .doc('tokens')
+            .get();
+
+        if (!tokensDoc.exists) {
             return null;
         }
-        return doc.data();
+        return tokensDoc.data();
     }
 }
 

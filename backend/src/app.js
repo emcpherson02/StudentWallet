@@ -10,7 +10,7 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger.config');
 const initializePassport = require('./config/passport.config');
 
 // Import models
-const { userModel, transactionModel, budgetModel, plaidModel } = require('./models');
+const { authModel, userModel, transactionModel, budgetModel, plaidModel } = require('./models');
 
 // Import services
 const AuthService = require('./services/auth.service');
@@ -40,11 +40,11 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Initialize services with models
-const authService = new AuthService(db, userModel);
-const userService = new UserService(db, userModel);
+const authService = new AuthService(authModel);
+const userService = new UserService(userModel);
 const plaidService = new PlaidService(plaidModel);
-const transactionService = new TransactionService(db, transactionModel);
-const budgetService = new BudgetService(db, budgetModel);
+const transactionService = new TransactionService(transactionModel, budgetModel);
+const budgetService = new BudgetService(budgetModel, transactionModel);
 
 // Initialize controllers
 const authController = new AuthController(authService);
