@@ -2,7 +2,7 @@ const { DatabaseError } = require('../utils/errors');
 const { plaidClient } = require('../config/plaid.config');
 
 class PlaidService {
-    constructor(plaidModel) {  // Remove db parameter
+    constructor(plaidModel) {
         this.plaidModel = plaidModel;
         this.plaidClient = plaidClient;
     }
@@ -13,7 +13,7 @@ class PlaidService {
                 user: { client_user_id: userId },
                 client_name: 'StudentWallet',
                 products: ['auth', 'transactions'],
-                country_codes: ['US'],
+                country_codes: ['GB'],
                 language: 'en',
             });
             return linkTokenResponse.data.link_token;
@@ -31,11 +31,48 @@ class PlaidService {
 
             const { access_token: accessToken, item_id: itemId } = tokenResponse.data;
 
+            // Store tokens
             await this.plaidModel.storeTokens(userId, { accessToken, itemId });
-            return { success: true };
+
+            // Immediately fetch accounts after linking
+            const accounts = await this.getAccounts(userId);
+
+            return {
+                success: true,
+                accounts
+            };
         } catch (error) {
             console.error('Error exchanging public token:', error.response?.data || error.message);
             throw new DatabaseError('Could not exchange public token.');
+        }
+    }
+
+    async getAccounts(userId) {
+        try {
+            const tokens = await this.plaidModel.getTokens(userId);
+            if (!tokens) {
+                throw new DatabaseError('No access token found for user');
+            }
+
+            const accountsResponse = await this.plaidClient.accountsGet({
+                access_token: tokens.accessToken
+            });
+
+            return accountsResponse.data.accounts.map(account => ({
+                id: account.account_id,
+                name: account.name,
+                type: account.type,
+                subtype: account.subtype,
+                balance: {
+                    available: account.balances.available,
+                    current: account.balances.current,
+                    limit: account.balances.limit,
+                    isoCurrencyCode: account.balances.iso_currency_code
+                }
+            }));
+        } catch (error) {
+            console.error('Error fetching accounts:', error.response?.data || error.message);
+            throw new DatabaseError('Could not fetch accounts.');
         }
     }
 
@@ -43,18 +80,70 @@ class PlaidService {
         try {
             const tokens = await this.plaidModel.getTokens(userId);
             if (!tokens) {
-                throw new DatabaseError('User or access token not found');
+                throw new DatabaseError('No access token found for user');
             }
 
-            const transactionsResponse = await this.plaidClient.transactionsGet({
+            // Let's add some debug logging
+            console.log('Start Date:', startDate);
+            console.log('End Date:', endDate);
+            console.log('Access Token:', tokens.accessToken ? 'exists' : 'missing');
+
+            let allTransactions = [];
+            let hasMore = true;
+            let cursor = null;
+
+            // Initial request without cursor
+            const initialRequest = {
                 access_token: tokens.accessToken,
-                start_date: startDate,
-                end_date: endDate,
-            });
-            return transactionsResponse.data.transactions;
+            };
+
+            // Use transactionsSync instead of get
+            const response = await this.plaidClient.transactionsSync(initialRequest);
+            const data = response.data;
+
+            // Transform transactions
+            return data.added.map(transaction => ({
+                id: transaction.transaction_id,
+                amount: transaction.amount,
+                date: transaction.date,
+                description: transaction.name,
+                merchant: transaction.merchant_name,
+                category: transaction.personal_finance_category?.primary,
+                subCategory: transaction.personal_finance_category?.detailed,
+                pending: transaction.pending,
+                accountId: transaction.account_id
+            }));
         } catch (error) {
-            console.error('Error fetching transactions:', error.response?.data || error.message);
+            console.error('Detailed Plaid Error:', error.response?.data || error);
             throw new DatabaseError('Could not fetch transactions.');
+        }
+    }
+
+    async getBalances(userId) {
+        try {
+            const tokens = await this.plaidModel.getTokens(userId);
+            if (!tokens) {
+                throw new DatabaseError('No access token found for user');
+            }
+
+            const response = await this.plaidClient.accountsBalanceGet({
+                access_token: tokens.accessToken
+            });
+
+            return response.data.accounts.map(account => ({
+                id: account.account_id,
+                name: account.name,
+                type: account.type,
+                balance: {
+                    available: account.balances.available,
+                    current: account.balances.current,
+                    limit: account.balances.limit,
+                    isoCurrencyCode: account.balances.iso_currency_code
+                }
+            }));
+        } catch (error) {
+            console.error('Error fetching balances:', error.response?.data || error.message);
+            throw new DatabaseError('Could not fetch balances.');
         }
     }
 }

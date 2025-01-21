@@ -5,25 +5,11 @@ class BudgetService {
     constructor(budgetModel, transactionModel) {
         this.budgetModel = budgetModel;
         this.transactionModel = transactionModel;
-        this.db = budgetModel.db;
     }
 
-    async findByUserId(userId) {
-        try {
-            const snapshot = await this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('Budgets')
-                .get();
-            return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-        } catch (error) {
-            throw new DatabaseError('Failed to get Budgets');
-        }
-    }
     async addBudget(userId, budgetData) {
         const { category, amount, period, startDate, endDate } = budgetData;
-        const userRef = this.budgetModel.collection('users').doc(userId);
-        const userDoc = await userRef.get();
+
         if (!category || !amount || !period) {
             throw new ValidationError('Missing required fields');
         }
@@ -42,10 +28,21 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate).toISOString().split('T')[0] : null,
             };
 
-            const budgetRef = userRef.collection('Budgets');
-            await budgetRef.add(budget);
+            return await this.budgetModel.create(userId, budget);
         } catch (error) {
             throw new DatabaseError('Failed to add Budget');
+        }
+    }
+
+    async getBudgets(userId) {
+        if (!userId) {
+            throw new ValidationError('Missing userId');
+        }
+
+        try {
+            return await this.budgetModel.findByUserId(userId);
+        } catch (error) {
+            throw new DatabaseError('Failed to get Budgets');
         }
     }
 
@@ -55,28 +52,11 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('Budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
+            const updated = await this.budgetModel.update(userId, budgetId, updates);
+            if (!updated) {
                 throw new NotFoundError('Budget not found');
             }
-
-            const budgetUpdates = {
-                ...(updates.category && { category: updates.category }),
-                ...(updates.amount && { amount: updates.amount }),
-                ...(updates.period && { period: updates.period }),
-                ...(updates.spent !== undefined && { spent: updates.spent }),
-                ...(updates.startDate && { startDate: new Date(updates.startDate) }),
-                ...(updates.endDate && { endDate: new Date(updates.endDate) }),
-            };
-
-            await budgetRef.update(budgetUpdates);
-            return { id: budgetId, ...budgetUpdates };
+            return updated;
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -91,18 +71,10 @@ class BudgetService {
         }
 
         try {
-            const budgetRef = this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('budgets')
-                .doc(budgetId);
-
-            const budgetDoc = await budgetRef.get();
-            if (!budgetDoc.exists) {
+            const deleted = await this.budgetModel.delete(userId, budgetId);
+            if (!deleted) {
                 throw new NotFoundError('Budget not found');
             }
-
-            await budgetRef.delete();
             return true;
         } catch (error) {
             if (error instanceof NotFoundError) {
@@ -114,29 +86,9 @@ class BudgetService {
 
     async getBudgetSummary(userId) {
         try {
-            // Fetch all budgets for the user
-            const budgetSnapshot = await this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('Budgets')
-                .get();
-
-            const budgets = budgetSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
-
-            // Fetch all transactions for the user
-            const transactionsSnapshot = await this.transactionModel.db
-                .collection('users')
-                .doc(userId)
-                .collection('Transactions')
-                .get();
-
-            const transactions = transactionsSnapshot.docs.map(doc => ({
-                id: doc.id,
-                ...doc.data()
-            }));
+            // Get all budgets and transactions from models
+            const budgets = await this.budgetModel.findByUserId(userId);
+            const transactions = await this.transactionModel.findByUserId(userId);
 
             // Calculate total budget amount across all categories
             const totalBudgets = budgets.reduce((sum, budget) =>
@@ -150,7 +102,7 @@ class BudgetService {
             const categoryBreakdown = budgets.map(budget => {
                 // Find transactions that match this budget category
                 const categoryTransactions = transactions.filter(
-                    transaction => transaction.Description === budget.category
+                    transaction => transaction.category === budget.category
                 );
 
                 // Calculate total spent in this category
@@ -167,14 +119,12 @@ class BudgetService {
                 };
             });
 
-            // Return complete budget summary
             return {
                 totalBudgets,
                 totalSpent,
                 remaining: totalBudgets - totalSpent,
                 categoryBreakdown
             };
-
         } catch (error) {
             throw new DatabaseError('Failed to get Budget Summary');
         }
@@ -182,37 +132,18 @@ class BudgetService {
 
     async getBudgetById(userId, budgetId) {
         try {
-            // Get the budget document reference
-            const budgetRef = this.budgetModel
-                .collection('users')
-                .doc(userId)
-                .collection('Budgets')
-                .doc(budgetId);
-
-            // Get the budget document
-            const budgetDoc = await budgetRef.get();
-
-            // Check if the budget exists
-            if (!budgetDoc.exists) {
+            const budget = await this.budgetModel.findById(userId, budgetId);
+            if (!budget) {
                 throw new NotFoundError('Budget not found');
             }
-
-            // Return the budget data with its ID
-            return {
-                id: budgetDoc.id,
-                ...budgetDoc.data()
-            };
+            return budget;
         } catch (error) {
-            // If it's already a NotFoundError, rethrow it
             if (error instanceof NotFoundError) {
                 throw error;
             }
-            // Otherwise, wrap it in a DatabaseError
             throw new DatabaseError('Failed to get budget');
         }
     }
-
-
 }
 
 module.exports = BudgetService;

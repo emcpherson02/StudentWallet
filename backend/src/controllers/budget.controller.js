@@ -27,7 +27,7 @@ class BudgetController {
     async getBudgets(req, res, next) {
         try {
             const { userId } = req.query;
-            const budgets = await this.budgetService.findByUserId(userId);
+            const budgets = await this.budgetService.getBudgets(userId);  // Changed to match service method name
 
             res.status(200).json({
                 status: 'success',
