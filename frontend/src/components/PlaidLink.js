@@ -309,24 +309,20 @@ function PlaidLink() {
 
                 <div className={`${styles.card} ${styles.transactionsSection}`}>
                     <h2>Transactions</h2>
-                    {linkedBank ? (
-                        transactions.length > 0 ? (
-                            <ul>
-                                {transactions.map((transaction, index) => (
-                                    <li key={index} className={styles.transactionItem}>
-                                        <div><strong>Type:</strong> {transaction.type}</div>
-                                        <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
-                                        <div>
-                                            <strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()} - {new Date(transaction.date).toLocaleTimeString()}
-                                        </div>
-                                    </li>
-                                ))}
-                            </ul>
-                        ) : (
-                            <p>No transactions available.</p>
-                        )
+                    {transactions.length > 0 ? (
+                        <ul>
+                            {transactions.map((transaction, index) => (
+                                <li key={index} className={styles.transactionItem}>
+                                    <div><strong>Type:</strong> {transaction.type}</div>
+                                    <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
+                                    <div>
+                                        <strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()} - {new Date(transaction.date).toLocaleTimeString()}
+                                    </div>
+                                </li>
+                            ))}
+                        </ul>
                     ) : (
-                        <p>Link your bank account or Add Transactions Manually to view transactions.</p>
+                        <p>No transactions available.</p>
                     )}
                 </div>
 
@@ -340,8 +336,10 @@ function PlaidLink() {
                                     <div><strong>Amount:</strong> £{budget.amount}</div>
                                     <div><strong>Spent:</strong> £{budget.spent}</div>
                                     <div><strong>Period:</strong> {budget.period}</div>
-                                    <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}</div>
-                                    <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}</div>
+                                    <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}
+                                    </div>
+                                    <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}
+                                    </div>
                                 </li>
                             ))}
                         </ul>
