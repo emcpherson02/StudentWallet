@@ -83,7 +83,6 @@ class PlaidService {
                 throw new DatabaseError('No access token found for user');
             }
 
-            // Let's add some debug logging
             console.log('Start Date:', startDate);
             console.log('End Date:', endDate);
             console.log('Access Token:', tokens.accessToken ? 'exists' : 'missing');
