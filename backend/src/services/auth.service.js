@@ -7,8 +7,9 @@ const {
 } = require('../utils/constants');
 
 class AuthService {
-    constructor(authModel) {
+    constructor(authModel, balanceService) {
         this.authModel = authModel;
+        this.balanceService = balanceService;
     }
 
     async loginUser(email, password) {
@@ -34,7 +35,6 @@ class AuthService {
 
         try {
             const existingUser = await this.authModel.findByEmail(email);
-
             if (existingUser) {
                 throw new AuthenticationError(MESSAGE_USER_EXISTS);
             }
@@ -52,15 +52,16 @@ class AuthService {
                 password
             });
 
+            // Initialize balance for new user
+            await this.balanceService.setInitialBalance(userRecord.uid, 0);
+
             return {
                 uid: userRecord.uid,
                 email: userRecord.email,
                 displayName: userRecord.displayName
             };
         } catch (error) {
-            if (error instanceof AuthenticationError) {
-                throw error;
-            }
+            if (error instanceof AuthenticationError) throw error;
             throw new DatabaseError(MESSAGE_ERROR_OCCURRED);
         }
     }

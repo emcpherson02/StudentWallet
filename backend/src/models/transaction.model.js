@@ -1,3 +1,5 @@
+const { ValidationError, NotFoundError } = require('../utils/errors');
+
 class TransactionModel {
     constructor(db, budgetModel) {
         this.db = db;
@@ -12,7 +14,16 @@ class TransactionModel {
             throw new NotFoundError('User not found');
         }
 
-        const transactionRef = await userRef.collection('Transactions').add(transactionData);
+        // Ensure transactionType is present
+        if (!transactionData.type) {
+            throw new ValidationError('Transaction type is required');
+        }
+
+        const transactionRef = await userRef.collection('Transactions').add({
+            ...transactionData,
+            timestamp: new Date().toISOString()
+        });
+
         return { id: transactionRef.id, ...transactionData };
     }
 

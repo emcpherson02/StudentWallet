@@ -3,50 +3,54 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { validateCategory } = require('../utils/constants');
 
 class TransactionService {
-    constructor(transactionModel, budgetModel) {
+    constructor(transactionModel, budgetModel, balanceService) {
         this.transactionModel = transactionModel;
         this.budgetModel = budgetModel;
+        this.balanceService = balanceService;
     }
 
     async addTransaction(userId, transactionData) {
         try {
-            const { amount, category, date, description } = transactionData;
+            const { amount, category, date, description, transactionType } = transactionData;
 
-            // Check if user exists first
             const transaction = {
                 Amount: amount,
                 category,
                 date: new Date(date).toISOString().split('T')[0],
                 Description: description,
+                type: transactionType
             };
 
-            // Create transaction using the model
+            console.log('Creating transaction:', transaction); // Debug log
+
             const createdTransaction = await this.transactionModel.create(userId, transaction);
 
-            // If category exists, update the corresponding budget
-            if (category) {
+            console.log('Transaction created:', createdTransaction); // Debug log
+
+            try {
+                if (transactionType === 'expense') {
+                    await this.balanceService.deductFromBalance(userId, Number(amount));
+                } else {
+                    await this.balanceService.addToBalance(userId, Number(amount));
+                }
+            } catch (balanceError) {
+                console.error('Balance update error:', balanceError); // Debug log
+                throw balanceError;
+            }
+
+            if (transactionType === 'expense' && category) {
                 const budgets = await this.budgetModel.findByCategory(userId, category);
                 if (budgets.length > 0) {
-                    const budget = budgets[0]; // Get the first matching budget
-
-                    // Update the spent amount as before
+                    const budget = budgets[0];
                     const newSpent = (budget.spent || 0) + Number(amount);
                     await this.budgetModel.update(userId, budget.id, { spent: newSpent });
-
-                    // Link the transaction to the budget
-                    await this.budgetModel.linkTransactionToBudget(
-                        userId,
-                        budget.id,
-                        createdTransaction.id
-                    );
+                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, createdTransaction.id);
                 }
             }
 
             return createdTransaction;
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
+            console.error('Transaction error:', error); // Debug log
             throw new DatabaseError('Failed to add transaction');
         }
     }
@@ -77,6 +81,13 @@ class TransactionService {
             const transaction = await this.transactionModel.findById(userId, transactionId);
             if (!transaction) {
                 throw new NotFoundError('Transaction not found');
+            }
+
+            // Update balance
+            if (transaction.type === 'expense') {
+                await this.balanceService.addToBalance(userId, Number(transaction.Amount));
+            } else {
+                await this.balanceService.deductFromBalance(userId, Number(transaction.Amount));
             }
 
             // Find budgets that have this transaction

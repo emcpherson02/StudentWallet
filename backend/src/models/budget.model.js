@@ -1,5 +1,3 @@
-const {budgetModel} = require("./index");
-
 class BudgetModel {
     constructor(db) {
         this.db = db;
