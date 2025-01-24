@@ -71,6 +71,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
                         <option value="Utilities">Utilities</option>
                         <option value="Entertainment">Entertainment</option>
                         <option value="Transportation">Transportation</option>
+                        <option value="Rent">Rent</option>
                         <option value="Other">Other</option>
                     </select>
                 </div>

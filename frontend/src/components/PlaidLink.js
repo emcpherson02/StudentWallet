@@ -39,12 +39,64 @@ function PlaidLink() {
 
       const { linkedBank, accounts } = response.data;
       setLinkedBank(linkedBank);
-      setAccounts(accounts || []);
+      if (linkedBank) {
+        // Only fetch Plaid data if bank is linked
+        await fetchPlaidAccounts();
+        await fetchPlaidTransactions();
+      }
+        setAccounts(accounts || []);
     } catch (error) {
       console.error('Error fetching user details:', error);
       setMessage('Failed to fetch user details.');
     }
   }, [currentUser]);
+
+  const fetchPlaidAccounts = async () => {
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setAccounts(response.data.accounts || []);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    }
+  };
+
+  const fetchPlaidTransactions = async () => {
+    try {
+      const token = await currentUser.getIdToken();
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+      const response = await axios.get(
+          `http://localhost:3001/plaid/transactions/${currentUser.uid}`,
+          {
+            params: { startDate, endDate },
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+      );
+
+      if (response.data && response.data.transactions) {
+        const formattedTransactions = response.data.transactions.map(trans => ({
+          type: trans.description,
+          amount: trans.amount,
+          date: new Date(trans.date),
+        }));
+        setTransactions(formattedTransactions);
+      }
+    } catch (error) {
+      // Don't show error message if user hasn't linked bank yet
+      if (linkedBank) {
+        console.error('Error fetching Plaid transactions:', error);
+        setMessage('Failed to fetch bank transactions. Manual transactions still available.');
+      }
+    }
+  };
 
   const fetchTransactions = useCallback(async () => {
     if (!currentUser) return;
@@ -103,39 +155,64 @@ function PlaidLink() {
     appRef.current.classList.remove('modal-open');
   }, [fetchBudgets]);
 
-  const startPlaidLink = useCallback(async () => {
-    if (!currentUser) return;
-
+  const startPlaidLink = async () => {
     try {
       const token = await currentUser.getIdToken();
-      const linkTokenResponse = await axios.post(
-        'http://localhost:3001/plaid/create_link_token',
-        { userId: currentUser.uid },
-        { headers: { Authorization: `Bearer ${token}` } }
+      const response = await axios.post('http://localhost:3001/plaid/create_link_token',
+          {
+            userId: currentUser.uid,
+          },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
       );
+      const linkToken = response.data.linkToken;
 
-      const linkToken = linkTokenResponse.data.link_token;
       const handler = window.Plaid.create({
         token: linkToken,
         onSuccess: async (publicToken) => {
           try {
-            const token = await currentUser.getIdToken();
-            await axios.post(
-              'http://localhost:3001/plaid/exchange_public_token',
-              { publicToken, userId: currentUser.uid },
-              { headers: { Authorization: `Bearer ${token}` } }
+            const exchangeResponse = await axios.post('http://localhost:3001/plaid/exchange_public_token',
+                {
+                  publicToken,
+                  userId: currentUser.uid,
+                },
+                {
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
             );
 
             setMessage('Plaid account linked successfully!');
             setLinkedBank(true);
-            fetchUserDetails();
-            fetchTransactions();
+            setAccounts(exchangeResponse.data.accounts || []);
+
+            // Refresh transactions after linking
+            const endDate = new Date().toISOString().split('T')[0];
+            const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+            const transResponse = await axios.get(`http://localhost:3001/plaid/transactions/${currentUser.uid}`, {
+              params: { startDate, endDate },
+              headers: {
+                Authorization: `Bearer ${token}`
+              }
+            });
+
+            const formattedTransactions = transResponse.data.transactions.map(trans => ({
+              type: trans.description,
+              amount: trans.amount,
+              date: new Date(trans.date),
+            }));
+
+            setTransactions(formattedTransactions);
           } catch (error) {
             console.error('Error exchanging public token:', error);
             setMessage('Failed to link account.');
           }
         },
-        onExit: (err) => {
+        onExit: (err, metadata) => {
           if (err) {
             console.error('Error during Plaid Link:', err);
             setMessage('Error connecting to bank.');
@@ -148,7 +225,7 @@ function PlaidLink() {
       console.error('Error fetching link token:', error);
       setMessage('Failed to start Plaid Link.');
     }
-  }, [currentUser, fetchUserDetails, fetchTransactions]);
+  };
 
   const handleLogout = useCallback(async () => {
     try {
