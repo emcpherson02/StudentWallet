@@ -232,24 +232,20 @@ function PlaidLink() {
             Add Transaction
           </button>
 
-          {linkedBank ? (
-            transactions.length > 0 ? (
+          {transactions.length > 0 ? (
               <ul>
                 {transactions.map((transaction, index) => (
-                  <li key={index} className={styles.transactionItem}>
-                    <div><strong>Type:</strong> {transaction.type}</div>
-                    <div><strong>Amount:</strong> £{transaction.amount}</div>
-                    <div>
-                      <strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()} - {new Date(transaction.date).toLocaleTimeString()}
-                    </div>
-                  </li>
+                    <li key={index} className={styles.transactionItem}>
+                      <div><strong>Type:</strong> {transaction.type}</div>
+                      <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
+                      <div>
+                        <strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()} - {new Date(transaction.date).toLocaleTimeString()}
+                      </div>
+                    </li>
                 ))}
               </ul>
-            ) : (
-              <p>No transactions available.</p>
-            )
           ) : (
-            <p>Link your bank account or Add Transactions Manually to view transactions.</p>
+              <p>No transactions available.</p>
           )}
 
           {isTransactionModalOpen && (
