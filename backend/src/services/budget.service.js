@@ -48,6 +48,10 @@ class BudgetService {
     }
 
     async updateBudget(userId, budgetId, updates) {
+        if (!userId || !budgetId) {
+            throw new ValidationError('Missing required parameters');
+        }
+
         try {
             const updated = await this.budgetModel.update(userId, budgetId, updates);
             if (!updated) {

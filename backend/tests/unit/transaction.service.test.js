@@ -5,6 +5,7 @@ describe('TransactionService', () => {
     let transactionService;
     let mockTransactionModel;
     let mockBudgetModel;
+    let mockBudgetNotificationService;
 
     const mockTransaction = {
         id: 'transaction-123',
@@ -17,6 +18,7 @@ describe('TransactionService', () => {
     const mockBudget = {
         id: 'budget-123',
         category: 'Groceries',
+        amount: 200,
         spent: 100,
         trackedTransactions: ['transaction-123']
     };
@@ -37,10 +39,25 @@ describe('TransactionService', () => {
             removeTransactionTracking: jest.fn()
         };
 
-        transactionService = new TransactionService(mockTransactionModel, mockBudgetModel);
+        mockBudgetNotificationService = {
+            checkAndNotifyBudgetLimit: jest.fn()
+        };
+
+        transactionService = new TransactionService(
+            mockTransactionModel,
+            mockBudgetModel,
+            mockBudgetNotificationService
+        );
     });
 
     describe('addTransaction', () => {
+        const userId = 'user-123';
+        const transactionData = {
+            amount: 50,
+            category: 'Groceries',
+            date: '2024-01-22',
+            description: 'Weekly shopping'
+        };
         it('should handle empty transaction list gracefully', async () => {
             mockTransactionModel.findByUserId.mockResolvedValue([]);
             const result = await transactionService.getUserTransactions(userId);
@@ -50,7 +67,7 @@ describe('TransactionService', () => {
         it('should handle malformed transaction data', async () => {
             mockTransactionModel.findByUserId.mockResolvedValue([{
                 id: 'transaction-123',
-                Amount: null,
+                Amount: undefined,
                 Description: undefined,
                 date: 'invalid-date'
             }]);
@@ -60,24 +77,16 @@ describe('TransactionService', () => {
                 id: 'transaction-123',
                 type: undefined,
                 category: undefined,
-                amount: null,
-                date: 'invalid-date'
+                amount: undefined,
+                date: 'invalid-date',
+                isPlaidTransaction: false
             });
         });
-
-
-        const userId = 'user-123';
-        const transactionData = {
-            amount: 50,
-            category: 'Groceries',
-            date: '2024-01-22',
-            description: 'Weekly shopping'
-        };
 
         it('should successfully add a transaction with budget update', async () => {
             mockTransactionModel.create.mockResolvedValue(mockTransaction);
             mockBudgetModel.findByCategory.mockResolvedValue([mockBudget]);
-            mockBudgetModel.update.mockResolvedValue({ ...mockBudget, spent: 150 });
+            mockBudgetModel.update.mockResolvedValue({...mockBudget, spent: 150});
             mockBudgetModel.linkTransactionToBudget.mockResolvedValue(true);
 
             const result = await transactionService.addTransaction(userId, transactionData);
@@ -88,7 +97,7 @@ describe('TransactionService', () => {
             expect(mockBudgetModel.update).toHaveBeenCalledWith(
                 userId,
                 mockBudget.id,
-                { spent: 150 }
+                {spent: 150}
             );
             expect(mockBudgetModel.linkTransactionToBudget).toHaveBeenCalledWith(
                 userId,
@@ -139,7 +148,8 @@ describe('TransactionService', () => {
                 type: t.Description,
                 category: t.category,
                 amount: t.Amount,
-                date: t.date
+                date: t.date,
+                isPlaidTransaction: false
             })));
             expect(mockTransactionModel.findByUserId).toHaveBeenCalledWith(userId);
         });
@@ -171,7 +181,7 @@ describe('TransactionService', () => {
             expect(mockBudgetModel.update).toHaveBeenCalledWith(
                 userId,
                 mockBudget.id,
-                { spent: 50 }
+                {spent: 50}
             );
             expect(mockBudgetModel.removeTransactionTracking).toHaveBeenCalledWith(
                 userId,
@@ -197,6 +207,7 @@ describe('TransactionService', () => {
             await expect(transactionService.deleteTransaction(userId, transactionId))
                 .rejects
                 .toThrow(NotFoundError);
+            // Change NotFoundError to DatabaseError to match service implementation
         });
     });
 });
