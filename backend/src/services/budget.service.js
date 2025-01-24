@@ -2,9 +2,10 @@ const { DatabaseError, ValidationError, NotFoundError } = require('../utils/erro
 const { validateCategory } = require('../utils/constants');
 
 class BudgetService {
-    constructor(budgetModel, transactionModel) {
+    constructor(budgetModel, transactionModel, budgetNotificationService) {
         this.budgetModel = budgetModel;
         this.transactionModel = transactionModel;
+        this.budgetNotificationService = budgetNotificationService;
     }
 
     async addBudget(userId, budgetData) {
@@ -47,20 +48,25 @@ class BudgetService {
     }
 
     async updateBudget(userId, budgetId, updates) {
-        if (!userId || !budgetId) {
-            throw new ValidationError('Missing required parameters');
-        }
-
         try {
             const updated = await this.budgetModel.update(userId, budgetId, updates);
             if (!updated) {
                 throw new NotFoundError('Budget not found');
             }
+
+            // Check if budget limit is reached after update
+            if (updated.spent >= updated.amount) {
+                await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                    userId,
+                    updated.category,
+                    updated.spent,
+                    updated.amount
+                );
+            }
+
             return updated;
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
+            if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to update Budget');
         }
     }

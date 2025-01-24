@@ -2,10 +2,11 @@ const { DatabaseError } = require('../utils/errors');
 const { plaidClient } = require('../config/plaid.config');
 
 class PlaidService {
-    constructor(plaidModel, budgetModel) {
+    constructor(plaidModel, budgetModel, budgetNotificationService) {
         this.plaidModel = plaidModel;
         this.plaidClient = plaidClient;
         this.budgetModel = budgetModel;
+        this.budgetNotificationService = budgetNotificationService;
     }
 
     async createLinkToken(userId) {
@@ -113,15 +114,28 @@ class PlaidService {
                     isPlaidTransaction: true
                 }));
 
-            for (const transaction of transformedTransactions) {
-                const createdTransaction = await this.plaidModel.createTransaction(userId, transaction);
+            if (transformedTransactions.length > 0) {
+                const storedTransactions = await this.plaidModel.createTransaction(userId, transformedTransactions);
 
-                const budgets = await this.budgetModel.findByCategory(userId, transaction.category);
-                if (budgets.length > 0) {
-                    const budget = budgets[0];
-                    const newSpent = (budget.spent || 0) + Number(transaction.Amount);
-                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
-                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, createdTransaction.id);
+                // Process each stored transaction and link to budget
+                for (const transaction of storedTransactions) {
+                    const budgets = await this.budgetModel.findByCategory(userId, transaction.category);
+                    if (budgets.length > 0) {
+                        const budget = budgets[0];
+                        const newSpent = (budget.spent || 0) + Number(transaction.Amount);
+                        await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+
+                        // Link transaction ID to budget
+                        await this.budgetModel.linkTransactionToBudget(userId, budget.id, transaction.id);
+
+                        // Send notification if budget exceeded
+                        await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                            userId,
+                            transaction.category,
+                            newSpent,
+                            budget.amount
+                        );
+                    }
                 }
             }
 

@@ -3,16 +3,16 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { validateCategory } = require('../utils/constants');
 
 class TransactionService {
-    constructor(transactionModel, budgetModel) {
+    constructor(transactionModel, budgetModel, budgetNotificationService) {
         this.transactionModel = transactionModel;
         this.budgetModel = budgetModel;
+        this.budgetNotificationService = budgetNotificationService;
     }
 
     async addTransaction(userId, transactionData) {
         try {
             const { amount, category, date, description } = transactionData;
 
-            // Check if user exists first
             const transaction = {
                 Amount: amount,
                 category,
@@ -20,33 +20,30 @@ class TransactionService {
                 Description: description,
             };
 
-            // Create transaction using the model
             const createdTransaction = await this.transactionModel.create(userId, transaction);
 
-            // If category exists, update the corresponding budget
             if (category) {
                 const budgets = await this.budgetModel.findByCategory(userId, category);
                 if (budgets.length > 0) {
-                    const budget = budgets[0]; // Get the first matching budget
-
-                    // Update the spent amount as before
+                    const budget = budgets[0];
                     const newSpent = (budget.spent || 0) + Number(amount);
-                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
 
-                    // Link the transaction to the budget
-                    await this.budgetModel.linkTransactionToBudget(
+                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, createdTransaction.id);
+
+                    // Check budget limit and send notification if needed
+                    await this.budgetNotificationService.checkAndNotifyBudgetLimit(
                         userId,
-                        budget.id,
-                        createdTransaction.id
+                        category,
+                        newSpent,
+                        budget.amount
                     );
                 }
             }
 
             return createdTransaction;
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
+            if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to add transaction');
         }
     }
