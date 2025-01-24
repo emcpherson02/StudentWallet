@@ -69,14 +69,20 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
 
                 <div className="form-group">
                     <label>Category</label>
-                    <input
-                        type="text"
+                    <select
                         name="category"
                         value={formData.category}
                         onChange={handleChange}
                         required
-                        placeholder="Enter Transaction Category"
-                    />
+                    >
+                        <option value="">Select Category</option>
+                        <option value="Groceries">Groceries</option>
+                        <option value="Utilities">Utilities</option>
+                        <option value="Entertainment">Entertainment</option>
+                        <option value="Transportation">Transportation</option>
+                        <option value="Rent">Rent</option>
+                        <option value="Other">Other</option>
+                    </select>
                 </div>
 
                 <div className="form-group">
