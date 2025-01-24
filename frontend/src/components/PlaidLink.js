@@ -83,14 +83,13 @@ function PlaidLink() {
 
       if (response.data && response.data.transactions) {
         const formattedTransactions = response.data.transactions.map(trans => ({
-          type: trans.description,
-          amount: trans.amount,
-          date: new Date(trans.date),
+          type: trans.Description,
+          amount: trans.Amount,
+          date: new Date(trans.date)
         }));
         setTransactions(formattedTransactions);
       }
     } catch (error) {
-      // Don't show error message if user hasn't linked bank yet
       if (linkedBank) {
         console.error('Error fetching Plaid transactions:', error);
         setMessage('Failed to fetch bank transactions. Manual transactions still available.');

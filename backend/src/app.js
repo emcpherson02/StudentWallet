@@ -42,7 +42,7 @@ const port = process.env.PORT || 3001;
 // Initialize services with models
 const authService = new AuthService(authModel);
 const userService = new UserService(userModel);
-const plaidService = new PlaidService(plaidModel);
+const plaidService = new PlaidService(plaidModel, budgetModel);
 const transactionService = new TransactionService(transactionModel, budgetModel);
 const budgetService = new BudgetService(budgetModel, transactionModel);
 

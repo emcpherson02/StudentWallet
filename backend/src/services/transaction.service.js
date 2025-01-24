@@ -56,10 +56,11 @@ class TransactionService {
             const transactions = await this.transactionModel.findByUserId(userId);
             return transactions.map(doc => ({
                 id: doc.id,
-                type: doc.Description,
+                type: doc.Description || doc.description,
                 category: doc.category,
-                amount: doc.Amount,
+                amount: doc.Amount || doc.amount,
                 date: doc.date,
+                isPlaidTransaction: doc.isPlaidTransaction || false
             }));
         } catch (error) {
             if (error instanceof NotFoundError) {
