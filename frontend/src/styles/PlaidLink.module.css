@@ -1,0 +1,256 @@
+.PlaidLink {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    text-align: center;
+}
+
+.linkButton {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 20px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+}
+
+.linkButton:hover {
+    background-color: #45a049;
+}
+
+.message {
+    margin-top: 15px;
+    font-size: 14px;
+    color: red;
+}
+
+.userDetails {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    text-align: right;
+}
+
+.userDetails p {
+    margin: 0;
+}
+
+/* Main layout */
+.App {
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+/* Header styles */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+    padding: 10px 0;
+    border-bottom: 2px solid #eaeaea;
+}
+
+.header h1 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 2rem;
+}
+
+/* Main content layout */
+.mainContent {
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+/* Card styles */
+.card {
+    background: white;
+    border-radius: 8px;
+    padding: 20px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.card h2 {
+    color: #2c3e50;
+    margin-top: 0;
+    margin-bottom: 20px;
+    font-size: 1.5rem;
+}
+
+.card h3 {
+    color: #34495e;
+    margin-top: 0;
+    font-size: 1.2rem;
+}
+
+/* User info section */
+.userInfo {
+    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+}
+
+.userInfo p {
+    margin: 10px 0;
+    color: #2c3e50;
+}
+
+/* Accounts grid */
+.accountsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 15px;
+}
+
+.accountCard {
+    background: #f8f9fa;
+    padding: 15px;
+    border-radius: 6px;
+}
+
+.accountCard:hover {
+    background: #f0f0f0;
+}
+
+.accountCard p {
+    margin: 8px 0;
+    color: #2c3e50;
+}
+
+/* Transactions section */
+.transactionsSection {
+    margin-top: 20px;
+}
+
+.transactionsList {
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.transactionItem {
+    padding: 8px 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.transactionItem:hover {
+    background-color: #f8f9fa;
+}
+
+.transactionDetails {
+    flex: 1;
+}
+
+.transactionName {
+    flex: 2;
+}
+
+.transactionDate {
+    flex: 1;
+    text-align: center;
+}
+
+.transactionAmount {
+    flex: 1;
+    text-align: right;
+}
+
+.negative {
+    color: #dc3545;
+}
+
+.positive {
+    color: #28a745;
+}
+
+/* Button styles */
+.primaryButton {
+    background: #0066cc;
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+    margin-bottom: 15px;
+}
+
+.primaryButton:hover {
+    background: #0052a3;
+}
+
+.logoutButton {
+    background: #dc3545;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.logoutButton:hover {
+    background: #c82333;
+}
+
+/* Message banner */
+.messageBanner {
+    background: #d4edda;
+    color: #155724;
+    padding: 10px;
+    border-radius: 4px;
+    margin: 10px 0;
+}
+
+/* Connect bank section */
+.connectBankSection {
+    text-align: center;
+    padding: 20px;
+}
+
+.connectBankSection p {
+    color: #666;
+    margin-bottom: 20px;
+}
+
+/* Budgets section */
+.budgetsSection {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.budgetItem {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .accountsGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .header {
+        flex-direction: column;
+        text-align: center;
+        gap: 10px;
+    }
+
+    .transactionItem {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .transactionAmount {
+        align-self: flex-end;
+        margin-top: 5px;
+    }
+}
