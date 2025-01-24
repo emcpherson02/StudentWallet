@@ -7,9 +7,8 @@ const {
 } = require('../utils/constants');
 
 class AuthService {
-    constructor(authModel, balanceService) {
+    constructor(authModel) {
         this.authModel = authModel;
-        this.balanceService = balanceService;
     }
 
     async loginUser(email, password) {
@@ -51,9 +50,6 @@ class AuthService {
                 email,
                 password
             });
-
-            // Initialize balance for new user
-            await this.balanceService.setInitialBalance(userRecord.uid, 0);
 
             return {
                 uid: userRecord.uid,

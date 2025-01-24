@@ -1,3 +1,5 @@
+const {NotFoundError} = require("../utils/errors");
+
 class BudgetModel {
     constructor(db) {
         this.db = db;

@@ -10,7 +10,7 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger.config');
 const initializePassport = require('./config/passport.config');
 
 // Import models
-const { authModel, userModel, transactionModel, budgetModel, plaidModel, balanceModel } = require('./models');
+const { authModel, userModel, transactionModel, budgetModel, plaidModel } = require('./models');
 
 // Import services
 const AuthService = require('./services/auth.service');
@@ -18,7 +18,6 @@ const PlaidService = require('./services/plaid.service');
 const TransactionService = require('./services/transaction.service');
 const BudgetService = require('./services/budget.service');
 const UserService = require('./services/user.service');
-const BalanceService = require('./services/balance.service');
 const NotificationService = require('./services/notification.service');
 
 // Import controllers
@@ -27,7 +26,6 @@ const PlaidController = require('./controllers/plaid.controller');
 const TransactionController = require('./controllers/transaction.controller');
 const BudgetController = require('./controllers/budget.controller');
 const UserController = require('./controllers/user.controller');
-const BalanceController = require('./controllers/balance.controller');
 
 // Import middleware
 const AuthMiddleware = require('./middleware/auth.middleware');
@@ -38,7 +36,6 @@ const setupBudgetRoutes = require('./routes/budget.routes');
 const setupPlaidRoutes = require('./routes/plaid.routes');
 const setupTransactionRoutes = require('./routes/transaction.routes');
 const setupUserRoutes = require('./routes/user.routes');
-const setupBalanceRoutes = require('./routes/balance.routes');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -47,9 +44,8 @@ const port = process.env.PORT || 3001;
 const userService = new UserService(userModel);
 const notificationService = new NotificationService(userModel);
 const plaidService = new PlaidService(plaidModel, transactionModel);
-const balanceService = new BalanceService(balanceModel, plaidService, notificationService);
-const authService = new AuthService(authModel, balanceService);
-const transactionService = new TransactionService(transactionModel, budgetModel, balanceService);
+const authService = new AuthService(authModel);
+const transactionService = new TransactionService(transactionModel, budgetModel);
 const budgetService = new BudgetService(budgetModel, transactionModel);
 
 // Initialize controllers
@@ -58,7 +54,6 @@ const plaidController = new PlaidController(plaidService);
 const transactionController = new TransactionController(transactionService);
 const budgetController = new BudgetController(budgetService);
 const userController = new UserController(userService);
-const balanceController = new BalanceController(balanceService);
 
 // Initialize middleware
 const authMiddleware = new AuthMiddleware(authService);
@@ -85,7 +80,6 @@ app.use('/budget', setupBudgetRoutes(express.Router(), budgetController, authMid
 app.use('/plaid', setupPlaidRoutes(express.Router(), plaidController, authMiddleware));
 app.use('/transactions', setupTransactionRoutes(express.Router(), transactionController, authMiddleware));
 app.use('/user', setupUserRoutes(express.Router(), userController, authMiddleware));
-app.use('/balance', setupBalanceRoutes(express.Router(), balanceController, authMiddleware));
 
 // OAuth routes
 app.get('/auth/google',

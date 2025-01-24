@@ -3,10 +3,11 @@ const { plaidClient } = require('../config/plaid.config');
 const {transactionModel} = require("../models");
 
 class PlaidService {
-    constructor(plaidModel, transactionModel) {
+    constructor(plaidModel, transactionModel, budgetModel) {
         this.plaidModel = plaidModel;
         this.plaidClient = plaidClient;
         this.transactionModel = transactionModel;
+        this.budgetModel = budgetModel;
     }
 
     async createLinkToken(userId) {
@@ -103,7 +104,14 @@ class PlaidService {
                 };
 
                 // Store in user's transactions collection
-                await this.transactionModel.create(userId, transactionData);
+                const plaidTransactions = await this.transactionModel.create(userId, transactionData);
+                const budgets = await this.budgetModel.findByCategory(userId, category);
+                if (budgets.length > 0) {
+                    const budget = budgets[0];
+                    const newSpent = (budget.spent || 0) + Number(transactionData.Amount);
+                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, plaidTransactions.id);
+                }
 
                 return transactionData;
             }));

@@ -1,14 +1,10 @@
 const { ValidationError } = require('../utils/errors');
 
 const validateTransaction = (req, res, next) => {
-    const { userId, amount, date, description, transactionType } = req.body;
+    const { userId, amount, date, description } = req.body;
 
-    if (!userId || !amount || !date || !description || !transactionType) {
+    if (!userId || !amount || !date || !description ) {
         return next(new ValidationError('Missing required parameters'));
-    }
-
-    if (!['expense', 'income'].includes(transactionType)) {
-        return next(new ValidationError('Invalid transaction type'));
     }
 
     next();

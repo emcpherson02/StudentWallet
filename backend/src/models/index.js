@@ -11,6 +11,5 @@ module.exports = {
     transactionModel: new TransactionModel(db),
     budgetModel: new BudgetModel(db),
     plaidModel: new PlaidModel(db),
-    authModel: new AuthModel(db),
-    balanceModel: new BalanceModel(db)
+    authModel: new AuthModel(db)
 };

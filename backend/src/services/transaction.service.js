@@ -3,10 +3,9 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { validateCategory } = require('../utils/constants');
 
 class TransactionService {
-    constructor(transactionModel, budgetModel, balanceService) {
+    constructor(transactionModel, budgetModel) {
         this.transactionModel = transactionModel;
         this.budgetModel = budgetModel;
-        this.balanceService = balanceService;
     }
 
     async addTransaction(userId, transactionData) {
@@ -26,17 +25,6 @@ class TransactionService {
             const createdTransaction = await this.transactionModel.create(userId, transaction);
 
             console.log('Transaction created:', createdTransaction); // Debug log
-
-            try {
-                if (transactionType === 'expense') {
-                    await this.balanceService.deductFromBalance(userId, Number(amount));
-                } else {
-                    await this.balanceService.addToBalance(userId, Number(amount));
-                }
-            } catch (balanceError) {
-                console.error('Balance update error:', balanceError); // Debug log
-                throw balanceError;
-            }
 
             if (transactionType === 'expense' && category) {
                 const budgets = await this.budgetModel.findByCategory(userId, category);
@@ -81,13 +69,6 @@ class TransactionService {
             const transaction = await this.transactionModel.findById(userId, transactionId);
             if (!transaction) {
                 throw new NotFoundError('Transaction not found');
-            }
-
-            // Update balance
-            if (transaction.type === 'expense') {
-                await this.balanceService.addToBalance(userId, Number(transaction.Amount));
-            } else {
-                await this.balanceService.deductFromBalance(userId, Number(transaction.Amount));
             }
 
             // Find budgets that have this transaction
