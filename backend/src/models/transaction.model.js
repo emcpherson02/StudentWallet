@@ -19,12 +19,14 @@ class TransactionModel {
             throw new ValidationError('Transaction type is required');
         }
 
-        const transactionRef = await userRef.collection('Transactions').add({
+        const enrichedData = {
             ...transactionData,
+            source: transactionData.source || 'manual',
             timestamp: new Date().toISOString()
-        });
+        };
 
-        return { id: transactionRef.id, ...transactionData };
+        const transactionRef = await userRef.collection('Transactions').add(enrichedData);
+        return { id: transactionRef.id, ...enrichedData };
     }
 
     async findByUserId(userId) {

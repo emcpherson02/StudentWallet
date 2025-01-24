@@ -1,10 +1,12 @@
 const { DatabaseError } = require('../utils/errors');
 const { plaidClient } = require('../config/plaid.config');
+const {transactionModel} = require("../models");
 
 class PlaidService {
-    constructor(plaidModel) {
+    constructor(plaidModel, transactionModel) {
         this.plaidModel = plaidModel;
         this.plaidClient = plaidClient;
+        this.transactionModel = transactionModel;
     }
 
     async createLinkToken(userId) {
@@ -83,35 +85,30 @@ class PlaidService {
                 throw new DatabaseError('No access token found for user');
             }
 
-            console.log('Start Date:', startDate);
-            console.log('End Date:', endDate);
-            console.log('Access Token:', tokens.accessToken ? 'exists' : 'missing');
-
-            let allTransactions = [];
-            let hasMore = true;
-            let cursor = null;
-
-            // Initial request without cursor
-            const initialRequest = {
+            const response = await this.plaidClient.transactionsSync({
                 access_token: tokens.accessToken,
-            };
+                count: 10
+            });
 
-            // Use transactionsSync instead of get
-            const response = await this.plaidClient.transactionsSync(initialRequest);
-            const data = response.data;
+            // Transform and store transactions
+            const formattedTransactions = await Promise.all(response.data.added.map(async transaction => {
+                const transactionData = {
+                    Amount: Math.abs(transaction.amount),
+                    Description: transaction.name,
+                    category: transaction.personal_finance_category?.primary || 'Other',
+                    date: new Date(transaction.date).toISOString(),
+                    type: 'expense',
+                    source: 'plaid',
+                    plaidTransactionId: transaction.transaction_id
+                };
 
-            // Transform transactions
-            return data.added.map(transaction => ({
-                id: transaction.transaction_id,
-                amount: transaction.amount,
-                date: transaction.date,
-                description: transaction.name,
-                merchant: transaction.merchant_name,
-                category: transaction.personal_finance_category?.primary,
-                subCategory: transaction.personal_finance_category?.detailed,
-                pending: transaction.pending,
-                accountId: transaction.account_id
+                // Store in user's transactions collection
+                await this.transactionModel.create(userId, transactionData);
+
+                return transactionData;
             }));
+
+            return formattedTransactions;
         } catch (error) {
             console.error('Detailed Plaid Error:', error.response?.data || error);
             throw new DatabaseError('Could not fetch transactions.');
