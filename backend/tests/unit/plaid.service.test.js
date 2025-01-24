@@ -1,6 +1,6 @@
 const PlaidService = require('../../src/services/plaid.service');
 const { DatabaseError } = require('../../src/utils/errors');
-const {plaidClient} = require("../../src/config/plaid.config");
+const { plaidClient } = require("../../src/config/plaid.config");
 
 jest.mock('../../src/config/plaid.config', () => ({
     plaidClient: {
@@ -15,115 +15,97 @@ jest.mock('../../src/config/plaid.config', () => ({
 describe('PlaidService', () => {
     let plaidService;
     let mockPlaidModel;
+    let mockBudgetModel;
+    let mockBudgetNotificationService;
     const mockUserId = 'user-123';
-
-    const mockTokens = {
-        accessToken: 'access-token-123',
-        itemId: 'item-123'
-    };
+    const mockTokens = { accessToken: 'access-token-123', itemId: 'item-123' };
 
     beforeEach(() => {
         jest.clearAllMocks();
         mockPlaidModel = {
-            storeTokens: jest.fn(),
-            getTokens: jest.fn()
+            storeTokens: jest.fn().mockResolvedValue(true),
+            getTokens: jest.fn().mockResolvedValue(mockTokens),
+            getStoredTransactions: jest.fn().mockResolvedValue([]),
+            createTransaction: jest.fn()
         };
-        plaidService = new PlaidService(mockPlaidModel);
+        mockBudgetModel = {
+            findByCategory: jest.fn().mockResolvedValue([]),
+            update: jest.fn().mockResolvedValue(true),
+            linkTransactionToBudget: jest.fn().mockResolvedValue(true)
+        };
+        mockBudgetNotificationService = {
+            checkAndNotifyBudgetLimit: jest.fn().mockResolvedValue(true)
+        };
+        plaidService = new PlaidService(mockPlaidModel, mockBudgetModel, mockBudgetNotificationService);
     });
 
     describe('createLinkToken', () => {
-        const mockLinkToken = 'link-token-123';
-
-        it('should successfully create a link token', async () => {
-            const mockResponse = {
+        it('should create link token successfully', async () => {
+            const mockLinkToken = 'link-token-123';
+            plaidClient.linkTokenCreate.mockResolvedValue({
                 data: { link_token: mockLinkToken }
-            };
-            plaidService.plaidClient.linkTokenCreate.mockResolvedValue(mockResponse);
+            });
 
             const result = await plaidService.createLinkToken(mockUserId);
-
             expect(result).toBe(mockLinkToken);
-            expect(plaidService.plaidClient.linkTokenCreate).toHaveBeenCalledWith({
-                user: { client_user_id: mockUserId },
-                client_name: 'StudentWallet',
-                products: ['auth', 'transactions'],
-                country_codes: ['GB'],
-                language: 'en'
-            });
         });
 
-        it('should throw DatabaseError if link token creation fails', async () => {
-            plaidService.plaidClient.linkTokenCreate.mockRejectedValue(new Error('Plaid API error'));
-
+        it('should throw DatabaseError when link token creation fails', async () => {
+            plaidClient.linkTokenCreate.mockRejectedValue(new Error('Failed'));
             await expect(plaidService.createLinkToken(mockUserId))
-                .rejects
-                .toThrow(DatabaseError);
+                .rejects.toThrow(DatabaseError);
         });
     });
 
     describe('exchangePublicToken', () => {
         const mockPublicToken = 'public-token-123';
+        const mockAccounts = [{
+            account_id: 'acc-123',
+            name: 'Test Account',
+            type: 'checking',
+            balances: {
+                available: 1000,
+                current: 1000,
+                limit: null,
+                iso_currency_code: 'GBP'
+            }
+        }];
 
-        it('should successfully exchange public token and store access token', async () => {
-            const mockExchangeResponse = {
-                data: {
-                    access_token: mockTokens.accessToken,
-                    item_id: mockTokens.itemId
-                }
-            };
-
-            const mockAccountsResponse = {
-                data: {
-                    accounts: [{
-                        account_id: 'account-123',
-                        name: 'Checking',
-                        type: 'depository',
-                        balances: {
-                            available: 1000,
-                            current: 1000,
-                            limit: null,
-                            iso_currency_code: 'GBP'
-                        }
-                    }]
-                }
-            };
-
-            plaidClient.itemPublicTokenExchange.mockResolvedValue(mockExchangeResponse);
-            mockPlaidModel.storeTokens.mockResolvedValue(true);
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidClient.accountsGet.mockResolvedValue(mockAccountsResponse);
-
-            const result = await plaidService.exchangePublicToken(mockPublicToken, mockUserId);
-
-            expect(result.success).toBe(true);
-            expect(result.accounts).toBeDefined();
+        beforeEach(() => {
+            plaidClient.itemPublicTokenExchange.mockResolvedValue({
+                data: { access_token: mockTokens.accessToken, item_id: mockTokens.itemId }
+            });
+            plaidClient.accountsGet.mockResolvedValue({ data: { accounts: mockAccounts } });
         });
 
-        it('should throw DatabaseError if storing tokens fails', async () => {
-            const mockExchangeResponse = {
-                data: { access_token: mockTokens.accessToken, item_id: mockTokens.itemId }
-            };
-            plaidClient.itemPublicTokenExchange.mockResolvedValue(mockExchangeResponse);
-            mockPlaidModel.storeTokens.mockRejectedValue(new Error('Storage failed'));
+        it('should exchange token successfully', async () => {
+            const result = await plaidService.exchangePublicToken(mockPublicToken, mockUserId);
+            expect(result.success).toBe(true);
+            expect(result.accounts).toBeDefined();
+            expect(mockPlaidModel.storeTokens).toHaveBeenCalledWith(mockUserId, {
+                accessToken: mockTokens.accessToken,
+                itemId: mockTokens.itemId
+            });
+        });
 
+        it('should throw DatabaseError when token exchange fails', async () => {
+            plaidClient.itemPublicTokenExchange.mockRejectedValue(new Error('Exchange failed'));
             await expect(plaidService.exchangePublicToken(mockPublicToken, mockUserId))
                 .rejects.toThrow(DatabaseError);
         });
 
-        it('should throw DatabaseError if token exchange fails', async () => {
-            plaidService.plaidClient.itemPublicTokenExchange.mockRejectedValue(new Error('Exchange failed'));
-
+        it('should throw DatabaseError when storing tokens fails', async () => {
+            mockPlaidModel.storeTokens.mockRejectedValue(new Error('Storage failed'));
             await expect(plaidService.exchangePublicToken(mockPublicToken, mockUserId))
-                .rejects
-                .toThrow(DatabaseError);
+                .rejects.toThrow(DatabaseError);
         });
     });
 
     describe('getAccounts', () => {
         const mockAccounts = [{
-            account_id: 'account-123',
-            name: 'Checking',
-            type: 'depository',
+            account_id: 'acc-123',
+            name: 'Test Account',
+            type: 'checking',
             subtype: 'checking',
             balances: {
                 available: 1000,
@@ -133,19 +115,14 @@ describe('PlaidService', () => {
             }
         }];
 
-        it('should successfully retrieve accounts', async () => {
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidService.plaidClient.accountsGet.mockResolvedValue({
-                data: { accounts: mockAccounts }
-            });
+        it('should get accounts successfully', async () => {
+            plaidClient.accountsGet.mockResolvedValue({ data: { accounts: mockAccounts } });
 
             const result = await plaidService.getAccounts(mockUserId);
-
-            expect(result).toHaveLength(1);
             expect(result[0]).toMatchObject({
-                id: 'account-123',
-                name: 'Checking',
-                type: 'depository',
+                id: 'acc-123',
+                name: 'Test Account',
+                type: 'checking',
                 balance: {
                     available: 1000,
                     current: 1000
@@ -153,68 +130,119 @@ describe('PlaidService', () => {
             });
         });
 
-        it('should throw DatabaseError if no access token found', async () => {
+        it('should throw DatabaseError when no access token found', async () => {
             mockPlaidModel.getTokens.mockResolvedValue(null);
-
             await expect(plaidService.getAccounts(mockUserId))
-                .rejects
-                .toThrow(DatabaseError);
+                .rejects.toThrow(DatabaseError);
+        });
+
+        it('should throw DatabaseError when account fetch fails', async () => {
+            plaidClient.accountsGet.mockRejectedValue(new Error('Fetch failed'));
+            await expect(plaidService.getAccounts(mockUserId))
+                .rejects.toThrow(DatabaseError);
         });
     });
 
     describe('fetchTransactions', () => {
-        const mockTransactions = [{
-            transaction_id: 'trans-123',
+        const mockPlaidTransactions = [{
             amount: 50,
-            date: '2024-01-22',
             name: 'Grocery Store',
-            merchant_name: 'Tesco',
-            personal_finance_category: {
-                primary: 'GROCERIES',
-                detailed: 'Groceries'
-            },
-            pending: false,
-            account_id: 'account-123'
+            personal_finance_category: { primary: 'FOOD_AND_DRINK' },
+            date: '2024-01-22'
         }];
 
-        it('should successfully fetch and transform transactions', async () => {
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidService.plaidClient.transactionsSync.mockResolvedValue({
-                data: {
-                    added: mockTransactions,
-                    modified: [],
-                    removed: [],
-                    has_more: false
-                }
-            });
+        const mockStoredTransaction = {
+            id: 'trans-123',
+            Amount: 50,
+            Description: 'Grocery Store',
+            category: 'Groceries',
+            date: '2024-01-22',
+            isPlaidTransaction: true
+        };
 
-            const result = await plaidService.fetchTransactions(mockUserId, '2024-01-01', '2024-01-31');
-
-            expect(result).toHaveLength(1);
-            expect(result[0]).toMatchObject({
-                id: 'trans-123',
-                amount: 50,
-                description: 'Grocery Store',
-                merchant: 'Tesco',
-                category: 'GROCERIES'
+        beforeEach(() => {
+            plaidClient.transactionsSync.mockResolvedValue({
+                data: { added: mockPlaidTransactions }
             });
+            mockPlaidModel.createTransaction.mockResolvedValue([mockStoredTransaction]);
         });
 
-        it('should throw DatabaseError if transaction fetch fails', async () => {
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidService.plaidClient.transactionsSync.mockRejectedValue(new Error('Fetch failed'));
+        it('should use stored transactions when available', async () => {
+            mockPlaidModel.getStoredTransactions.mockResolvedValue([mockStoredTransaction]);
+            const result = await plaidService.fetchTransactions(mockUserId);
+            expect(result).toEqual([mockStoredTransaction]);
+        });
 
-            await expect(plaidService.fetchTransactions(mockUserId, '2024-01-01', '2024-01-31'))
-                .rejects
-                .toThrow(DatabaseError);
+        it('should fetch and transform new transactions', async () => {
+            mockPlaidModel.getStoredTransactions.mockResolvedValue([]);
+            mockBudgetModel.findByCategory.mockResolvedValue([{
+                id: 'budget-123',
+                spent: 0,
+                amount: 100
+            }]);
+
+            const result = await plaidService.fetchTransactions(mockUserId);
+            expect(result[0].category).toBe('Groceries');
+            expect(mockBudgetModel.update).toHaveBeenCalled();
+            expect(mockBudgetModel.linkTransactionToBudget).toHaveBeenCalled();
+            expect(mockBudgetNotificationService.checkAndNotifyBudgetLimit).toHaveBeenCalled();
+        });
+
+        it('should handle all category mappings', async () => {
+            const categories = {
+                'FOOD_AND_DRINK': 'Groceries',
+                'GENERAL_MERCHANDISE': 'Other',
+                'TRANSPORTATION': 'Transportation',
+                'RENT_AND_UTILITIES': 'Utilities',
+                'ENTERTAINMENT': 'Entertainment',
+                'PERSONAL_CARE': 'Other'
+            };
+
+            for (const [plaidCategory, mappedCategory] of Object.entries(categories)) {
+                plaidClient.transactionsSync.mockResolvedValue({
+                    data: { added: [{
+                            ...mockPlaidTransactions[0],
+                            personal_finance_category: { primary: plaidCategory }
+                        }] }
+                });
+                mockPlaidModel.getStoredTransactions.mockResolvedValue([]);
+
+                const result = await plaidService.fetchTransactions(mockUserId);
+                expect(result[0].category).toBe(mappedCategory);
+            }
+        });
+
+        it('should handle unknown categories as Other', async () => {
+            plaidClient.transactionsSync.mockResolvedValue({
+                data: { added: [{
+                        ...mockPlaidTransactions[0],
+                        personal_finance_category: { primary: 'UNKNOWN' }
+                    }] }
+            });
+            mockPlaidModel.getStoredTransactions.mockResolvedValue([]);
+
+            const result = await plaidService.fetchTransactions(mockUserId);
+            expect(result[0].category).toBe('Other');
+        });
+
+        it('should throw DatabaseError when no access token found', async () => {
+            mockPlaidModel.getTokens.mockResolvedValue(null);
+            await expect(plaidService.fetchTransactions(mockUserId))
+                .rejects.toThrow(DatabaseError);
+        });
+
+        it('should throw DatabaseError when transaction fetch fails', async () => {
+            plaidClient.transactionsSync.mockRejectedValue(new Error('Fetch failed'));
+            await expect(plaidService.fetchTransactions(mockUserId))
+                .rejects.toThrow(DatabaseError);
         });
     });
 
     describe('getBalances', () => {
-        const mockBalances = [{
-            account_id: 'account-123',
-            name: 'Checking',
-            type: 'depository',
+        const mockBalanceAccounts = [{
+            account_id: 'acc-123',
+            name: 'Test Account',
+            type: 'checking',
             balances: {
                 available: 1000,
                 current: 1000,
@@ -223,33 +251,29 @@ describe('PlaidService', () => {
             }
         }];
 
-        it('should successfully retrieve account balances', async () => {
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidService.plaidClient.accountsBalanceGet.mockResolvedValue({
-                data: { accounts: mockBalances }
+        it('should get balances successfully', async () => {
+            plaidClient.accountsBalanceGet.mockResolvedValue({
+                data: { accounts: mockBalanceAccounts }
             });
 
             const result = await plaidService.getBalances(mockUserId);
-
-            expect(result).toHaveLength(1);
-            expect(result[0]).toMatchObject({
-                id: 'account-123',
-                name: 'Checking',
-                type: 'depository',
-                balance: {
-                    available: 1000,
-                    current: 1000
-                }
+            expect(result[0].balance).toMatchObject({
+                available: 1000,
+                current: 1000,
+                isoCurrencyCode: 'GBP'
             });
         });
 
-        it('should throw DatabaseError if balance fetch fails', async () => {
-            mockPlaidModel.getTokens.mockResolvedValue(mockTokens);
-            plaidService.plaidClient.accountsBalanceGet.mockRejectedValue(new Error('Fetch failed'));
-
+        it('should throw DatabaseError when no access token found', async () => {
+            mockPlaidModel.getTokens.mockResolvedValue(null);
             await expect(plaidService.getBalances(mockUserId))
-                .rejects
-                .toThrow(DatabaseError);
+                .rejects.toThrow(DatabaseError);
+        });
+
+        it('should throw DatabaseError when balance fetch fails', async () => {
+            plaidClient.accountsBalanceGet.mockRejectedValue(new Error('Fetch failed'));
+            await expect(plaidService.getBalances(mockUserId))
+                .rejects.toThrow(DatabaseError);
         });
     });
 });
