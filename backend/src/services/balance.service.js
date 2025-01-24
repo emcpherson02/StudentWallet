@@ -1,7 +1,8 @@
 class BalanceService {
-    constructor(balanceModel, plaidService) {
+    constructor(balanceModel, plaidService, notificationService) {
         this.balanceModel = balanceModel;
         this.plaidService = plaidService;
+        this.notificationService = notificationService;
     }
 
     async getCurrentBalance(userId) {
@@ -53,6 +54,7 @@ class BalanceService {
             }
 
             const updatedBalance = await this.balanceModel.updateBalance(userId, amount);
+            await this.notificationService.checkAndNotifyLowBalance(userId, updatedBalance.amount);
             return updatedBalance;
         } catch (error) {
             throw new DatabaseError('Failed to update balance');
@@ -60,7 +62,9 @@ class BalanceService {
     }
 
     async deductFromBalance(userId, amount, description = '') {
-        return this.addToBalance(userId, -Math.abs(amount), description);
+        const updatedBalance = await this.balanceModel.updateBalance(userId, -Math.abs(amount), description);
+        await this.notificationService.checkAndNotifyLowBalance(userId, updatedBalance.amount);
+        return updatedBalance;
     }
 
     async setInitialBalance(userId, amount) {
