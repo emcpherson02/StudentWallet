@@ -3,7 +3,7 @@ const { ValidationError } = require('../utils/errors');
 const validateTransaction = (req, res, next) => {
     const { userId, amount, date, description } = req.body;
 
-    if (!userId || !amount || !date || !description ) {
+    if (!userId || !amount || !date || !description) {
         return next(new ValidationError('Missing required parameters'));
     }
 

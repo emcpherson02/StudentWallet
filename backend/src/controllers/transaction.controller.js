@@ -13,7 +13,6 @@ class TransactionController {
                 { amount,category ,date, description }
             );
 
-
             res.status(200).json({
                 status: 'success',
                 message: 'Transaction added successfully',

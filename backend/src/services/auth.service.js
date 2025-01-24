@@ -34,6 +34,7 @@ class AuthService {
 
         try {
             const existingUser = await this.authModel.findByEmail(email);
+
             if (existingUser) {
                 throw new AuthenticationError(MESSAGE_USER_EXISTS);
             }
@@ -57,7 +58,9 @@ class AuthService {
                 displayName: userRecord.displayName
             };
         } catch (error) {
-            if (error instanceof AuthenticationError) throw error;
+            if (error instanceof AuthenticationError) {
+                throw error;
+            }
             throw new DatabaseError(MESSAGE_ERROR_OCCURRED);
         }
     }

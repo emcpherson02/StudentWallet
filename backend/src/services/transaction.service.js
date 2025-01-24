@@ -10,35 +10,43 @@ class TransactionService {
 
     async addTransaction(userId, transactionData) {
         try {
-            const { amount, category, date, description, transactionType } = transactionData;
+            const { amount, category, date, description } = transactionData;
 
+            // Check if user exists first
             const transaction = {
                 Amount: amount,
                 category,
                 date: new Date(date).toISOString().split('T')[0],
                 Description: description,
-                type: transactionType
             };
 
-            console.log('Creating transaction:', transaction); // Debug log
-
+            // Create transaction using the model
             const createdTransaction = await this.transactionModel.create(userId, transaction);
 
-            console.log('Transaction created:', createdTransaction); // Debug log
-
-            if (transactionType === 'expense' && category) {
+            // If category exists, update the corresponding budget
+            if (category) {
                 const budgets = await this.budgetModel.findByCategory(userId, category);
                 if (budgets.length > 0) {
-                    const budget = budgets[0];
+                    const budget = budgets[0]; // Get the first matching budget
+
+                    // Update the spent amount as before
                     const newSpent = (budget.spent || 0) + Number(amount);
                     await this.budgetModel.update(userId, budget.id, { spent: newSpent });
-                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, createdTransaction.id);
+
+                    // Link the transaction to the budget
+                    await this.budgetModel.linkTransactionToBudget(
+                        userId,
+                        budget.id,
+                        createdTransaction.id
+                    );
                 }
             }
 
             return createdTransaction;
         } catch (error) {
-            console.error('Transaction error:', error); // Debug log
+            if (error instanceof NotFoundError) {
+                throw error;
+            }
             throw new DatabaseError('Failed to add transaction');
         }
     }
