@@ -154,6 +154,35 @@ class BudgetService {
             throw new DatabaseError('Failed to get budget');
         }
     }
+
+    async getTransactionsByBudgetId(userId, budgetId) {
+        try{
+            //Get budget to verify if it exists
+            const budget = await this.budgetModel.findById(userId, budgetId);
+            if(!budget){
+                throw new NotFoundError('Budget not found');
+            }
+            //get tracked transactions
+            const trackedTransactions = budget.trackedTransactions || [];
+            //if no transactions are tracked, return empty array
+            if(trackedTransactions.length === 0){
+                return [];
+            }
+            // get all budget transactions
+            const transactions = [];
+            for(const transactionId of trackedTransactions){
+                const transaction = await this.transactionModel.findById(userId, transactionId);
+                if(transaction){
+                    transactions.push(transaction);
+                }
+            }
+
+            return transactions;
+        }catch (error) {
+            console.error('Error in getTransactionsByBudgetId:', error);
+            throw new DatabaseError('Failed to fetch budget transactions');
+        }
+    }
 }
 
 module.exports = BudgetService;
