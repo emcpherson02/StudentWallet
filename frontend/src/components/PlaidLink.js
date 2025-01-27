@@ -341,46 +341,53 @@ function PlaidLink() {
 
         <div className={`${styles.card} ${styles.budgetsSection}`}>
           <h2>Budgets</h2>
-
-          <button
-            className={styles.primaryButton}
-            onClick={() => {
-              setIsBudgetModalOpen(true);
-              appRef.current.classList.add('modal-open');
-            }}
-          >
-            Add Budget
-          </button>
+          <div className="flex gap-4">
+            <button
+                className={styles.primaryButton}
+                onClick={() => {
+                  setIsBudgetModalOpen(true);
+                  appRef.current.classList.add('modal-open');
+                }}
+            >
+              Add Budget
+            </button>
+            <button
+                className={styles.primaryButton}
+                onClick={() => navigate('/budget-dashboard')}
+            >
+              View Budget Dashboard
+            </button>
+          </div>
 
           {budgets.length > 0 ? (
-            <ul>
-              {budgets.map((budget, index) => (
-                <li key={index} className={styles.budgetItem}>
-                  <div><strong>Category:</strong> {budget.category}</div>
-                  <div><strong>Amount:</strong> £{budget.amount}</div>
-                  <div><strong>Spent:</strong> £{budget.spent || 0}</div>
-                  <div><strong>Period:</strong> {budget.period}</div>
-                  <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}</div>
-                  <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}</div>
-                </li>
-              ))}
-            </ul>
+              <ul>
+                {budgets.map((budget, index) => (
+                    <li key={index} className={styles.budgetItem}>
+                      <div><strong>Category:</strong> {budget.category}</div>
+                      <div><strong>Amount:</strong> £{budget.amount}</div>
+                      <div><strong>Spent:</strong> £{budget.spent || 0}</div>
+                      <div><strong>Period:</strong> {budget.period}</div>
+                      <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}</div>
+                      <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}</div>
+                    </li>
+                ))}
+              </ul>
           ) : (
-            <p>No budgets available. Add your first budget to get started.</p>
+              <p>No budgets available. Add your first budget to get started.</p>
           )}
 
           {isBudgetModalOpen && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
-              <BudgetForm
-                userId={currentUser?.uid}
-                onBudgetAdded={handleBudgetAdded}
-                setMessage={setMessage}
-                onClose={() => {
-                  setIsBudgetModalOpen(false);
-                  appRef.current.classList.remove('modal-open');
-                }}
-              />
-            </div>
+              <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000}}>
+                <BudgetForm
+                    userId={currentUser?.uid}
+                    onBudgetAdded={handleBudgetAdded}
+                    setMessage={setMessage}
+                    onClose={() => {
+                      setIsBudgetModalOpen(false);
+                      appRef.current.classList.remove('modal-open');
+                    }}
+                />
+              </div>
           )}
         </div>
       </div>
