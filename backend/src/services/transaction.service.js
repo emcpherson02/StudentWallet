@@ -3,16 +3,16 @@ const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { validateCategory } = require('../utils/constants');
 
 class TransactionService {
-    constructor(transactionModel, budgetModel) {
+    constructor(transactionModel, budgetModel, budgetNotificationService) {
         this.transactionModel = transactionModel;
         this.budgetModel = budgetModel;
+        this.budgetNotificationService = budgetNotificationService;
     }
 
     async addTransaction(userId, transactionData) {
         try {
             const { amount, category, date, description } = transactionData;
 
-            // Check if user exists first
             const transaction = {
                 Amount: amount,
                 category,
@@ -20,24 +20,30 @@ class TransactionService {
                 Description: description,
             };
 
-            // Create transaction using the model
             const createdTransaction = await this.transactionModel.create(userId, transaction);
 
-            // If category exists, update the corresponding budget
             if (category) {
                 const budgets = await this.budgetModel.findByCategory(userId, category);
                 if (budgets.length > 0) {
                     const budget = budgets[0];
                     const newSpent = (budget.spent || 0) + Number(amount);
+
                     await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                    await this.budgetModel.linkTransactionToBudget(userId, budget.id, createdTransaction.id);
+
+                    // Check budget limit and send notification if needed
+                    await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                        userId,
+                        category,
+                        newSpent,
+                        budget.amount
+                    );
                 }
             }
 
             return createdTransaction;
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
+            if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to add transaction');
         }
     }
@@ -47,10 +53,11 @@ class TransactionService {
             const transactions = await this.transactionModel.findByUserId(userId);
             return transactions.map(doc => ({
                 id: doc.id,
-                type: doc.Description,
+                type: doc.Description || doc.description,
                 category: doc.category,
-                amount: doc.Amount,
+                amount: doc.Amount || doc.amount,
                 date: doc.date,
+                isPlaidTransaction: doc.isPlaidTransaction || false
             }));
         } catch (error) {
             if (error instanceof NotFoundError) {
@@ -62,22 +69,32 @@ class TransactionService {
 
     async deleteTransaction(userId, transactionId) {
         try {
+            console.log('Starting delete transaction:', { userId, transactionId });
+
+            // Get the transaction first
             const transaction = await this.transactionModel.findById(userId, transactionId);
             if (!transaction) {
                 throw new NotFoundError('Transaction not found');
             }
 
-            // If the transaction has a category, update the corresponding budget
-            if (transaction.category) {
-                const budgets = await this.budgetModel.findByCategory(userId, transaction.category);
-                if (budgets.length > 0) {
-                    const budget = budgets[0];
-                    const newSpent = (budget.spent || 0) - Number(transaction.Amount);
-                    await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+            // Find budgets that have this transaction
+            const budgets = await this.budgetModel.findByUserId(userId);
+
+            // Go through each budget and check if it's tracking this transaction
+            for (const budget of budgets) {
+                if (budget.trackedTransactions && budget.trackedTransactions.includes(transactionId)) {
+                    // If the budget category matches the transaction category, update spent amount
+                    if (budget.category === transaction.category) {
+                        const newSpent = (budget.spent || 0) - Number(transaction.Amount);
+                        await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                    }
+
+                    // Remove transaction from tracking
+                    await this.budgetModel.removeTransactionTracking(userId, budget.id, transactionId);
                 }
             }
 
-            // Delete the transaction
+            // Finally delete the transaction
             const deleted = await this.transactionModel.delete(userId, transactionId);
             if (!deleted) {
                 throw new NotFoundError('Transaction not found');

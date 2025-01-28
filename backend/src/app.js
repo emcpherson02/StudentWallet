@@ -18,6 +18,7 @@ const PlaidService = require('./services/plaid.service');
 const TransactionService = require('./services/transaction.service');
 const BudgetService = require('./services/budget.service');
 const UserService = require('./services/user.service');
+const BudgetNotificationService = require('./services/budget.notification.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -40,11 +41,12 @@ const app = express();
 const port = process.env.PORT || 3001;
 
 // Initialize services with models
+const budgetNotificationService = new BudgetNotificationService(userModel);
 const authService = new AuthService(authModel);
 const userService = new UserService(userModel);
-const plaidService = new PlaidService(plaidModel);
-const transactionService = new TransactionService(transactionModel, budgetModel);
-const budgetService = new BudgetService(budgetModel, transactionModel);
+const plaidService = new PlaidService(plaidModel, budgetModel, budgetNotificationService);
+const transactionService = new TransactionService(transactionModel, budgetModel, budgetNotificationService);
+const budgetService = new BudgetService(budgetModel, transactionModel, budgetNotificationService);
 
 // Initialize controllers
 const authController = new AuthController(authService);

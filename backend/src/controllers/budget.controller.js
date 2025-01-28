@@ -108,6 +108,26 @@ class BudgetController {
             next(error);
         }
     }
+
+    async getBudgetTransactions(req, res, next) {
+        try{
+            const{userId} = req.query;
+            const{budgetId} = req.body;
+
+            if (!userId || !budgetId) {
+                throw new ValidationError('Missing required parameters');
+            }
+
+            const transactions = await this.budgetService.getTransactionsByBudgetId(userId, budgetId);
+
+            res.status(200).json({
+                status: 'success',
+                data: transactions
+            });
+        }catch (error){
+            next(error);
+        }
+    }
 }
 
 module.exports = BudgetController;

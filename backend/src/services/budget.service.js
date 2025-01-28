@@ -2,9 +2,10 @@ const { DatabaseError, ValidationError, NotFoundError } = require('../utils/erro
 const { validateCategory } = require('../utils/constants');
 
 class BudgetService {
-    constructor(budgetModel, transactionModel) {
+    constructor(budgetModel, transactionModel, budgetNotificationService) {
         this.budgetModel = budgetModel;
         this.transactionModel = transactionModel;
+        this.budgetNotificationService = budgetNotificationService;
     }
 
     async addBudget(userId, budgetData) {
@@ -56,11 +57,20 @@ class BudgetService {
             if (!updated) {
                 throw new NotFoundError('Budget not found');
             }
+
+            // Check if budget limit is reached after update
+            if (updated.spent >= updated.amount) {
+                await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                    userId,
+                    updated.category,
+                    updated.spent,
+                    updated.amount
+                );
+            }
+
             return updated;
         } catch (error) {
-            if (error instanceof NotFoundError) {
-                throw error;
-            }
+            if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to update Budget');
         }
     }
@@ -142,6 +152,35 @@ class BudgetService {
                 throw error;
             }
             throw new DatabaseError('Failed to get budget');
+        }
+    }
+
+    async getTransactionsByBudgetId(userId, budgetId) {
+        try{
+            //Get budget to verify if it exists
+            const budget = await this.budgetModel.findById(userId, budgetId);
+            if(!budget){
+                throw new NotFoundError('Budget not found');
+            }
+            //get tracked transactions
+            const trackedTransactions = budget.trackedTransactions || [];
+            //if no transactions are tracked, return empty array
+            if(trackedTransactions.length === 0){
+                return [];
+            }
+            // get all budget transactions
+            const transactions = [];
+            for(const transactionId of trackedTransactions){
+                const transaction = await this.transactionModel.findById(userId, transactionId);
+                if(transaction){
+                    transactions.push(transaction);
+                }
+            }
+
+            return transactions;
+        }catch (error) {
+            console.error('Error in getTransactionsByBudgetId:', error);
+            throw new DatabaseError('Failed to fetch budget transactions');
         }
     }
 }

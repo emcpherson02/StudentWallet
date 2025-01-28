@@ -1,3 +1,5 @@
+const {budgetModel} = require("./index");
+
 class BudgetModel {
     constructor(db) {
         this.db = db;
@@ -83,6 +85,63 @@ class BudgetModel {
         await budgetRef.delete();
         return true;
     }
+
+    async linkTransactionToBudget(userId, budgetId, transactionId) {
+        try {
+            console.log('Linking transaction to budget:', { userId, budgetId, transactionId });
+
+            // Get current budget data
+            const budget = await this.findById(userId, budgetId);
+            if (!budget) {
+                console.log('Budget not found');
+                return false;
+            }
+
+            // Initialize or update trackedTransactions array
+            const trackedTransactions = budget.trackedTransactions || [];
+            if (!trackedTransactions.includes(transactionId)) {
+                trackedTransactions.push(transactionId);
+            }
+
+            // Update budget with new transaction array
+            await this.update(userId, budgetId, {
+                trackedTransactions,
+                lastUpdated: new Date().toISOString()
+            });
+
+            console.log('Transaction linked successfully');
+            return true;
+        } catch (error) {
+            console.error('Error in linkTransactionToBudget:', error);
+            return false;
+        }
+    }
+
+    async removeTransactionTracking(userId, budgetId, transactionId) {
+        try {
+            // Get current budget data
+            const budget = await this.findById(userId, budgetId);
+            if (!budget) {
+                return false;
+            }
+
+            // Remove transaction from tracking array
+            const trackedTransactions = (budget.trackedTransactions || [])
+                .filter(id => id !== transactionId);
+
+            // Update budget with new transaction array
+            await this.update(userId, budgetId, {
+                trackedTransactions,
+                lastUpdated: new Date().toISOString()
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error in removeTransactionTracking:', error);
+            return false;
+        }
+    }
+
 }
 
 module.exports = BudgetModel;

@@ -1,0 +1,147 @@
+.dashboard {
+    padding: 1.5rem;
+    background-color: #f9fafb;
+    min-height: 100vh;
+}
+
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .summaryGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.summaryCard {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.summaryCard h3 {
+    color: #4b5563;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.summaryCard p {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.positive {
+    color: #059669;
+}
+
+.negative {
+    color: #dc2626;
+}
+
+.categoriesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.categoryCard {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.categoryCard h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.progressContainer {
+    position: relative;
+    padding-top: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.progressLabel {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    background-color: #dbeafe;
+    color: #2563eb;
+    margin-bottom: 0.5rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 0.5rem;
+    background-color: #dbeafe;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background-color: #2563eb;
+    transition: width 0.3s ease;
+}
+
+.progressFill.exceeded {
+    background-color: #dc2626;
+}
+
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.detailsItem p:first-child {
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.detailsItem p:last-child {
+    font-weight: 600;
+}
+
+.warning {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+}
+
+.warning p {
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.125rem;
+    color: #4b5563;
+}
+
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.125rem;
+    color: #dc2626;
+}

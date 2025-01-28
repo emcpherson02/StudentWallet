@@ -41,6 +41,13 @@ const setupBudgetRoutes = (router, budgetController, authMiddleware) => {
         budgetController.getBudgetById.bind(budgetController)
     );
 
+
+    router.get(
+        '/transactions/',
+        authMiddleware.verifyToken,
+        budgetController.getBudgetTransactions.bind(budgetController)
+    );
+
     return router;
 };
 

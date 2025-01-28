@@ -62,12 +62,11 @@
     font-size: 2rem;
 }
 
-/* Main content grid */
-.main-content {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+/* Main content layout */
+.mainContent {
+    display: flex;
+    flex-direction: column;
     gap: 20px;
-    margin-bottom: 20px;
 }
 
 /* Card styles */
@@ -76,12 +75,8 @@
     border-radius: 8px;
     padding: 20px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    margin-bottom: 20px;
+    width: 100%;
 }
 
 .card h2 {
@@ -98,75 +93,71 @@
 }
 
 /* User info section */
-.user-info {
+.userInfo {
     background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
 }
 
-.user-info p {
+.userInfo p {
     margin: 10px 0;
     color: #2c3e50;
 }
 
 /* Accounts grid */
-.accounts-grid {
+.accountsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
     gap: 15px;
 }
 
-.account-card {
+.accountCard {
     background: #f8f9fa;
     padding: 15px;
     border-radius: 6px;
-    transition: transform 0.2s ease;
 }
 
-.account-card:hover {
-    transform: translateY(-2px);
+.accountCard:hover {
+    background: #f0f0f0;
 }
 
-.account-card p {
+.accountCard p {
     margin: 8px 0;
     color: #2c3e50;
 }
 
 /* Transactions section */
-.transactions-section {
+.transactionsSection {
     margin-top: 20px;
 }
 
-.transactions-list {
+.transactionsList {
     max-height: 400px;
     overflow-y: auto;
 }
 
 .transactionItem {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
     padding: 8px 16px;
     border-bottom: 1px solid #ddd;
 }
 
-.transaction-item:hover {
+.transactionItem:hover {
     background-color: #f8f9fa;
 }
 
-.transaction-details {
+.transactionDetails {
     flex: 1;
 }
 
 .transactionName {
-    flex: 2; /* Adjust width as needed */
+    flex: 2;
 }
 
 .transactionDate {
-    flex: 1; /* Adjust width as needed */
+    flex: 1;
     text-align: center;
 }
 
 .transactionAmount {
-    flex: 1; /* Adjust width as needed */
+    flex: 1;
     text-align: right;
 }
 
@@ -178,8 +169,8 @@
     color: #28a745;
 }
 
-/* Buttons */
-.primary-button {
+/* Button styles */
+.primaryButton {
     background: #0066cc;
     color: white;
     border: none;
@@ -187,29 +178,28 @@
     border-radius: 4px;
     cursor: pointer;
     font-weight: 500;
-    transition: background-color 0.2s ease;
+    margin-bottom: 15px;
 }
 
-.primary-button:hover {
+.primaryButton:hover {
     background: #0052a3;
 }
 
-.logout-button {
+.logoutButton {
     background: #dc3545;
     color: white;
     border: none;
     padding: 8px 16px;
     border-radius: 4px;
     cursor: pointer;
-    transition: background-color 0.2s ease;
 }
 
-.logout-button:hover {
+.logoutButton:hover {
     background: #c82333;
 }
 
 /* Message banner */
-.message-banner {
+.messageBanner {
     background: #d4edda;
     color: #155724;
     padding: 10px;
@@ -218,23 +208,33 @@
 }
 
 /* Connect bank section */
-.connect-bank-section {
+.connectBankSection {
     text-align: center;
     padding: 20px;
 }
 
-.connect-bank-section p {
+.connectBankSection p {
     color: #666;
     margin-bottom: 20px;
 }
 
+/* Budgets section */
+.budgetsSection {
+    margin-top: 20px;
+    padding: 15px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.budgetItem {
+    margin-bottom: 10px;
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .main-content {
-        grid-template-columns: 1fr;
-    }
-
-    .accounts-grid {
+    .accountsGrid {
         grid-template-columns: 1fr;
     }
 
@@ -244,65 +244,13 @@
         gap: 10px;
     }
 
-    .transaction-item {
+    .transactionItem {
         flex-direction: column;
         align-items: flex-start;
     }
 
-    .transaction-amount {
+    .transactionAmount {
         align-self: flex-end;
         margin-top: 5px;
     }
-}
-
-/* Loading states */
-.loading-skeleton {
-    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
-    background-size: 200% 100%;
-    animation: loading 1.5s infinite;
-    border-radius: 4px;
-    height: 20px;
-    margin: 10px 0;
-}
-
-@keyframes loading {
-    0% {
-        background-position: 200% 0;
-    }
-    100% {
-        background-position: -200% 0;
-    }
-}
-
-/* Scrollbar customization */
-.transactions-list::-webkit-scrollbar {
-    width: 8px;
-}
-
-.transactions-list::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 4px;
-}
-
-.transactions-list::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 4px;
-}
-
-.transactions-list::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
-.budgetsSection {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #ccc;
-    border-radius: 8px;
-    background-color: #f9f9f9;
-}
-
-.budgetItem {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
 }
