@@ -35,9 +35,17 @@ const options = {
                         period: { type: 'string' },
                         spent: { type: 'number' },
                         startDate: { type: 'string', format: 'date' },
-                        endDate: { type: 'string', format: 'date' }
+                        endDate: { type: 'string', format: 'date' },
+                        percentageUsed: { type: 'number' },
+                        trackedTransactions: {
+                            type: 'array',
+                            items: {
+                                type: 'string'
+                            }
+                        }
                     }
                 },
+
                 Transaction: {
                     type: 'object',
                     properties: {
@@ -427,6 +435,88 @@ const options = {
                         },
                         500: {
                             description: 'Internal server error while retrieving budget'
+                        }
+                    }
+                }
+            },
+            '/budget/transactions': {
+                get: {
+                    tags: ['Budget'],
+                    summary: 'Get transactions for a specific budget',
+                    description: 'Retrieves all transactions associated with a specific budget',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'query',
+                            name: 'userId',
+                            required: true,
+                            schema: {
+                                type: 'string'
+                            },
+                            description: 'Unique identifier of the user'
+                        },
+                        {
+                            in: 'query',
+                            name: 'budgetId',
+                            required: true,
+                            schema: {
+                                type: 'string'
+                            },
+                            description: 'Unique identifier of the budget'
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Budget transactions retrieved successfully',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            status: {
+                                                type: 'string',
+                                                example: 'success'
+                                            },
+                                            data: {
+                                                type: 'array',
+                                                items: {
+                                                    type: 'object',
+                                                    properties: {
+                                                        id: {
+                                                            type: 'string'
+                                                        },
+                                                        amount: {
+                                                            type: 'number'
+                                                        },
+                                                        category: {
+                                                            type: 'string'
+                                                        },
+                                                        description: {
+                                                            type: 'string'
+                                                        },
+                                                        date: {
+                                                            type: 'string',
+                                                            format: 'date-time'
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        },
+                        400: {
+                            description: 'Missing or invalid parameters'
+                        },
+                        401: {
+                            description: 'Unauthorized - Invalid or missing authentication token'
+                        },
+                        404: {
+                            description: 'Budget not found'
+                        },
+                        500: {
+                            description: 'Internal server error'
                         }
                     }
                 }
