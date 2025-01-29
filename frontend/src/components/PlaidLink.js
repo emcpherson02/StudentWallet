@@ -10,6 +10,10 @@ import BudgetForm from './BudgetForm';
 
 function PlaidLink() {
   const { currentUser } = useAuth();
+  const navigate = useNavigate();
+  const appRef = useRef();
+
+  // State declarations
   const [message, setMessage] = useState('');
   const [transactionMessage, setTransactionMessage] = useState('');
   const [linkedBank, setLinkedBank] = useState(false);
@@ -18,84 +22,23 @@ function PlaidLink() {
   const [budgets, setBudgets] = useState([]);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const navigate = useNavigate();
-  const appRef = useRef();
 
-  useEffect(() => {
-    if (!currentUser) {
-      navigate('/login');
-    }
-  }, [currentUser, navigate]);
-
-  const fetchUserDetails = useCallback(async () => {
+  // Define fetch functions first
+  const fetchBudgets = useCallback(async () => {
     if (!currentUser) return;
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/user/user-data`, {
+      const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
         params: { userId: currentUser.uid },
         headers: { Authorization: `Bearer ${token}` }
       });
-
-      const { linkedBank, accounts } = response.data;
-      setLinkedBank(linkedBank);
-      if (linkedBank) {
-        // Only fetch Plaid data if bank is linked
-        await fetchPlaidAccounts();
-        await fetchPlaidTransactions();
-      }
-        setAccounts(accounts || []);
+      setBudgets(response.data.budgets || []);
     } catch (error) {
-      console.error('Error fetching user details:', error);
-      setMessage('Failed to fetch user details.');
+      console.error('Error fetching budgets:', error);
+      setMessage('Failed to fetch budgets.');
     }
   }, [currentUser]);
-
-  const fetchPlaidAccounts = async () => {
-    try {
-      const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-      setAccounts(response.data.accounts || []);
-    } catch (error) {
-      console.error('Error fetching accounts:', error);
-    }
-  };
-
-  const fetchPlaidTransactions = async () => {
-    try {
-      const token = await currentUser.getIdToken();
-      const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-
-      const response = await axios.get(
-          `http://localhost:3001/plaid/transactions/${currentUser.uid}`,
-          {
-            params: { startDate, endDate },
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-      );
-
-      if (response.data && response.data.transactions) {
-        const formattedTransactions = response.data.transactions.map(trans => ({
-          type: trans.Description,
-          amount: trans.Amount,
-          date: new Date(trans.date)
-        }));
-        setTransactions(formattedTransactions);
-      }
-    } catch (error) {
-      if (linkedBank) {
-        console.error('Error fetching Plaid transactions:', error);
-        setMessage('Failed to fetch bank transactions. Manual transactions still available.');
-      }
-    }
-  };
 
   const fetchTransactions = useCallback(async () => {
     if (!currentUser) return;
@@ -115,44 +58,66 @@ function PlaidLink() {
     }
   }, [currentUser]);
 
-  const fetchBudgets = useCallback(async () => {
+  const fetchPlaidAccounts = async () => {
+    try {
+      const token = await currentUser.getIdToken();
+      const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+      setAccounts(response.data.accounts || []);
+    } catch (error) {
+      console.error('Error fetching accounts:', error);
+    }
+  };
+
+  const fetchUserDetails = useCallback(async () => {
     if (!currentUser) return;
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
+      const response = await axios.get(`http://localhost:3001/user/user-data`, {
         params: { userId: currentUser.uid },
         headers: { Authorization: `Bearer ${token}` }
       });
-      setBudgets(response.data.budgets || []);
+
+      const { linkedBank, accounts } = response.data;
+      setLinkedBank(linkedBank);
+      if (linkedBank) {
+        await fetchPlaidAccounts();
+      }
+      setAccounts(accounts || []);
     } catch (error) {
-      console.error('Error fetching budgets:', error);
-      setMessage('Failed to fetch budgets.');
+      console.error('Error fetching user details:', error);
+      setMessage('Failed to fetch user details.');
     }
   }, [currentUser]);
 
-  useEffect(() => {
-    if (currentUser) {
-      fetchUserDetails();
-      fetchTransactions();
-      fetchBudgets();
-    }
-  }, [currentUser, fetchUserDetails, fetchTransactions, fetchBudgets]);
-
+  // Handler functions
   const handleTransactionAdded = useCallback(() => {
     fetchTransactions();
     fetchBudgets();
     setTransactionMessage('Transaction added successfully!');
     setIsTransactionModalOpen(false);
-    appRef.current.classList.remove('modal-open');
-  }, [fetchTransactions][fetchBudgets]);
+    appRef.current?.classList.remove('modal-open');
+  }, [fetchTransactions, fetchBudgets]);
 
   const handleBudgetAdded = useCallback(() => {
     fetchBudgets();
     setMessage('Budget added successfully!');
     setIsBudgetModalOpen(false);
-    appRef.current.classList.remove('modal-open');
+    appRef.current?.classList.remove('modal-open');
   }, [fetchBudgets]);
+
+  const handleLogout = useCallback(async () => {
+    try {
+      await signOut(auth);
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  }, [navigate]);
 
   const startPlaidLink = async () => {
     try {
@@ -185,27 +150,27 @@ function PlaidLink() {
                 }
             );
 
-            setMessage('Plaid account linked successfully!');
+            setMessage('Bank account linked successfully! Fetching your transactions...');
             setLinkedBank(true);
             setAccounts(exchangeResponse.data.accounts || []);
 
-            // Refresh transactions after linking
+            // First, trigger Plaid transaction fetch (which stores in DB)
             const endDate = new Date().toISOString().split('T')[0];
             const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
-            const transResponse = await axios.get(`http://localhost:3001/plaid/transactions/${currentUser.uid}`, {
-              params: { startDate, endDate },
-              headers: {
-                Authorization: `Bearer ${token}`
-              }
-            });
 
-            const formattedTransactions = transResponse.data.transactions.map(trans => ({
-              type: trans.description,
-              amount: trans.amount,
-              date: new Date(trans.date),
-            }));
+            await axios.get(
+                `http://localhost:3001/plaid/transactions/${currentUser.uid}`,
+                {
+                  params: { startDate, endDate },
+                  headers: {
+                    Authorization: `Bearer ${token}`
+                  }
+                }
+            );
 
-            setTransactions(formattedTransactions);
+            // Then fetch all transactions from our DB
+            await fetchTransactions();
+            setMessage('Bank account linked and transactions imported successfully!');
           } catch (error) {
             console.error('Error exchanging public token:', error);
             setMessage('Failed to link account.');
@@ -222,18 +187,24 @@ function PlaidLink() {
       handler.open();
     } catch (error) {
       console.error('Error fetching link token:', error);
-      setMessage('Failed to start Plaid Link.');
+      setMessage('Failed to start bank connection process.');
     }
   };
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
+  // Effects
+  useEffect(() => {
+    if (!currentUser) {
       navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
     }
-  }, [navigate]);
+  }, [currentUser, navigate]);
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchUserDetails();
+      fetchTransactions();
+      fetchBudgets();
+    }
+  }, [currentUser, fetchUserDetails, fetchTransactions, fetchBudgets]);
 
   if (!currentUser) return null;
 
