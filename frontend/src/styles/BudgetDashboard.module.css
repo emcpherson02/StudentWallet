@@ -145,3 +145,41 @@
     font-size: 1.125rem;
     color: #dc2626;
 }
+
+.dashboardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dashboardHeader h1 {
+    color: #1f2937;
+    font-size: 1.875rem;
+    font-weight: 600;
+    margin: 0;
+}
+
+.notificationToggle {
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.notificationToggle.enabled {
+    background-color: #d1fae5;
+    border-color: #34d399;
+    color: #065f46;
+}
+
+.notificationToggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
