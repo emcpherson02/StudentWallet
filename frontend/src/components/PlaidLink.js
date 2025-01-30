@@ -58,41 +58,62 @@ function PlaidLink() {
     }
   }, [currentUser]);
 
-  const fetchPlaidAccounts = async () => {
+  const fetchPlaidAccounts = useCallback(async () => {
     try {
+      console.log('Fetching Plaid accounts...');
       const token = await currentUser.getIdToken();
       const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
         headers: {
           Authorization: `Bearer ${token}`
         }
       });
-      setAccounts(response.data.accounts || []);
+
+      console.log('Plaid accounts response:', response.data);
+      if (response.data.accounts) {
+        const processedAccounts = response.data.accounts.map(account => ({
+          id: account.account_id,
+          name: account.name,
+          officialName: account.official_name,
+          type: account.type,
+          subtype: account.subtype,
+          institutionName: account.institutionName
+        }));
+        console.log('Processed accounts:', processedAccounts);
+        setAccounts(processedAccounts);
+      } else {
+        console.log('No accounts found in Plaid response');
+      }
     } catch (error) {
-      console.error('Error fetching accounts:', error);
+      console.error('Error fetching Plaid accounts:', error);
     }
-  };
+  }, [currentUser]);
 
   const fetchUserDetails = useCallback(async () => {
     if (!currentUser) return;
 
     try {
+      console.log('Fetching user details...');
       const token = await currentUser.getIdToken();
       const response = await axios.get(`http://localhost:3001/user/user-data`, {
         params: { userId: currentUser.uid },
         headers: { Authorization: `Bearer ${token}` }
       });
 
-      const { linkedBank, accounts } = response.data;
+      const { linkedBank } = response.data;
+
       setLinkedBank(linkedBank);
+
       if (linkedBank) {
         await fetchPlaidAccounts();
+      } else {
+        console.log('No bank linked, clearing accounts');
+        setAccounts([]);
       }
-      setAccounts(accounts || []);
     } catch (error) {
       console.error('Error fetching user details:', error);
       setMessage('Failed to fetch user details.');
     }
-  }, [currentUser]);
+  }, [currentUser, fetchPlaidAccounts]);
 
   // Handler functions
   const handleTransactionAdded = useCallback(() => {
@@ -223,58 +244,59 @@ function PlaidLink() {
           <p><strong>Name:</strong> {currentUser.displayName}</p>
           <p><strong>Email:</strong> {currentUser.email}</p>
           {message && (
-            <div className={styles.messageBanner}>
-              {message}
-            </div>
+              <div className={styles.messageBanner}>
+                {message}
+              </div>
           )}
         </div>
 
         <div className={`${styles.card} ${styles.connectBankSection}`}>
           <h2>Linked Bank Account</h2>
           {!linkedBank ? (
-            <div className={styles.connectBankSection}>
-              <p>Connect your bank account to get started</p>
-              <button
-                className={styles.primaryButton}
-                onClick={startPlaidLink}
-              >
-                Connect Bank Account
-              </button>
-            </div>
-          ) : (
-            <div className={styles.connectBankSection}>
-              <h2>Linked Accounts</h2>
-              <div className={styles.accountsGrid}>
-                {accounts.map((account, index) => (
-                  <div key={account.id || index} className={styles.accountCard}>
-                    <h3>{account.name || account.type}</h3>
-                    <p>
-                      <strong>Balance:</strong> £
-                      {account.balance?.current?.toFixed(2) ||
-                        account.balance?.available?.toFixed(2) ||
-                        'N/A'}
-                    </p>
-                  </div>
-                ))}
+              <div className={styles.connectBankSection}>
+                <p>Connect your bank account to get started</p>
+                <button
+                    className={styles.primaryButton}
+                    onClick={startPlaidLink}
+                >
+                  Connect Bank Account
+                </button>
               </div>
-            </div>
+          ) : (
+              <div className={styles.connectBankSection}>
+                <h2>Connected Bank Details</h2>
+                <div className={styles.accountsGrid}>
+                  {accounts.map((account, index) => (
+                      <div key={account.id || index} className={styles.accountCard}>
+                        {account.institutionName && (
+                            <h3>{account.institutionName}</h3>
+                        )}
+                        <p><strong>Account:</strong> {account.name || account.officialName}</p>
+                        <p><strong>Type:</strong> {account.type && account.subtype ?
+                            `${account.type} - ${account.subtype}` :
+                            account.type || 'Standard Account'}
+                        </p>
+                      </div>
+                  ))}
+                </div>
+              </div>
           )}
         </div>
 
         <div className={`${styles.card} ${styles.transactionsSection}`}>
           <h2>Transactions</h2>
           {transactionMessage && (
-            <div className={styles.messageBanner}>
-              {transactionMessage}
-            </div>
+              <div className={styles.messageBanner}>
+                {transactionMessage}
+              </div>
           )}
 
           <button
-            className={styles.primaryButton}
-            onClick={() => {
-              setIsTransactionModalOpen(true);
-              appRef.current.classList.add('modal-open');
-            }}
+              className={styles.primaryButton}
+              onClick={() => {
+                setIsTransactionModalOpen(true);
+                appRef.current.classList.add('modal-open');
+              }}
           >
             Add Transaction
           </button>
@@ -296,17 +318,17 @@ function PlaidLink() {
           )}
 
           {isTransactionModalOpen && (
-            <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000 }}>
-              <TransactionForm
-                userId={currentUser?.uid}
-                onTransactionAdded={handleTransactionAdded}
-                setMessage={setTransactionMessage}
-                onClose={() => {
-                  setIsTransactionModalOpen(false);
-                  appRef.current.classList.remove('modal-open');
-                }}
-              />
-            </div>
+              <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000}}>
+                <TransactionForm
+                    userId={currentUser?.uid}
+                    onTransactionAdded={handleTransactionAdded}
+                    setMessage={setTransactionMessage}
+                    onClose={() => {
+                      setIsTransactionModalOpen(false);
+                      appRef.current.classList.remove('modal-open');
+                    }}
+                />
+              </div>
           )}
         </div>
 
