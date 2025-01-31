@@ -146,58 +146,40 @@
     color: #dc2626;
 }
 
-.transactionsButton {
-    width: 100%;
-    padding: 8px;
-    margin-top: 15px;
-    background-color: #007bff;
-    color: white;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-}
-
-.transactionsList {
-    margin-top: 15px;
-    padding: 10px;
-    background-color: #f8f9fa;
-    border-radius: 4px;
-}
-
-.transactionItem {
+.dashboardHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 10px;
-    margin: 5px 0;
-    background-color: white;
-    border: 1px solid #dee2e6;
-    border-radius: 4px;
+    margin-bottom: 2rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.transactionDetails {
-    flex-grow: 1;
+.dashboardHeader h1 {
+    color: #1f2937;
+    font-size: 1.875rem;
+    font-weight: 600;
+    margin: 0;
 }
 
-.transactionDescription {
+.notificationToggle {
+    background-color: #f3f4f6;
+    border: 1px solid #e5e7eb;
+    color: #374151;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
     font-weight: 500;
-    margin: 0;
+    cursor: pointer;
+    transition: all 0.2s ease;
 }
 
-.transactionDate {
-    color: #6c757d;
-    font-size: 0.9em;
-    margin: 0;
+.notificationToggle.enabled {
+    background-color: #d1fae5;
+    border-color: #34d399;
+    color: #065f46;
 }
 
-.transactionAmount {
-    font-weight: 500;
-    margin: 0;
-    padding-left: 15px;
-}
-
-.noTransactions, .loading {
-    text-align: center;
-    color: #6c757d;
-    padding: 10px;
+.notificationToggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
