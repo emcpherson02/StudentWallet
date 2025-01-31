@@ -3,10 +3,6 @@ const nodemailer = require('nodemailer');
 class BudgetNotificationService {
     constructor(userModel) {
         this.userModel = userModel;
-        console.log('Email config:', {
-            user: process.env.EMAIL_USER ? 'Set' : 'Not set',
-            pass: process.env.EMAIL_PASSWORD ? 'Set' : 'Not set'
-        });
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -18,10 +14,15 @@ class BudgetNotificationService {
 
     async checkAndNotifyBudgetLimit(userId, budgetCategory, spent, limit) {
         try {
-            console.log('Checking budget limit:', { userId, budgetCategory, spent, limit });
             const user = await this.userModel.findById(userId);
             if (!user) {
                 console.log('User not found:', userId);
+                return;
+            }
+
+            console.log(`Notifications ${user.notificationsEnabled ? 'enabled' : 'disabled'} for user:`, userId);
+
+            if (!user.notificationsEnabled) {
                 return;
             }
 

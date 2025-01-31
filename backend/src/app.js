@@ -43,7 +43,7 @@ const port = process.env.PORT || 3001;
 // Initialize services with models
 const budgetNotificationService = new BudgetNotificationService(userModel);
 const authService = new AuthService(authModel);
-const userService = new UserService(userModel);
+const userService = new UserService(userModel, budgetModel, budgetNotificationService);
 const plaidService = new PlaidService(plaidModel, budgetModel, budgetNotificationService);
 const transactionService = new TransactionService(transactionModel, budgetModel, budgetNotificationService);
 const budgetService = new BudgetService(budgetModel, transactionModel, budgetNotificationService);

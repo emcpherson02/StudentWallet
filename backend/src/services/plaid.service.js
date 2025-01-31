@@ -60,17 +60,21 @@ class PlaidService {
                 access_token: tokens.accessToken
             });
 
+            // Get institution information
+            const institutionResponse = await this.plaidClient.institutionsGetById({
+                institution_id: accountsResponse.data.item.institution_id,
+                country_codes: ['GB']
+            });
+
+            const institutionName = institutionResponse.data.institution.name;
+
             return accountsResponse.data.accounts.map(account => ({
                 id: account.account_id,
                 name: account.name,
+                officialName: account.official_name,
                 type: account.type,
                 subtype: account.subtype,
-                balance: {
-                    available: account.balances.available,
-                    current: account.balances.current,
-                    limit: account.balances.limit,
-                    isoCurrencyCode: account.balances.iso_currency_code
-                }
+                institutionName: institutionName
             }));
         } catch (error) {
             console.error('Error fetching accounts:', error.response?.data || error.message);
@@ -83,11 +87,6 @@ class PlaidService {
             const tokens = await this.plaidModel.getTokens(userId);
             if (!tokens) {
                 throw new DatabaseError('No access token found for user');
-            }
-
-            const storedTransactions = await this.plaidModel.getStoredTransactions(userId);
-            if (storedTransactions && storedTransactions.length > 0) {
-                return storedTransactions;
             }
 
             const response = await this.plaidClient.transactionsSync({
@@ -115,26 +114,39 @@ class PlaidService {
                 }));
 
             if (transformedTransactions.length > 0) {
-                const storedTransactions = await this.plaidModel.createTransaction(userId, transformedTransactions);
+                // Store transactions in database
+                for (const transaction of transformedTransactions) {
+                    const storedTransaction = await this.plaidModel.createTransaction(userId, transaction);
 
-                // Process each stored transaction and link to budget
-                for (const transaction of storedTransactions) {
-                    const budgets = await this.budgetModel.findByCategory(userId, transaction.category);
-                    if (budgets.length > 0) {
-                        const budget = budgets[0];
-                        const newSpent = (budget.spent || 0) + Number(transaction.Amount);
-                        await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+                    // Find all budgets for this user
+                    const budgets = await this.budgetModel.findByUserId(userId);
 
-                        // Link transaction ID to budget
-                        await this.budgetModel.linkTransactionToBudget(userId, budget.id, transaction.id);
+                    // Check each budget for category match and date range
+                    for (const budget of budgets) {
+                        const transactionDate = new Date(transaction.date);
+                        const budgetStartDate = new Date(budget.startDate);
+                        const budgetEndDate = new Date(budget.endDate);
 
-                        // Send notification if budget exceeded
-                        await this.budgetNotificationService.checkAndNotifyBudgetLimit(
-                            userId,
-                            transaction.category,
-                            newSpent,
-                            budget.amount
-                        );
+                        if (
+                            transaction.category === budget.category &&
+                            transactionDate >= budgetStartDate &&
+                            transactionDate <= budgetEndDate
+                        ) {
+                            // Update budget spent amount
+                            const newSpent = (budget.spent || 0) + Number(transaction.Amount);
+                            await this.budgetModel.update(userId, budget.id, { spent: newSpent });
+
+                            // Link transaction to budget
+                            await this.budgetModel.linkTransactionToBudget(userId, budget.id, storedTransaction.id);
+
+                            // Send notification if budget exceeded
+                            await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                                userId,
+                                transaction.category,
+                                newSpent,
+                                budget.amount
+                            );
+                        }
                     }
                 }
             }

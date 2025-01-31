@@ -15,6 +15,12 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.updateUser.bind(userController)
     );
 
+    router.post(
+        '/toggle-notifications',
+        authMiddleware.verifyToken,
+        userController.toggleNotifications.bind(userController)
+    );
+
     router.delete(
         '/delete_user/:userId',
         userController.deleteUser.bind(userController)

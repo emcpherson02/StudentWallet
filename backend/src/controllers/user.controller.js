@@ -51,6 +51,20 @@ class UserController {
             next(error);
         }
     }
+
+    async toggleNotifications(req, res, next) {
+        try {
+            const { userId, enabled } = req.body;
+            const result = await this.userService.toggleNotifications(userId, enabled);
+
+            res.status(200).json({
+                status: 'success',
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = UserController;

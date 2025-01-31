@@ -49,7 +49,8 @@ class AuthService {
                 name,
                 dob,
                 email,
-                password
+                password,
+                notificationsEnabled: false  // Set default value when creating user
             });
 
             return {
