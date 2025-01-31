@@ -11,7 +11,6 @@ const BudgetDashboard = () => {
     const [error, setError] = useState(null);
     const [expandedBudget, setExpandedBudget] = useState(null);
     useEffect(() => {
-
         const fetchBudgetData = async () => {
             if (!currentUser) return;
 
@@ -25,7 +24,8 @@ const BudgetDashboard = () => {
                     }
                 );
 
-                console.log('Budget response:', response.data.data); // Add this log
+                console.log('Full budget response:', response.data);
+                console.log('Budget ID:', response.data.data.id);
                 setBudgetData(response.data.data);
                 setLoading(false);
             } catch (err) {
@@ -33,10 +33,9 @@ const BudgetDashboard = () => {
                 setError('Failed to load budget data');
                 setLoading(false);
             }
+        };
 
-
-            await fetchBudgetData();
-        }
+        fetchBudgetData();
     }, [currentUser]);
 
     const fetchTransactionsForBudget = async (budgetId) => {
@@ -125,7 +124,7 @@ const BudgetDashboard = () => {
                                     className={`${styles.progressFill} ${
                                         parseFloat(category.percentageUsed) > 100 ? styles.exceeded : ''
                                     }`}
-                                    style={{ width: `${Math.min(parseFloat(category.percentageUsed), 100)}%` }}
+                                    style={{width: `${Math.min(parseFloat(category.percentageUsed), 100)}%`}}
                                 />
                             </div>
                         </div>
@@ -161,12 +160,13 @@ const BudgetDashboard = () => {
 
                         <button
                             className={styles.transactionsButton}
-                            onClick={() => toggleTransactions(budgetData.id)}
+                            onClick={() => toggleTransactions(category.budgetId)}  // Change from budgetData.id
                         >
-                            {expandedBudget === budgetData.id ? 'Hide' : 'Show'} Transactions
+                            {expandedBudget === category.budgetId ? 'Hide' : 'Show'} Transactions
+                            here
                         </button>
 
-                        {expandedBudget === budgetData.id && (
+                        {expandedBudget === category.budgetId && (
                             <div className={styles.transactionsList}>
                                 {transactions[category.budgetId] ? (
                                     transactions[category.budgetId].length > 0 ? (
