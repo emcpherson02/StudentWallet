@@ -6,10 +6,12 @@ import styles from '../styles/BudgetDashboard.module.css';
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
     const [budgetData, setBudgetData] = useState(null);
+    const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
+    const [expandedBudget, setExpandedBudget] = useState(null);
     useEffect(() => {
+
         const fetchBudgetData = async () => {
             if (!currentUser) return;
 
@@ -18,11 +20,12 @@ const BudgetDashboard = () => {
                 const response = await axios.get(
                     'http://localhost:3001/budget/analytics/summary',
                     {
-                        params: { userId: currentUser.uid },
-                        headers: { Authorization: `Bearer ${token}` }
+                        params: {userId: currentUser.uid},
+                        headers: {Authorization: `Bearer ${token}`}
                     }
                 );
 
+                console.log('Budget response:', response.data.data); // Add this log
                 setBudgetData(response.data.data);
                 setLoading(false);
             } catch (err) {
@@ -30,10 +33,50 @@ const BudgetDashboard = () => {
                 setError('Failed to load budget data');
                 setLoading(false);
             }
-        };
 
-        fetchBudgetData();
+
+            await fetchBudgetData();
+        }
     }, [currentUser]);
+
+    const fetchTransactionsForBudget = async (budgetId) => {
+        if (!currentUser || !budgetId) return;
+
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await axios.get(
+                'http://localhost:3001/budget/transactions/',
+                {
+                    params: {
+                        userId: currentUser.uid,
+                        budgetId: budgetId
+                    },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setTransactions(prev => ({
+                ...prev,
+                [budgetId]: response.data.data
+            }));
+        } catch (err) {
+            console.error('Error fetching transactions:', err);
+        }
+    };
+
+    const toggleTransactions = (budgetId) => {
+        // If the clicked budget is already expanded, collapse it
+        if (expandedBudget === budgetId) {
+            setExpandedBudget(null);
+        }
+        // Otherwise, collapse any open budget and expand the clicked one
+        else {
+            setExpandedBudget(budgetId);
+            if (!transactions[budgetId]) {
+                fetchTransactionsForBudget(budgetId);
+            }
+        }
+    };
 
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
@@ -47,7 +90,6 @@ const BudgetDashboard = () => {
 
     return (
         <div className={styles.dashboard}>
-            {/* Summary Cards Section */}
             <div className={styles.summaryGrid}>
                 <div className={styles.summaryCard}>
                     <h3>Total Budget</h3>
@@ -69,7 +111,6 @@ const BudgetDashboard = () => {
                 </div>
             </div>
 
-            {/* Category Breakdown Cards */}
             <div className={styles.categoriesGrid}>
                 {budgetData.categoryBreakdown.map((category, index) => (
                     <div key={index} className={styles.categoryCard}>
@@ -115,6 +156,41 @@ const BudgetDashboard = () => {
                                 <p>
                                     Warning: Budget exceeded by {(parseFloat(category.percentageUsed) - 100).toFixed(1)}%
                                 </p>
+                            </div>
+                        )}
+
+                        <button
+                            className={styles.transactionsButton}
+                            onClick={() => toggleTransactions(budgetData.id)}
+                        >
+                            {expandedBudget === budgetData.id ? 'Hide' : 'Show'} Transactions
+                        </button>
+
+                        {expandedBudget === budgetData.id && (
+                            <div className={styles.transactionsList}>
+                                {transactions[category.budgetId] ? (
+                                    transactions[category.budgetId].length > 0 ? (
+                                        transactions[category.budgetId].map(transaction => (
+                                            <div key={transaction.id} className={styles.transactionItem}>
+                                                <div className={styles.transactionDetails}>
+                                                    <p className={styles.transactionDescription}>
+                                                        {transaction.Description}
+                                                    </p>
+                                                    <p className={styles.transactionDate}>
+                                                        {new Date(transaction.date).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <p className={styles.transactionAmount}>
+                                                    £{Math.abs(transaction.Amount).toFixed(2)}
+                                                </p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className={styles.noTransactions}>No transactions found</p>
+                                    )
+                                ) : (
+                                    <p className={styles.loading}>Loading transactions...</p>
+                                )}
                             </div>
                         )}
                     </div>

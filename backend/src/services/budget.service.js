@@ -163,6 +163,7 @@ class BudgetService {
 
                 // Return comprehensive information for this category
                 return {
+                    budgetId: budget.id,
                     category: budget.category,
                     budgetAmount: Number(budget.amount) || 0,
                     spent: spent,
