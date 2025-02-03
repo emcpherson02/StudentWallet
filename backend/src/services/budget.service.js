@@ -20,6 +20,7 @@ class BudgetService {
         }
 
         try {
+            // Create the budget
             const budget = {
                 category,
                 amount,
@@ -29,8 +30,49 @@ class BudgetService {
                 endDate: endDate ? new Date(endDate).toISOString().split('T')[0] : null,
             };
 
-            return await this.budgetModel.create(userId, budget);
+            const createdBudget = await this.budgetModel.create(userId, budget);
+
+            // Find existing transactions that match this budget's criteria
+            const transactions = await this.transactionModel.findByUserId(userId);
+            let totalSpent = 0;
+
+            for (const transaction of transactions) {
+                const transactionDate = new Date(transaction.date);
+                const budgetStartDate = new Date(startDate);
+                const budgetEndDate = new Date(endDate);
+
+                if (
+                    transaction.category === category &&
+                    transactionDate >= budgetStartDate &&
+                    transactionDate <= budgetEndDate
+                ) {
+                    totalSpent += Number(transaction.Amount);
+
+                    // Link the transaction to the budget
+                    await this.budgetModel.linkTransactionToBudget(
+                        userId,
+                        createdBudget.id,
+                        transaction.id
+                    );
+                }
+            }
+
+            // Update the budget with the total spent amount
+            if (totalSpent > 0) {
+                await this.budgetModel.update(userId, createdBudget.id, { spent: totalSpent });
+
+                // Check if budget limit is exceeded and send notification if needed
+                await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                    userId,
+                    category,
+                    totalSpent,
+                    amount
+                );
+            }
+
+            return createdBudget;
         } catch (error) {
+            if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to add Budget');
         }
     }

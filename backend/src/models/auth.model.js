@@ -13,6 +13,7 @@ class AuthModel {
         await this.db.collection(this.collection).doc(email).set({
             ...userData,
             linkedBank: false,
+            notificationsEnabled: false, // Set notifications disabled by default
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         });
         return { id: email, ...userData };
@@ -26,6 +27,7 @@ class AuthModel {
             email: profile.emails[0].value,
             photoURL: profile.photos[0].value,
             linkedBank: false,
+            notificationsEnabled: false,
             createdAt: admin.firestore.FieldValue.serverTimestamp()
         };
 
