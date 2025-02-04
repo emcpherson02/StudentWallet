@@ -1,98 +1,206 @@
-.PlaidLink {
+/* Layout Structure */
+.sidebarLayout {
     display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    padding: 20px;
-    text-align: center;
+    min-height: 100vh;
 }
 
-.linkButton {
-    background-color: #4CAF50;
+/* Top Bar */
+.topBar {
+    height: 4rem;
+    background-color: #282c34;
+    position: fixed;
+    right: 12rem;
+    left: 12rem;
+    top: 0;
+    z-index: 30;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 2rem;
     color: white;
-    padding: 10px 20px;
-    font-size: 16px;
+}
+
+.siteTitle {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    text-align: center;
+    margin: 0;
+    font-size: 1.5rem;
+    font-weight: 600;
+}
+
+.topBarActions {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+/* Notification Button */
+.notificationButton {
+    position: relative;
+    background: none;
     border: none;
-    border-radius: 5px;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+}
+
+.notificationBadge {
+    position: absolute;
+    top: -0.25rem;
+    right: -0.25rem;
+    background-color: #ef4444;
+    color: white;
+    width: 1.25rem;
+    height: 1.25rem;
+    border-radius: 9999px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+}
+
+/* Right Sidebar */
+.rightSidebar {
+    width: 12rem;
+    position: fixed;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #282c34 ;
+    z-index: 20;
+}
+
+/* Left Sidebar */
+.sidebar {
+    width: 12rem;
+    position: fixed;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background-color: #282c34 ;
+    color: white;
+    z-index: 20;
+    padding: 2rem 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.sidebarNav {
+    display: flex;
+    flex-direction: column;
+    gap: 2rem;
+    margin-top: 4rem;
+}
+
+.sidebarLink {
+    color: white;
+    font-size: 1.1rem;
+    text-decoration: none;
+    transition: opacity 0.2s;
+    padding: 1rem 2rem;
+    text-align: left;
+}
+
+.sidebarLink:hover {
+    opacity: 0.8;
+}
+
+/* User Menu Styling */
+.userMenuContainer {
+    position: relative;
+}
+
+.userButton {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 9999px;
+    background-color: #364195;
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
     cursor: pointer;
 }
 
-.linkButton:hover {
-    background-color: #45a049;
-}
-
-.message {
-    margin-top: 15px;
-    font-size: 14px;
-    color: red;
-}
-
-.userDetails {
+.userMenu {
     position: absolute;
-    top: 10px;
-    right: 10px;
-    text-align: right;
+    right: 0;
+    top: 100%;
+    margin-top: 0.5rem;
+    width: 12rem;
+    background-color: white;
+    border-radius: 0.375rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 50;
 }
 
-.userDetails p {
-    margin: 0;
+.userMenuItem {
+    display: block;
+    width: 100%;
+    padding: 0.5rem 1rem;
+    text-align: left;
+    color: #374151;
+    background: none;
+    border: none;
+    cursor: pointer;
 }
 
-/* Main layout */
-.App {
-    padding: 20px;
+.userMenuItem:hover {
+    background-color: #F3F4F6;
+}
+
+
+/* Main Content Area */
+.mainWrapper {
+    flex: 1;
+    margin-left: 12rem;
+    margin-right: 12rem;
+}
+
+.mainContentWrapper {
+    padding-top: 4rem;
+}
+
+/* Page Container */
+.pageContainer {
+    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
 }
 
-/* Header styles */
-.header {
+/* Content Sections */
+.contentSection {
+    margin-bottom: 2rem;
+}
+
+.sectionHeader {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 30px;
-    padding: 10px 0;
-    border-bottom: 2px solid #eaeaea;
+    margin-bottom: 1rem;
 }
 
-.header h1 {
+.sectionHeader h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #1f2937;
     margin: 0;
-    color: #2c3e50;
-    font-size: 2rem;
 }
 
-/* Main content layout */
-.mainContent {
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-}
-
-/* Card styles */
+/* Card Styling */
 .card {
     background: white;
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 20px;
-    width: 100%;
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1rem;
 }
 
-.card h2 {
-    color: #2c3e50;
-    margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
-.card h3 {
-    color: #34495e;
-    margin-top: 0;
-    font-size: 1.2rem;
-}
-
-/* User info section */
+/* User Info Section */
 .userInfo {
     background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
 }
@@ -102,155 +210,186 @@
     color: #2c3e50;
 }
 
-/* Accounts grid */
+/* Accounts Section */
 .accountsGrid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1rem;
 }
 
 .accountCard {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 6px;
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
 }
 
-.accountCard:hover {
-    background: #f0f0f0;
+.accountCard h4 {
+    margin: 0 0 0.5rem 0;
+    color: #1f2937;
+    font-size: 1rem;
 }
 
-.accountCard p {
-    margin: 8px 0;
-    color: #2c3e50;
-}
-
-/* Transactions section */
-.transactionsSection {
-    margin-top: 20px;
-}
-
+/* Transactions Section */
 .transactionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
     max-height: 400px;
     overflow-y: auto;
 }
 
 .transactionItem {
-    padding: 8px 16px;
-    border-bottom: 1px solid #ddd;
-}
-
-.transactionItem:hover {
-    background-color: #f8f9fa;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
 }
 
 .transactionDetails {
-    flex: 1;
+    display: grid;
+    gap: 0.5rem;
 }
 
-.transactionName {
-    flex: 2;
+/* Budgets Section */
+.budgetsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
 }
 
-.transactionDate {
-    flex: 1;
-    text-align: center;
+.budgetCard {
+    background: #f9fafb;
+    padding: 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #e5e7eb;
 }
 
-.transactionAmount {
-    flex: 1;
-    text-align: right;
+.budgetCard h4 {
+    margin: 0 0 0.75rem 0;
+    color: #1f2937;
+    font-size: 1rem;
+    font-weight: 600;
 }
 
-.negative {
-    color: #dc3545;
+.budgetDetails {
+    display: grid;
+    gap: 0.5rem;
 }
 
-.positive {
-    color: #28a745;
+.budgetDates {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid #e5e7eb;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: #6b7280;
+    font-size: 0.875rem;
 }
 
-/* Button styles */
+/* Button Styles */
+.buttonGroup {
+    display: flex;
+    gap: 0.75rem;
+}
+
 .primaryButton {
-    background: #0066cc;
+    background: #282c34 ;
     color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
     border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
     font-weight: 500;
-    margin-bottom: 15px;
+    cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .primaryButton:hover {
-    background: #0052a3;
+    background: #364195;
 }
 
-.logoutButton {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
+.secondaryButton {
+    background: white;
+    color: #282c34 ;
+    padding: 0.5rem 1rem;
+    border-radius: 0.375rem;
+    border: 1px solid #282c34 ;
+    font-weight: 500;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
-.logoutButton:hover {
-    background: #c82333;
+.secondaryButton:hover {
+    background: #f9fafb;
 }
 
-/* Message banner */
+/* Message Banner */
 .messageBanner {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 4px;
-    margin: 10px 0;
+    padding: 0.75rem;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+    background: #f0fdf4;
+    color: #166534;
+    border: 1px solid #dcfce7;
 }
 
-/* Connect bank section */
+/* Empty States */
+.emptyState {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+}
+
+/* Connect Bank Section */
 .connectBankSection {
     text-align: center;
-    padding: 20px;
+    padding: 2rem;
 }
 
 .connectBankSection p {
-    color: #666;
-    margin-bottom: 20px;
+    color: #6b7280;
+    margin-bottom: 1.5rem;
 }
 
-/* Budgets section */
-.budgetsSection {
-    margin-top: 20px;
-    padding: 15px;
-    border-radius: 8px;
-    background-color: #f9f9f9;
+/* Responsive Adjustments */
+@media (max-width: 1280px) {
+    .mainWrapper {
+        margin-right: 0;
+    }
+    
+    .rightSidebar {
+        display: none;
+    }
+    
+    .topBar {
+        right: 0;
+    }
 }
 
-.budgetItem {
-    margin-bottom: 10px;
-    padding: 10px;
-    border-bottom: 1px solid #ddd;
-}
-
-/* Responsive adjustments */
 @media (max-width: 768px) {
-    .accountsGrid {
+    .mainWrapper {
+        margin-left: 0;
+    }
+    
+    .sidebar {
+        display: none;
+    }
+    
+    .topBar {
+        left: 0;
+    }
+    
+    .accountsGrid, 
+    .budgetsGrid {
         grid-template-columns: 1fr;
     }
-
-    .header {
+    
+    .buttonGroup {
         flex-direction: column;
-        text-align: center;
-        gap: 10px;
     }
-
-    .transactionItem {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .transactionAmount {
-        align-self: flex-end;
-        margin-top: 5px;
+    
+    .pageContainer {
+        padding: 1rem;
     }
 }

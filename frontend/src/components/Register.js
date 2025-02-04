@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { registerUser } from '../utils/authService';
 import styles from '../styles/Register.module.css';
+import Layout from './Layout';
 
 function Register() {
     const [name, setName] = useState('');
@@ -11,8 +12,37 @@ function Register() {
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
 
+//Retype Password and Password Strength variables
+
+    const [confirmPassword, setConfirmPassword] = useState('');
+    const [passwordStrength, setPasswordStrength] = useState(0);
+    
+
+
+    // Password Strength Calculator
+    const calculatePasswordStrength = (password) => {
+        let strength = 0;
+        if (password.length >= 8) strength += 1;
+        if (password.match(/[A-Z]/)) strength += 1;
+        if (password.match(/[0-9]/)) strength += 1;
+        if (password.match(/[^A-Za-z0-9]/)) strength += 1;
+        return strength;
+
+    }
+
     const handleRegister = async (e) => {
         e.preventDefault();
+
+        if (password !== confirmPassword){
+            setMessage("Passwords do not match!");
+            return;
+        }
+
+        if (passwordStrength < 3) {
+            setMessage("Please create a stronger password");
+            return;
+        }
+
         try {
             await registerUser(email, password, name, dob);
             setMessage("Registration successful!");
@@ -30,7 +60,9 @@ function Register() {
     };
 
     return (
-        <div className="Register">
+    <Layout showNav={false}>
+        <div className={styles.RegisterWrapper}>
+            <div className={styles.Register}>
             <header className={styles.Header}>
                 <h1>Create a StudentWallet Account</h1>
                 <p>Join us to manage your finances with ease.</p>
@@ -73,9 +105,45 @@ function Register() {
                             id="password"
                             type="password"
                             value={password}
-                            onChange={(e) => setPassword(e.target.value)}
+                            onChange={(e) => {
+                                setPassword(e.target.value);
+                                setPasswordStrength(calculatePasswordStrength(e.target.value));
+                            }}
                             required
                         />
+
+                        {password && (
+                            <div className={styles.passwordStrength}>
+                                <div className={styles.strengthBar}>
+                                    {[...Array(4)].map((_, i) => (
+                                        <span 
+                                            key={i}
+                                            className={`${styles.strengthSegment} ${
+                                                i < passwordStrength ? styles.active : ''
+                                            }`}
+                                        />
+                                    ))}
+                                </div>
+                                <span className={styles.strengthText}>
+                                    {passwordStrength === 0 && "Very Weak"}
+                                    {passwordStrength === 1 && "Weak"}
+                                    {passwordStrength === 2 && "Medium"}
+                                    {passwordStrength === 3 && "Strong"}
+                                    {passwordStrength === 4 && "Very Strong"}
+                                </span>
+                            </div>
+                        )}
+                    </div>
+                    <div className={styles.inputGroup}>
+                        <label htmlFor="confirmPassword">Confirm Password:</label>
+                        <input
+                            id="confirmPassword"
+                            type="password"
+                            value={confirmPassword}
+                            onChange={(e) => setConfirmPassword(e.target.value)}
+                            required
+                        />
+
                     </div>
                     <button type="submit" className={styles.gradientButton}>Register</button>
                 </form>
@@ -92,7 +160,9 @@ function Register() {
                 </p>
             </div>
         </div>
-    );
+    </div>
+</Layout>
+  );
 }
 
 export default Register;

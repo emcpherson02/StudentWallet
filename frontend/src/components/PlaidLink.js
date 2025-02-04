@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import styles from '../styles/PlaidLink.module.css';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import TransactionForm from './TransactionForm';
 import BudgetForm from './BudgetForm';
+import { Bell } from 'lucide-react';
+import Layout from './Layout';
 
 function PlaidLink() {
   const { currentUser } = useAuth();
@@ -143,32 +145,22 @@ function PlaidLink() {
   const startPlaidLink = async () => {
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.post('http://localhost:3001/plaid/create_link_token',
-          {
-            userId: currentUser.uid,
-          },
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
+      const linkTokenResponse = await axios.post(
+        'http://localhost:3001/plaid/create_link_token',
+        { userId: currentUser.uid },
+        { headers: { Authorization: `Bearer ${token}` } }
       );
-      const linkToken = response.data.linkToken;
 
+      const linkToken = linkTokenResponse.data.link_token;
       const handler = window.Plaid.create({
         token: linkToken,
         onSuccess: async (publicToken) => {
           try {
-            const exchangeResponse = await axios.post('http://localhost:3001/plaid/exchange_public_token',
-                {
-                  publicToken,
-                  userId: currentUser.uid,
-                },
-                {
-                  headers: {
-                    Authorization: `Bearer ${token}`
-                  }
-                }
+            const token = await currentUser.getIdToken();
+            await axios.post(
+              'http://localhost:3001/plaid/exchange_public_token',
+              { publicToken, userId: currentUser.uid },
+              { headers: { Authorization: `Bearer ${token}` } }
             );
 
             setMessage('Bank account linked successfully! Fetching your transactions...');
@@ -197,7 +189,7 @@ function PlaidLink() {
             setMessage('Failed to link account.');
           }
         },
-        onExit: (err, metadata) => {
+        onExit: (err) => {
           if (err) {
             console.error('Error during Plaid Link:', err);
             setMessage('Error connecting to bank.');
@@ -210,7 +202,7 @@ function PlaidLink() {
       console.error('Error fetching link token:', error);
       setMessage('Failed to start bank connection process.');
     }
-  };
+  }, [currentUser, fetchUserDetails, fetchTransactions]);
 
   // Effects
   useEffect(() => {
@@ -332,59 +324,79 @@ function PlaidLink() {
           )}
         </div>
 
-        <div className={`${styles.card} ${styles.budgetsSection}`}>
-          <h2>Budgets</h2>
-          <div className="flex gap-4">
-            <button
-                className={styles.primaryButton}
+        {/* Budgets Section */}
+        <section className={styles.contentSection}>
+          <div className={styles.sectionHeader}>
+            <h2>Budgets</h2>
+            <div className={styles.buttonGroup}>
+              <button
                 onClick={() => {
                   setIsBudgetModalOpen(true);
-                  appRef.current.classList.add('modal-open');
+                  appRef.current?.classList.add('modal-open');
                 }}
-            >
-              Add Budget
-            </button>
-            <button
                 className={styles.primaryButton}
+              >
+                Add Budget
+              </button>
+              <button
                 onClick={() => navigate('/budget-dashboard')}
-            >
-              View Budget Dashboard
-            </button>
+                className={styles.secondaryButton}
+              >
+                View Dashboard
+              </button>
+            </div>
           </div>
-
-          {budgets.length > 0 ? (
-              <ul>
+          <div className={styles.card}>
+            {budgets.length > 0 ? (
+              <div className={styles.budgetsGrid}>
                 {budgets.map((budget, index) => (
-                    <li key={index} className={styles.budgetItem}>
-                      <div><strong>Category:</strong> {budget.category}</div>
+                  <div key={index} className={styles.budgetCard}>
+                    <h4>{budget.category}</h4>
+                    <div className={styles.budgetDetails}>
                       <div><strong>Amount:</strong> £{budget.amount}</div>
                       <div><strong>Spent:</strong> £{budget.spent || 0}</div>
                       <div><strong>Period:</strong> {budget.period}</div>
-                      <div><strong>Start Date:</strong> {new Date(budget.startDate).toLocaleDateString()}</div>
-                      <div><strong>End Date:</strong> {new Date(budget.endDate).toLocaleDateString()}</div>
-                    </li>
+                      <div className={styles.budgetDates}>
+                        <div>{new Date(budget.startDate).toLocaleDateString()}</div>
+                        <div>to</div>
+                        <div>{new Date(budget.endDate).toLocaleDateString()}</div>
+                      </div>
+                    </div>
+                  </div>
                 ))}
-              </ul>
-          ) : (
-              <p>No budgets available. Add your first budget to get started.</p>
-          )}
-
-          {isBudgetModalOpen && (
-              <div style={{position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, zIndex: 1000}}>
-                <BudgetForm
-                    userId={currentUser?.uid}
-                    onBudgetAdded={handleBudgetAdded}
-                    setMessage={setMessage}
-                    onClose={() => {
-                      setIsBudgetModalOpen(false);
-                      appRef.current.classList.remove('modal-open');
-                    }}
-                />
               </div>
-          )}
-        </div>
+            ) : (
+              <p className={styles.emptyState}>No budgets available. Add your first budget to get started.</p>
+            )}
+          </div>
+        </section>
       </div>
-    </div>
+
+      {/* Modals */}
+      {isTransactionModalOpen && (
+        <TransactionForm
+          userId={currentUser?.uid}
+          onTransactionAdded={handleTransactionAdded}
+          setMessage={setTransactionMessage}
+          onClose={() => {
+            setIsTransactionModalOpen(false);
+            appRef.current?.classList.remove('modal-open');
+          }}
+        />
+      )}
+
+      {isBudgetModalOpen && (
+        <BudgetForm
+          userId={currentUser?.uid}
+          onBudgetAdded={handleBudgetAdded}
+          setMessage={setMessage}
+          onClose={() => {
+            setIsBudgetModalOpen(false);
+            appRef.current?.classList.remove('modal-open');
+          }}
+        />
+      )}
+    </Layout>
   );
 }
 
