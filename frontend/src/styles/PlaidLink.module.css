@@ -357,11 +357,11 @@
     .mainWrapper {
         margin-right: 0;
     }
-    
+
     .rightSidebar {
         display: none;
     }
-    
+
     .topBar {
         right: 0;
     }
@@ -371,24 +371,24 @@
     .mainWrapper {
         margin-left: 0;
     }
-    
+
     .sidebar {
         display: none;
     }
-    
+
     .topBar {
         left: 0;
     }
-    
-    .accountsGrid, 
+
+    .accountsGrid,
     .budgetsGrid {
         grid-template-columns: 1fr;
     }
-    
+
     .buttonGroup {
         flex-direction: column;
     }
-    
+
     .pageContainer {
         padding: 1rem;
     }

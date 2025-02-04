@@ -233,52 +233,49 @@ function PlaidLink() {
 
 
   return (
-      <Layout>
-        <div ref={appRef} className={styles.App}>
-          <div className={styles.header}>
-            <h1>Financial Dashboard</h1>
-            <button className={styles.logoutButton} onClick={handleLogout}>
-              Logout
-            </button>
-          </div>
-
-          <div className={styles.mainContent}>
-            <div className={`${styles.card} ${styles.userInfo}`}>
+      <Layout currentUser={currentUser} onLogout={handleLogout}>
+        <div className={styles.pageContainer}>
+          {/* Account Overview Section */}
+          <section className={styles.contentSection}>
+            <div className={styles.sectionHeader}>
               <h2>Account Overview</h2>
-              <p><strong>Name:</strong> {currentUser.displayName}</p>
-              <p><strong>Email:</strong> {currentUser.email}</p>
+            </div>
+            <div className={styles.card}>
+              <div className={styles.userInfo}>
+                <p><strong>Name:</strong> {currentUser.displayName}</p>
+                <p><strong>Email:</strong> {currentUser.email}</p>
+              </div>
               {message && (
-                  <div className={styles.messageBanner}>
-                    {message}
-                  </div>
+                  <div className={styles.messageBanner}>{message}</div>
               )}
             </div>
+          </section>
 
-            <div className={`${styles.card} ${styles.connectBankSection}`}>
-              <h2>Linked Bank Account</h2>
+          {/* Bank Connection Section */}
+          <section className={styles.contentSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Bank Account</h2>
+            </div>
+            <div className={styles.card}>
               {!linkedBank ? (
                   <div className={styles.connectBankSection}>
                     <p>Connect your bank account to get started</p>
-                    <button
-                        className={styles.primaryButton}
-                        onClick={startPlaidLink}
-                    >
+                    <button onClick={startPlaidLink} className={styles.primaryButton}>
                       Connect Bank Account
                     </button>
                   </div>
               ) : (
-                  <div className={styles.connectBankSection}>
-                    <h2>Connected Bank Details</h2>
+                  <div>
+                    <h3>Linked Accounts</h3>
                     <div className={styles.accountsGrid}>
                       {accounts.map((account, index) => (
                           <div key={account.id || index} className={styles.accountCard}>
-                            {account.institutionName && (
-                                <h3>{account.institutionName}</h3>
-                            )}
-                            <p><strong>Account:</strong> {account.name || account.officialName}</p>
-                            <p><strong>Type:</strong> {account.type && account.subtype ?
-                                `${account.type} - ${account.subtype}` :
-                                account.type || 'Standard Account'}
+                            <h4>{account.name || account.type}</h4>
+                            <p>
+                              <strong>Balance:</strong> £
+                              {account.balance?.current?.toFixed(2) ||
+                                  account.balance?.available?.toFixed(2) ||
+                                  'N/A'}
                             </p>
                           </div>
                       ))}
@@ -286,115 +283,116 @@ function PlaidLink() {
                   </div>
               )}
             </div>
+          </section>
 
-            <div className={`${styles.card} ${styles.transactionsSection}`}>
+          {/* Transactions Section */}
+          <section className={styles.contentSection}>
+            <div className={styles.sectionHeader}>
               <h2>Transactions</h2>
-              {transactionMessage && (
-                  <div className={styles.messageBanner}>
-                    {transactionMessage}
-                  </div>
-              )}
-
               <button
-                  className={styles.primaryButton}
                   onClick={() => {
                     setIsTransactionModalOpen(true);
-                    appRef.current.classList.add('modal-open');
+                    appRef.current?.classList.add('modal-open');
                   }}
+                  className={styles.primaryButton}
               >
                 Add Transaction
               </button>
-
-              {transactions.length > 0 ? (
-                  <ul>
-                    {transactions.map((transaction, index) => (
-                        <li key={index} className={styles.transactionItem}>
-                          <div><strong>Type:</strong> {transaction.type}</div>
-                          <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
-                          <div>
-                            <strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()} - {new Date(transaction.date).toLocaleTimeString()}
-                          </div>
-                        </li>
-                    ))}
-                  </ul>
-              ) : (
-                  <p>No transactions available.</p>
-              )}
             </div>
-
-            {/* Budgets Section */}
-            <section className={styles.contentSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Budgets</h2>
-                <div className={styles.buttonGroup}>
-                  <button
-                      onClick={() => {
-                        setIsBudgetModalOpen(true);
-                        appRef.current?.classList.add('modal-open');
-                      }}
-                      className={styles.primaryButton}
-                  >
-                    Add Budget
-                  </button>
-                  <button
-                      onClick={() => navigate('/budget-dashboard')}
-                      className={styles.secondaryButton}
-                  >
-                    View Dashboard
-                  </button>
-                </div>
-              </div>
-              <div className={styles.card}>
-                {budgets.length > 0 ? (
-                    <div className={styles.budgetsGrid}>
-                      {budgets.map((budget, index) => (
-                          <div key={index} className={styles.budgetCard}>
-                            <h4>{budget.category}</h4>
-                            <div className={styles.budgetDetails}>
-                              <div><strong>Amount:</strong> £{budget.amount}</div>
-                              <div><strong>Spent:</strong> £{budget.spent || 0}</div>
-                              <div><strong>Period:</strong> {budget.period}</div>
-                              <div className={styles.budgetDates}>
-                                <div>{new Date(budget.startDate).toLocaleDateString()}</div>
-                                <div>to</div>
-                                <div>{new Date(budget.endDate).toLocaleDateString()}</div>
-                              </div>
-                            </div>
+            <div className={styles.card}>
+              {transactionMessage && (
+                  <div className={styles.messageBanner}>{transactionMessage}</div>
+              )}
+              <div className={styles.transactionsList}>
+                {transactions.length > 0 ? (
+                    transactions.map((transaction, index) => (
+                        <div key={index} className={styles.transactionItem}>
+                          <div className={styles.transactionDetails}>
+                            <div><strong>Type:</strong> {transaction.type}</div>
+                            <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
+                            <div><strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()}</div>
                           </div>
-                      ))}
-                    </div>
+                        </div>
+                    ))
                 ) : (
-                    <p className={styles.emptyState}>No budgets available. Add your first budget to get started.</p>
+                    <p className={styles.emptyState}>No transactions available.</p>
                 )}
               </div>
-            </section>
-          </div>
+            </div>
+          </section>
 
-          {/* Modals */}
-          {isTransactionModalOpen && (
-              <TransactionForm
-                  userId={currentUser?.uid}
-                  onTransactionAdded={handleTransactionAdded}
-                  setMessage={setTransactionMessage}
-                  onClose={() => {
-                    setIsTransactionModalOpen(false);
-                    appRef.current?.classList.remove('modal-open');
-                  }}
-              />
-          )}
-
-          {isBudgetModalOpen && (
-              <BudgetForm
-                  userId={currentUser?.uid}
-                  onBudgetAdded={handleBudgetAdded}
-                  setMessage={setMessage}
-                  onClose={() => {
-                    setIsBudgetModalOpen(false);
-                    appRef.current?.classList.remove('modal-open');
-                  }}
-              />
-          )}
+          {/* Budgets Section */}
+          <section className={styles.contentSection}>
+            <div className={styles.sectionHeader}>
+              <h2>Budgets</h2>
+              <div className={styles.buttonGroup}>
+                <button
+                    onClick={() => {
+                      setIsBudgetModalOpen(true);
+                      appRef.current?.classList.add('modal-open');
+                    }}
+                    className={styles.primaryButton}
+                >
+                  Add Budget
+                </button>
+                <button
+                    onClick={() => navigate('/budget-dashboard')}
+                    className={styles.secondaryButton}
+                >
+                  View Dashboard
+                </button>
+              </div>
+            </div>
+            <div className={styles.card}>
+              {budgets.length > 0 ? (
+                  <div className={styles.budgetsGrid}>
+                    {budgets.map((budget, index) => (
+                        <div key={index} className={styles.budgetCard}>
+                          <h4>{budget.category}</h4>
+                          <div className={styles.budgetDetails}>
+                            <div><strong>Amount:</strong> £{budget.amount}</div>
+                            <div><strong>Spent:</strong> £{budget.spent || 0}</div>
+                            <div><strong>Period:</strong> {budget.period}</div>
+                            <div className={styles.budgetDates}>
+                              <div>{new Date(budget.startDate).toLocaleDateString()}</div>
+                              <div>to</div>
+                              <div>{new Date(budget.endDate).toLocaleDateString()}</div>
+                            </div>
+                          </div>
+                        </div>
+                    ))}
+                  </div>
+              ) : (
+                  <p className={styles.emptyState}>No budgets available. Add your first budget to get started.</p>
+              )}
+            </div>
+          </section>
         </div>
+
+        {/* Modals */}
+        {isTransactionModalOpen && (
+            <TransactionForm
+                userId={currentUser?.uid}
+                onTransactionAdded={handleTransactionAdded}
+                setMessage={setTransactionMessage}
+                onClose={() => {
+                  setIsTransactionModalOpen(false);
+                  appRef.current?.classList.remove('modal-open');
+                }}
+            />
+        )}
+
+        {isBudgetModalOpen && (
+            <BudgetForm
+                userId={currentUser?.uid}
+                onBudgetAdded={handleBudgetAdded}
+                setMessage={setMessage}
+                onClose={() => {
+                  setIsBudgetModalOpen(false);
+                  appRef.current?.classList.remove('modal-open');
+                }}
+            />
+        )}
       </Layout>
   );
 }
