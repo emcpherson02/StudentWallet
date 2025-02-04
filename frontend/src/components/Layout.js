@@ -19,7 +19,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
       <Link to="/TransactionDashboard" className={styles.sidebarLink}>
         Transaction Dashboard
       </Link>
-      <Link to="/BudgetDashboard" className={styles.sidebarLink}>
+      <Link to="/budget-dashboard" className={styles.sidebarLink}>
         Budget Dashboard
       </Link>
     </nav>
