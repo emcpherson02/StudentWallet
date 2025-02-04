@@ -7,21 +7,20 @@ const {
 } = require('../utils/constants');
 
 class AuthService {
-    constructor(db) {
-        this.db = db;
-        this.usersCollection = 'users';
+    constructor(authModel) {
+        this.authModel = authModel;
     }
 
     async loginUser(email, password) {
         try {
-            const userDoc = await this.db.collection(this.usersCollection).doc(email).get();
+            const user = await this.authModel.findByEmail(email);
 
-            if (!userDoc.exists || userDoc.data().password !== password) {
+            if (!user || user.password !== password) {
                 throw new AuthenticationError(MESSAGE_INVALID_CREDENTIALS);
             }
 
             const token = await admin.auth().createCustomToken(email);
-            return { token, user: userDoc.data() };
+            return { token, user };
         } catch (error) {
             if (error instanceof AuthenticationError) {
                 throw error;
@@ -34,9 +33,9 @@ class AuthService {
         const { name, dob, email, password } = userData;
 
         try {
-            const userDoc = await this.db.collection(this.usersCollection).doc(email).get();
+            const existingUser = await this.authModel.findByEmail(email);
 
-            if (userDoc.exists) {
+            if (existingUser) {
                 throw new AuthenticationError(MESSAGE_USER_EXISTS);
             }
 
@@ -46,13 +45,12 @@ class AuthService {
                 displayName: name
             });
 
-            await this.db.collection(this.usersCollection).doc(email).set({
+            const user = await this.authModel.createUser(email, {
                 name,
                 dob,
                 email,
                 password,
-                linkedBank: false,
-                createdAt: admin.firestore.FieldValue.serverTimestamp()
+                notificationsEnabled: false  // Set default value when creating user
             });
 
             return {
@@ -70,21 +68,7 @@ class AuthService {
 
     async googleAuth(profile) {
         try {
-            const userRef = this.db.collection(this.usersCollection).doc(profile.id);
-            const userDoc = await userRef.get();
-
-            if (!userDoc.exists) {
-                await userRef.set({
-                    id: profile.id,
-                    displayName: profile.displayName,
-                    email: profile.emails[0].value,
-                    photoURL: profile.photos[0].value,
-                    linkedBank: false,
-                    createdAt: admin.firestore.FieldValue.serverTimestamp()
-                });
-            }
-
-            return profile;
+            return await this.authModel.createOrUpdateGoogleUser(profile);
         } catch (error) {
             throw new DatabaseError(MESSAGE_ERROR_OCCURRED);
         }
