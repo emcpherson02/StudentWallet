@@ -52,13 +52,32 @@ class LoanModel {
                 .collection('MaintenanceLoan')
                 .get();
 
-            console.log('Number of loans found:', snapshot.size);
+            const loans = [];
+            for (const doc of snapshot.docs) {
+                const loanData = doc.data();
 
-            const loans = snapshot.docs.map(doc => {
-                const data = doc.data();
-                console.log('Loan document data:', data);
-                return { id: doc.id, ...data };
-            });
+                // Fetch transaction details for tracked transactions
+                const transactions = [];
+                if (loanData.trackedTransactions && loanData.trackedTransactions.length > 0) {
+                    const transactionsSnapshot = await this.db
+                        .collection('users')
+                        .doc(userId)
+                        .collection('Transactions')
+                        .where('id', 'in', loanData.trackedTransactions)
+                        .get();
+
+                    transactions.push(...transactionsSnapshot.docs.map(tDoc => ({
+                        id: tDoc.id,
+                        ...tDoc.data()
+                    })));
+                }
+
+                loans.push({
+                    id: doc.id,
+                    ...loanData,
+                    transactions
+                });
+            }
 
             return loans;
         } catch (error) {
