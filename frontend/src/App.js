@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Register from "./components/Register";
 import PlaidLink from './components/PlaidLink';
 import BudgetDashboard from './components/BudgetDashboard';
+import BudgetAnalytics from './components/budgetAnalytics';
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
               <Route path={"/register"} element={<Register />} />
               <Route path="/plaid-link" element={<PlaidLink />} />
               <Route path={"/budget-dashboard"} element={<BudgetDashboard />} />
+              <Route path="/budget-analytics" element={<BudgetAnalytics />} />
               {/* Add other routes here */}
           </Routes>
       </div>
