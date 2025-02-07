@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { LineChart,Line ,BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+
 import styles from '../styles/BudgetAnalytics.module.css';
 
 const BudgetAnalytics = () => {
@@ -38,6 +39,14 @@ const BudgetAnalytics = () => {
             setLoading(false);
         }
     };
+
+    // Format date range for the Budget Spend Trends chart
+    const formattedData = useMemo(() => {
+        return analytics?.trends?.spentTrends.map(item => ({
+            ...item,
+            dateRange: new Date(item.date).toLocaleString("default", { month: "short", year: "numeric" })
+        })) || [];
+    }, [analytics]);
 
     return (
         <div className={styles.container}>
@@ -101,11 +110,11 @@ const BudgetAnalytics = () => {
                             <div className={styles.chartWrapper}>
                                 <ResponsiveContainer width="100%" height="100%">
                                     <LineChart data={analytics.trends.utilization}>
-                                        <CartesianGrid strokeDasharray="3 3" />
-                                        <XAxis dataKey="date" />
-                                        <YAxis />
-                                        <Tooltip />
-                                        <Legend />
+                                        <CartesianGrid strokeDasharray="3 3"/>
+                                        <XAxis dataKey="date"/>
+                                        <YAxis/>
+                                        <Tooltip/>
+                                        <Legend/>
                                         <Line
                                             type="monotone"
                                             dataKey="utilizationPercentage"
@@ -113,6 +122,19 @@ const BudgetAnalytics = () => {
                                             name="Utilization %"
                                         />
                                     </LineChart>
+                                </ResponsiveContainer>
+                            </div>
+                            <h3>Budget Spend Trends</h3>
+                            <div className={styles.chartWrapper}>
+                                <ResponsiveContainer width="100%" height="100%">
+                                    <BarChart data={formattedData}> {/* Updated to use formattedData */}
+                                        <CartesianGrid strokeDasharray="3 3"/>
+                                        <XAxis dataKey="dateRange"/> {/* Updated to use formatted date */}
+                                        <YAxis/>
+                                        <Tooltip/>
+                                        <Legend/>
+                                        <Bar dataKey="actualSpent" fill="#2563eb" name="Spent £"/>
+                                    </BarChart>
                                 </ResponsiveContainer>
                             </div>
                         </div>
@@ -133,4 +155,5 @@ const BudgetAnalytics = () => {
         </div>
     );
 };
+
 export default BudgetAnalytics;

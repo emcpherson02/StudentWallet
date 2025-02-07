@@ -34,9 +34,16 @@ class BudgetAnalyticsService {
             date: record.endDate
         }));
 
+        const spentTrends = history.map(record => ({
+            period: record.period,
+            actualSpent: record.actualSpent,
+            date: record.endDate
+        }));
+
         return {
             utilization,
             rolloverTrends,
+            spentTrends,
             averageUtilization: this.calculateAverage(
                 utilization.map(u => u.utilizationPercentage)
             )
