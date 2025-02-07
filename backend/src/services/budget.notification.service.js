@@ -25,6 +25,12 @@ class BudgetNotificationService {
                 return;
             }
 
+            console.log(`Notifications ${user.notificationsEnabled ? 'enabled' : 'disabled'} for user:`, userId);
+
+            if (!user.notificationsEnabled) {
+                return;
+            }
+
             if (spent >= limit) {
                 console.log('Budget limit exceeded, sending email to:', user.email);
                 await this.sendBudgetLimitEmail(user.email, budgetCategory, spent, limit);
