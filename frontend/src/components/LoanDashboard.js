@@ -138,10 +138,10 @@ const LoanDashboard = () => {
                         {loanData && (
                             <>
                                 <button
-                                    onClick={handleLinkTransactions}
+                                    onClick={() => setIsTransactionModalOpen(true)}
                                     className={styles.linkButton}
                                 >
-                                    Link Transactions
+                                    Sync Transactions
                                 </button>
                                 <button
                                     onClick={handleUnlinkTransactions}
@@ -154,12 +154,6 @@ const LoanDashboard = () => {
                                     className={`${styles.linkButton} ${styles.deleteButton}`}
                                 >
                                     Delete Loan
-                                </button>
-                                <button
-                                    onClick={() => setIsTransactionModalOpen(true)}
-                                    className={styles.linkButton}
-                                >
-                                    Link Single Transaction
                                 </button>
                             </>
                         )}

@@ -10,10 +10,13 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
     const [selectedTransactions, setSelectedTransactions] = useState(new Set());
+    const [isSyncing, setIsSyncing] = useState(false);
 
     useEffect(() => {
-        fetchTransactions();
-    }, [currentUser]);
+        if (isOpen) {
+            fetchTransactions();
+        }
+    }, [isOpen, currentUser]);
 
     const fetchTransactions = async () => {
         if (!currentUser) return;
@@ -27,7 +30,6 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
                 }
             );
 
-            // Filter out already linked transactions
             const unlinkedTransactions = (response.data.Transaction || []).filter(
                 transaction => !currentLinkedTransactions?.includes(transaction.id)
             );
@@ -35,32 +37,39 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
             setTransactions(unlinkedTransactions);
             setLoading(false);
         } catch (error) {
-            console.error('Error fetching transactions:', error);
             setError('Failed to load transactions');
             setLoading(false);
         }
     };
 
-    const toggleTransactionSelection = (transactionId) => {
-        const newSelected = new Set(selectedTransactions);
-        if (newSelected.has(transactionId)) {
-            newSelected.delete(transactionId);
-        } else {
-            newSelected.add(transactionId);
+    const handleSyncAll = async () => {
+        try {
+            setIsSyncing(true);
+            const token = await currentUser.getIdToken();
+            await axios.post(
+                `http://localhost:3001/loan/link_all_transactions/${loanId}`,
+                { userId: currentUser.uid },
+                { headers: { Authorization: `Bearer ${token}` } }
+            );
+            onSelect();
+            onClose();
+        } catch (error) {
+            setError('Failed to sync all transactions');
+        } finally {
+            setIsSyncing(false);
         }
-        setSelectedTransactions(newSelected);
     };
 
-    const handleTransactionLink = async () => {
+    const handleSelectedSync = async () => {
         if (selectedTransactions.size === 0) {
             setError('Please select at least one transaction');
             return;
         }
 
         try {
+            setIsSyncing(true);
             const token = await currentUser.getIdToken();
 
-            // Link each selected transaction
             for (const transactionId of selectedTransactions) {
                 await axios.post(
                     `http://localhost:3001/loan/link_transaction/${loanId}`,
@@ -77,17 +86,43 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
             onSelect();
             onClose();
         } catch (error) {
-            setError('Failed to link transactions');
+            setError('Failed to sync selected transactions');
+        } finally {
+            setIsSyncing(false);
         }
+    };
+
+    const toggleTransactionSelection = (transactionId) => {
+        const newSelected = new Set(selectedTransactions);
+        if (newSelected.has(transactionId)) {
+            newSelected.delete(transactionId);
+        } else {
+            newSelected.add(transactionId);
+        }
+        setSelectedTransactions(newSelected);
     };
 
     if (!isOpen) return null;
 
     return (
-        <Modal title="Select Transactions" onClose={onClose}>
+        <Modal title="Sync Transactions" onClose={onClose}>
             <div className="transaction-modal">
                 {loading && <p className="modal-loading">Loading transactions...</p>}
                 {error && <p className="modal-error">{error}</p>}
+
+                <div className="sync-all-section">
+                    <button
+                        onClick={handleSyncAll}
+                        className="button-sync-all"
+                        disabled={isSyncing || transactions.length === 0}
+                    >
+                        {isSyncing ? 'Syncing...' : 'Sync All Transactions'}
+                    </button>
+                </div>
+
+                <div className="transaction-list-header">
+                    <h3>Or Select Individual Transactions</h3>
+                </div>
 
                 <div className="transaction-list">
                     {transactions.length === 0 ? (
@@ -108,12 +143,12 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
                                     <div className="transaction-details">
                                         <span className="transaction-type">{transaction.type}</span>
                                         <span className="transaction-date">
-                      {new Date(transaction.date).toLocaleDateString()}
-                    </span>
+                                            {new Date(transaction.date).toLocaleDateString()}
+                                        </span>
                                     </div>
                                     <span className="transaction-amount">
-                    £{Math.abs(transaction.amount).toFixed(2)}
-                  </span>
+                                        £{Math.abs(transaction.amount).toFixed(2)}
+                                    </span>
                                 </label>
                             </div>
                         ))
@@ -124,15 +159,16 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
                     <button
                         onClick={onClose}
                         className="button-cancel"
+                        disabled={isSyncing}
                     >
                         Cancel
                     </button>
                     <button
-                        onClick={handleTransactionLink}
+                        onClick={handleSelectedSync}
                         className="button-link"
-                        disabled={selectedTransactions.size === 0}
+                        disabled={isSyncing || selectedTransactions.size === 0}
                     >
-                        Link Selected ({selectedTransactions.size})
+                        Sync Selected ({selectedTransactions.size})
                     </button>
                 </div>
             </div>

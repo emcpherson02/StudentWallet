@@ -1,19 +1,45 @@
 .transaction-modal {
-    padding: 1.5rem;
-}
-
-.modal-loading {
-    text-align: center;
-    color: #6b7280;
     padding: 1rem;
 }
 
-.modal-error {
-    color: #dc2626;
-    background-color: #fee2e2;
-    padding: 0.75rem;
-    border-radius: 0.375rem;
-    margin-bottom: 1rem;
+.sync-all-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.button-sync-all {
+    width: 100%;
+    padding: 1rem;
+    background-color: #282c34;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.button-sync-all:hover:not(:disabled) {
+    background-color: #364195;
+}
+
+.button-sync-all:disabled {
+    background-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+.transaction-list-header {
+    margin: 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.transaction-list-header h3 {
+    color: #4b5563;
+    font-size: 1rem;
+    margin: 0;
 }
 
 .transaction-list {
@@ -23,56 +49,53 @@
 }
 
 .transaction-item {
+    padding: 0.75rem;
     border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
+    border-radius: 0.375rem;
     margin-bottom: 0.5rem;
-    transition: all 0.2s ease;
+    transition: background-color 0.2s;
 }
 
 .transaction-item:hover {
-    background-color: #f3f4f6;
+    background-color: #f9fafb;
 }
 
 .transaction-item.selected {
-    background-color: #dbeafe;
-    border-color: #3b82f6;
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
 }
 
 .transaction-label {
     display: flex;
     align-items: center;
-    padding: 1rem;
+    gap: 1rem;
     cursor: pointer;
-    width: 100%;
 }
 
 .transaction-checkbox {
     width: 1.25rem;
     height: 1.25rem;
-    margin-right: 1rem;
-    cursor: pointer;
 }
 
 .transaction-details {
     flex: 1;
-    margin-right: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
 }
 
 .transaction-type {
-    display: block;
     font-weight: 500;
     color: #1f2937;
 }
 
 .transaction-date {
-    display: block;
     font-size: 0.875rem;
     color: #6b7280;
-    margin-top: 0.25rem;
 }
 
 .transaction-amount {
-    font-weight: 600;
+    font-weight: 500;
     color: #1f2937;
 }
 
@@ -85,39 +108,58 @@
     border-top: 1px solid #e5e7eb;
 }
 
-.button-cancel {
-    padding: 0.5rem 1rem;
+.button-cancel,
+.button-link {
+    padding: 0.75rem 1.5rem;
     border-radius: 0.375rem;
-    background-color: #f3f4f6;
-    color: #4b5563;
     font-weight: 500;
-    transition: all 0.2s ease;
+    cursor: pointer;
 }
 
-.button-cancel:hover {
-    background-color: #e5e7eb;
+.button-cancel {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
 }
 
 .button-link {
-    padding: 0.5rem 1rem;
-    border-radius: 0.375rem;
-    background-color: #3b82f6;
+    background-color: #282c34;
+    border: none;
     color: white;
-    font-weight: 500;
-    transition: all 0.2s ease;
 }
 
 .button-link:hover:not(:disabled) {
-    background-color: #2563eb;
+    background-color: #364195;
 }
 
+.button-cancel:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.button-cancel:disabled,
 .button-link:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+}
+
+.modal-error {
+    padding: 0.75rem;
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.modal-loading {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
 }
 
 .no-transactions {
     text-align: center;
     color: #6b7280;
     padding: 2rem;
+    background-color: #f9fafb;
+    border-radius: 0.375rem;
 }
