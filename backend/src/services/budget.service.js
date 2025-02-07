@@ -138,30 +138,20 @@ class BudgetService {
 
     async getBudgetSummary(userId) {
         try {
-            // Get all budgets and transactions from models
             const budgets = await this.budgetModel.findByUserId(userId);
             const transactions = await this.transactionModel.findByUserId(userId);
 
-            // Calculate total budget amount across all categories
-            const totalBudgets = budgets.reduce((sum, budget) =>
-                sum + (Number(budget.amount) || 0), 0);
-
-            // Calculate total amount spent across all transactions
-            const totalSpent = transactions.reduce((sum, transaction) =>
-                sum + (Number(transaction.Amount) || 0), 0);
-
-            // Generate detailed breakdown for each budget category
             const categoryBreakdown = budgets.map(budget => {
-                // Find transactions that match this budget category
-                const categoryTransactions = transactions.filter(
-                    transaction => transaction.category === budget.category
-                );
+                const categoryTransactions = transactions.filter(transaction => {
+                    const transactionDate = new Date(transaction.date);
+                    return transaction.category === budget.category &&
+                        transactionDate >= new Date(budget.startDate) &&
+                        transactionDate <= new Date(budget.endDate);
+                });
 
-                // Calculate total spent in this category
                 const spent = categoryTransactions.reduce((sum, transaction) =>
                     sum + (Number(transaction.Amount) || 0), 0);
 
-                // Return comprehensive information for this category
                 return {
                     budgetId: budget.id,
                     category: budget.category,
@@ -171,6 +161,11 @@ class BudgetService {
                     percentageUsed: budget.amount ? ((spent / budget.amount) * 100).toFixed(2) : "0.00"
                 };
             });
+
+            const totalBudgets = budgets.reduce((sum, budget) =>
+                sum + (Number(budget.amount) || 0), 0);
+            const totalSpent = categoryBreakdown.reduce((sum, cat) =>
+                sum + cat.spent, 0);
 
             return {
                 totalBudgets,

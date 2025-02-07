@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import { LineChart,Line ,BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-
+import Layout from './Layout';
 import styles from '../styles/BudgetAnalytics.module.css';
 
 const BudgetAnalytics = () => {
@@ -49,110 +49,112 @@ const BudgetAnalytics = () => {
     }, [analytics]);
 
     return (
-        <div className={styles.container}>
-            <div>
-                <h2 className={styles.heading}>Budget Analytics</h2>
+        <Layout currentUser={currentUser}>
+            <div className={styles.container}>
+                <div>
+                    <h2 className={styles.heading}>Budget Analytics</h2>
 
-                <div className={styles.dateRangeControls}>
-                    <div>
-                        <label>Start Date</label>
-                        <input
-                            type="date"
-                            value={dateRange.startDate}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
-                        />
+                    <div className={styles.dateRangeControls}>
+                        <div>
+                            <label>Start Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.startDate}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, startDate: e.target.value }))}
+                            />
+                        </div>
+                        <div>
+                            <label>End Date</label>
+                            <input
+                                type="date"
+                                value={dateRange.endDate}
+                                onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
+                            />
+                        </div>
+                        <div>
+                            <label>Category</label>
+                            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
+                                <option value="Groceries">Groceries</option>
+                                <option value="Utilities">Utilities</option>
+                                <option value="Entertainment">Entertainment</option>
+                                <option value="Transportation">Transportation</option>
+                                <option value="Rent">Rent</option>
+                                <option value="Other">Other</option>
+                            </select>
+                        </div>
+                        <button onClick={fetchAnalytics} disabled={loading}>
+                            {loading ? 'Loading...' : 'Get Analytics'}
+                        </button>
                     </div>
-                    <div>
-                        <label>End Date</label>
-                        <input
-                            type="date"
-                            value={dateRange.endDate}
-                            onChange={(e) => setDateRange(prev => ({ ...prev, endDate: e.target.value }))}
-                        />
-                    </div>
-                    <div>
-                        <label>Category</label>
-                        <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                            <option value="Groceries">Groceries</option>
-                            <option value="Utilities">Utilities</option>
-                            <option value="Entertainment">Entertainment</option>
-                            <option value="Transportation">Transportation</option>
-                            <option value="Rent">Rent</option>
-                            <option value="Other">Other</option>
-                        </select>
-                    </div>
-                    <button onClick={fetchAnalytics} disabled={loading}>
-                        {loading ? 'Loading...' : 'Get Analytics'}
-                    </button>
+
+                    {error && <div className={styles.error}>{error}</div>}
+
+                    {analytics && (
+                        <>
+                            <div className={styles.summaryGrid}>
+                                <div className={styles.summaryCard}>
+                                    <h3>Total Periods</h3>
+                                    <p>{analytics.summary.totalPeriods}</p>
+                                </div>
+                                <div className={styles.summaryCard}>
+                                    <h3>Total Spent</h3>
+                                    <p>£{analytics.summary.totalSpent.toFixed(2)}</p>
+                                </div>
+                                <div className={styles.summaryCard}>
+                                    <h3>Average Spent</h3>
+                                    <p>£{analytics.summary.averageSpent.toFixed(2)}</p>
+                                </div>
+                            </div>
+
+                            <div className={styles.chartContainer}>
+                                <h3>Budget Utilization Trends</h3>
+                                <div className={styles.chartWrapper}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <LineChart data={analytics.trends.utilization}>
+                                            <CartesianGrid strokeDasharray="3 3"/>
+                                            <XAxis dataKey="date"/>
+                                            <YAxis/>
+                                            <Tooltip/>
+                                            <Legend/>
+                                            <Line
+                                                type="monotone"
+                                                dataKey="utilizationPercentage"
+                                                stroke="#2563eb"
+                                                name="Utilization %"
+                                            />
+                                        </LineChart>
+                                    </ResponsiveContainer>
+                                </div>
+                                <h3>Budget Spend Trends</h3>
+                                <div className={styles.chartWrapper}>
+                                    <ResponsiveContainer width="100%" height="100%">
+                                        <BarChart data={formattedData}> {/* Updated to use formattedData */}
+                                            <CartesianGrid strokeDasharray="3 3"/>
+                                            <XAxis dataKey="dateRange"/> {/* Updated to use formatted date */}
+                                            <YAxis/>
+                                            <Tooltip/>
+                                            <Legend/>
+                                            <Bar dataKey="actualSpent" fill="#2563eb" name="Spent £"/>
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                </div>
+                            </div>
+
+                            {analytics.recommendations.length > 0 && (
+                                <div className={styles.recommendationsList}>
+                                    <h3>Recommendations</h3>
+                                    <ul>
+                                        {analytics.recommendations.map((rec, index) => (
+                                            <li key={index}>{rec.message}</li>
+                                        ))}
+                                    </ul>
+                                </div>
+                            )}
+                        </>
+                    )}
                 </div>
-
-                {error && <div className={styles.error}>{error}</div>}
-
-                {analytics && (
-                    <>
-                        <div className={styles.summaryGrid}>
-                            <div className={styles.summaryCard}>
-                                <h3>Total Periods</h3>
-                                <p>{analytics.summary.totalPeriods}</p>
-                            </div>
-                            <div className={styles.summaryCard}>
-                                <h3>Total Spent</h3>
-                                <p>£{analytics.summary.totalSpent.toFixed(2)}</p>
-                            </div>
-                            <div className={styles.summaryCard}>
-                                <h3>Average Spent</h3>
-                                <p>£{analytics.summary.averageSpent.toFixed(2)}</p>
-                            </div>
-                        </div>
-
-                        <div className={styles.chartContainer}>
-                            <h3>Budget Utilization Trends</h3>
-                            <div className={styles.chartWrapper}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <LineChart data={analytics.trends.utilization}>
-                                        <CartesianGrid strokeDasharray="3 3"/>
-                                        <XAxis dataKey="date"/>
-                                        <YAxis/>
-                                        <Tooltip/>
-                                        <Legend/>
-                                        <Line
-                                            type="monotone"
-                                            dataKey="utilizationPercentage"
-                                            stroke="#2563eb"
-                                            name="Utilization %"
-                                        />
-                                    </LineChart>
-                                </ResponsiveContainer>
-                            </div>
-                            <h3>Budget Spend Trends</h3>
-                            <div className={styles.chartWrapper}>
-                                <ResponsiveContainer width="100%" height="100%">
-                                    <BarChart data={formattedData}> {/* Updated to use formattedData */}
-                                        <CartesianGrid strokeDasharray="3 3"/>
-                                        <XAxis dataKey="dateRange"/> {/* Updated to use formatted date */}
-                                        <YAxis/>
-                                        <Tooltip/>
-                                        <Legend/>
-                                        <Bar dataKey="actualSpent" fill="#2563eb" name="Spent £"/>
-                                    </BarChart>
-                                </ResponsiveContainer>
-                            </div>
-                        </div>
-
-                        {analytics.recommendations.length > 0 && (
-                            <div className={styles.recommendationsList}>
-                                <h3>Recommendations</h3>
-                                <ul>
-                                    {analytics.recommendations.map((rec, index) => (
-                                        <li key={index}>{rec.message}</li>
-                                    ))}
-                                </ul>
-                            </div>
-                        )}
-                    </>
-                )}
             </div>
-        </div>
+        </Layout>
     );
 };
 

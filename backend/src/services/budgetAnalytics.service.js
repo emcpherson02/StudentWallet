@@ -61,7 +61,7 @@ class BudgetAnalyticsService {
         } else if (trends.averageUtilization < 70) {
             recommendations.push({
                 type: 'DECREASE_BUDGET',
-                message: 'Consider reducing budget as significant amounts are being rolled over'
+                message: 'Consider reducing budget as significant amounts are not being spent'
             });
         }
 

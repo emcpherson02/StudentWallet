@@ -13,7 +13,7 @@ class BudgetRolloverService {
             }
 
             // Calculate rollover amount
-            const unusedAmount = budget.amount - budget.spent;
+            const unspentAmount = budget.amount - budget.spent;
             const utilizationPercentage = (budget.spent / budget.amount) * 100;
 
             // Create history record
@@ -25,7 +25,7 @@ class BudgetRolloverService {
                 endDate: budget.endDate,
                 originalAmount: budget.amount,
                 actualSpent: budget.spent,
-                rolloverAmount: unusedAmount,
+                unspentAmount,
                 utilizationPercentage,
                 trackedTransactions: budget.trackedTransactions || [],
                 status: utilizationPercentage > 100 ? 'EXCEEDED' : 'WITHIN_LIMIT'
@@ -41,7 +41,7 @@ class BudgetRolloverService {
             return await this.budgetModel.update(userId, budgetId, {
                 startDate: nextPeriodDates.startDate,
                 endDate: nextPeriodDates.endDate,
-                amount: budget.amount + unusedAmount,
+                amount: budget.amount,
                 spent: 0,
                 trackedTransactions: []
             });
