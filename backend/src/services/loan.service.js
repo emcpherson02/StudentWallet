@@ -218,6 +218,53 @@ class LoanService {
             throw new DatabaseError('Failed to unlink transactions');
         }
     }
+
+    async linkSingleTransaction(userId, loanId, transactionId) {
+        try {
+            // Get the loan to verify it exists and check remaining amount
+            const loan = await this.getLoan(userId);
+            if (!loan) {
+                throw new NotFoundError('Loan not found');
+            }
+
+            // Get the transaction
+            const transaction = await this.transactionModel.findById(userId, transactionId);
+            if (!transaction) {
+                throw new NotFoundError('Transaction not found');
+            }
+
+            // Check if transaction is already linked
+            if (loan.trackedTransactions && loan.trackedTransactions.includes(transactionId)) {
+                throw new ValidationError('Transaction is already linked to this loan');
+            }
+
+            // Check if transaction amount would exceed remaining amount
+            if (transaction.Amount > loan.remainingAmount) {
+                throw new ValidationError('Transaction amount exceeds remaining loan amount');
+            }
+
+            // Link the transaction
+            const linked = await this.loanModel.linkTransactionToLoan(
+                userId,
+                loanId,
+                transactionId,
+                transaction.Amount
+            );
+
+            if (!linked) {
+                throw new DatabaseError('Failed to link transaction');
+            }
+
+            return {
+                message: 'Transaction linked successfully',
+                transactionId,
+                amount: transaction.Amount
+            };
+        } catch (error) {
+            if (error instanceof NotFoundError || error instanceof ValidationError) throw error;
+            throw new DatabaseError('Failed to link transaction');
+        }
+    }
 }
 
 module.exports = LoanService;

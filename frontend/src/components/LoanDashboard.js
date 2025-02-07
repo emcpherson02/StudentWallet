@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/LoanDashboard.module.css';
+import TransactionSelectionModal from './TransactionSelectionModal';
 import LoanForm from './LoanForm';
 import Layout from './Layout';
 
@@ -27,6 +28,7 @@ const LoanDashboard = () => {
     const [message, setMessage] = useState('');
     const [isLoanFormOpen, setIsLoanFormOpen] = useState(false);
     const [linkedTransactions, setLinkedTransactions] = useState([]);
+    const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
 
     useEffect(() => {
         fetchLoanData();
@@ -153,6 +155,12 @@ const LoanDashboard = () => {
                                 >
                                     Delete Loan
                                 </button>
+                                <button
+                                    onClick={() => setIsTransactionModalOpen(true)}
+                                    className={styles.linkButton}
+                                >
+                                    Link Single Transaction
+                                </button>
                             </>
                         )}
                     </div>
@@ -243,6 +251,16 @@ const LoanDashboard = () => {
                     />
                 )}
             </div>
+            <TransactionSelectionModal
+                isOpen={isTransactionModalOpen}
+                onClose={() => setIsTransactionModalOpen(false)}
+                onSelect={() => {
+                    fetchLoanData();
+                    setMessage('Transaction linked successfully');
+                }}
+                loanId={loanData?.id}
+                currentLinkedTransactions={loanData?.trackedTransactions}
+            />
         </Layout>
     );
 };

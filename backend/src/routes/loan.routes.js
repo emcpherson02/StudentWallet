@@ -41,6 +41,12 @@ const setupLoanRoutes = (router, loanController, authMiddleware) => {
         loanController.unlinkAllTransactions.bind(loanController)
     );
 
+    router.post(
+        '/link_transaction/:loanId',
+        authMiddleware.verifyToken,
+        loanController.linkSingleTransaction.bind(loanController)
+    );
+
     return router;
 };
 

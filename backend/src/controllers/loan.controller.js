@@ -90,6 +90,23 @@ class LoanController {
         }
     }
 
+    async linkSingleTransaction(req, res, next) {
+        try {
+            const { userId, transactionId } = req.body;
+            const { loanId } = req.params;
+
+            const result = await this.loanService.linkSingleTransaction(userId, loanId, transactionId);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Transaction linked to loan successfully',
+                data: result
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async unlinkAllTransactions(req, res, next) {
         try {
             const { userId } = req.body;
