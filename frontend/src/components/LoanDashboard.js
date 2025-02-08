@@ -281,21 +281,21 @@ const LoanDashboard = () => {
 
                                         return (
                                             <>
-                                            <div className={styles.progressBar}>
-                                                <div
-                                                    className={styles.progressFill}
-                                                    style={{
-                                                        width: `${percentageUsed}%`
-                                                    }}
-                                                />
-                                                <span className={styles.progressLabel}>
-                                                    {percentageUsed.toFixed(1)}%
-                                                </span>
-                                            </div>
-                                        <p className={styles.progressText}>
-                                            Used £{usedAmount.toFixed(2)} out of £{availableAmount.toFixed(2)}
-                                        </p>
-                                    </>
+                                                <div className={styles.progressBar}>
+                                                    <div
+                                                        className={styles.progressFill}
+                                                        style={{
+                                                            width: `${percentageUsed}%`
+                                                        }}
+                                                    />
+                                                    <span className={styles.progressLabel}>
+                                                        {percentageUsed.toFixed(1)}%
+                                                    </span>
+                                                </div>
+                                                <p className={styles.progressText}>
+                                                    Used £{usedAmount.toFixed(2)} out of £{availableAmount.toFixed(2)}
+                                                </p>
+                                            </>
                                         );
                                     })()}
                                 </div>
