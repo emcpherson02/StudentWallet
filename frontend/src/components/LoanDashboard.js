@@ -201,9 +201,42 @@ const LoanDashboard = () => {
                             <div className={styles.installmentGrid}>
                                 {loanData.instalmentDates.map((date, index) => (
                                     <div key={index} className={styles.installmentCard}>
-                                        <h4>Installment {index + 1}</h4>
-                                        <p>Date: {new Date(date).toLocaleDateString()}</p>
-                                        <p>Amount: £{loanData.instalmentAmounts[index].toFixed(2)}</p>
+                                        <div className={styles.installmentHeader}>
+                                            <h4>Installment {index + 1}</h4>
+                                            {(() => {
+                                                const installmentDate = new Date(date);
+                                                const currentDate = new Date();
+                                                const isReceived = currentDate >= installmentDate;
+                                                const isUpcoming = !isReceived &&
+                                                    installmentDate <= new Date(currentDate.setDate(currentDate.getDate() + 14));
+
+                                                return (
+                                                    <span className={`${styles.statusBadge} ${
+                                                        isReceived ? styles.received :
+                                                            isUpcoming ? styles.upcoming :
+                                                                styles.pending
+                                                    }`}>
+                                {isReceived ? 'Received' :
+                                    isUpcoming ? 'Due Soon' :
+                                        'Pending'}
+                            </span>
+                                                );
+                                            })()}
+                                        </div>
+                                        <div className={styles.installmentDetails}>
+                                            <div className={styles.detail}>
+                                                <span className={styles.label}>Date:</span>
+                                                <span className={styles.value}>
+                            {new Date(date).toLocaleDateString()}
+                        </span>
+                                            </div>
+                                            <div className={styles.detail}>
+                                                <span className={styles.label}>Amount:</span>
+                                                <span className={styles.value}>
+                            £{loanData.instalmentAmounts[index].toFixed(2)}
+                        </span>
+                                            </div>
+                                        </div>
                                     </div>
                                 ))}
                             </div>
