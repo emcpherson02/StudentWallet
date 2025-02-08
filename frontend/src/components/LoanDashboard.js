@@ -185,7 +185,10 @@ const LoanDashboard = () => {
                             </div>
                             <div className={styles.detailItem}>
                                 <h4>Remaining Balance</h4>
-                                <p>£{loanData.remainingAmount.toFixed(2)}</p>
+                                <p>£{(calculateAvailableAmount(loanData) -
+                                    (loanData.transactions?.reduce((total, transaction) =>
+                                        total + Math.abs(transaction.Amount), 0) || 0)
+                                ).toFixed(2)}</p>
                             </div>
                             <div className={styles.detailItem}>
                                 <h4>Living Option</h4>
@@ -209,15 +212,34 @@ const LoanDashboard = () => {
                         {loanData.trackedTransactions && loanData.trackedTransactions.length > 0 && (
                             <div className={styles.transactionsList}>
                                 <h3>Linked Transactions</h3>
-                                <div className={styles.progressBar}>
-                                    <div
-                                        className={styles.progressFill}
-                                        style={{
-                                            width: `${((calculateAvailableAmount(loanData) - loanData.remainingAmount) / calculateAvailableAmount(loanData)) * 100}%`
-                                        }}
-                                    />
+                                <div className={styles.progressBarContainer}>
+                                    {/* Calculate total from transactions */}
+                                    {(() => {
+                                        const availableAmount = calculateAvailableAmount(loanData);
+                                        const usedAmount = loanData.transactions?.reduce((total, transaction) =>
+                                            total + Math.abs(transaction.Amount), 0) || 0;
+                                        const percentageUsed = (usedAmount / availableAmount) * 100;
+
+                                        return (
+                                            <>
+                                            <div className={styles.progressBar}>
+                                                <div
+                                                    className={styles.progressFill}
+                                                    style={{
+                                                        width: `${percentageUsed}%`
+                                                    }}
+                                                />
+                                                <span className={styles.progressLabel}>
+                                                    {percentageUsed.toFixed(1)}%
+                                                </span>
+                                            </div>
+                                        <p className={styles.progressText}>
+                                            Used £{usedAmount.toFixed(2)} out of £{availableAmount.toFixed(2)}
+                                        </p>
+                                    </>
+                                        );
+                                    })()}
                                 </div>
-                                <p>Used: {((calculateAvailableAmount(loanData) - loanData.remainingAmount) / calculateAvailableAmount(loanData) * 100).toFixed(2)}% of available amount</p>
 
                                 {loanData.transactions && loanData.transactions.map((transaction, index) => (
                                     <div key={index} className={styles.transactionItem}>
