@@ -61,7 +61,21 @@ class LoanService {
                 console.log('No loans found for user');
                 return null;
             }
-            return loans[0]; // Return first loan as users should only have one
+
+            // Get transaction details for each tracked transaction
+            const loan = loans[0];
+            if (loan.trackedTransactions && loan.trackedTransactions.length > 0) {
+                const transactions = [];
+                for (const transactionId of loan.trackedTransactions) {
+                    const transaction = await this.transactionModel.findById(userId, transactionId);
+                    if (transaction) {
+                        transactions.push(transaction);
+                    }
+                }
+                loan.transactions = transactions;
+            }
+
+            return loan;
         } catch (error) {
             console.error('Error in getLoan:', error);
             throw new DatabaseError('Failed to get loan');
