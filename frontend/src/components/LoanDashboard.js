@@ -5,6 +5,8 @@ import styles from '../styles/LoanDashboard.module.css';
 import TransactionSelectionModal from './TransactionSelectionModal';
 import LoanForm from './LoanForm';
 import Layout from './Layout';
+import CountdownTimer from './CountdownTimer';
+import SpendingTrend from './SpendingTrend';
 
 const LoanDashboard = () => {
     const { currentUser } = useAuth();
@@ -195,6 +197,30 @@ const LoanDashboard = () => {
                                 <p>{loanData.livingOption === 'away' ? 'Living Away' : 'Living at Home'}</p>
                             </div>
                         </div>
+
+                        <>
+                            {/* Find next installment */}
+                            {(() => {
+                                const nextInstallment = loanData.instalmentDates
+                                    .map((date, index) => ({
+                                        date,
+                                        amount: loanData.instalmentAmounts[index]
+                                    }))
+                                    .find(inst => new Date(inst.date) > new Date());
+
+                                return nextInstallment ? (
+                                    <CountdownTimer
+                                        nextInstallmentDate={nextInstallment.date}
+                                        amount={nextInstallment.amount}
+                                    />
+                                ) : null;
+                            })()}
+
+                            {/* Add Spending Trend if there are transactions */}
+                            {loanData.transactions && loanData.transactions.length > 0 && (
+                                <SpendingTrend transactions={loanData.transactions} />
+                            )}
+                        </>
 
                         <div className={styles.installments}>
                             <h3>Installments</h3>

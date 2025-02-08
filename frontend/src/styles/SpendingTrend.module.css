@@ -1,0 +1,18 @@
+.trendContainer {
+    background: white;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+}
+
+.trendContainer h3 {
+    margin: 0 0 1.5rem 0;
+    color: #1f2937;
+    font-size: 1.25rem;
+}
+
+.chartContainer {
+    width: 100%;
+    height: 300px;
+}
