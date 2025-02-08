@@ -4,6 +4,148 @@
     min-height: 100vh;
 }
 
+.summaryGrid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+@media (max-width: 768px) {
+    .summaryGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+.summaryCard {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.summaryCard h3 {
+    color: #4b5563;
+    font-size: 0.875rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+
+.summaryCard p {
+    font-size: 1.5rem;
+    font-weight: 700;
+}
+
+.positive {
+    color: #059669;
+}
+
+.negative {
+    color: #dc2626;
+}
+
+.categoriesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.categoryCard {
+    background-color: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    padding: 1.5rem;
+}
+
+.categoryCard h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.progressContainer {
+    position: relative;
+    padding-top: 0.25rem;
+    margin-bottom: 1rem;
+}
+
+.progressLabel {
+    display: inline-block;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+    background-color: #dbeafe;
+    color: #2563eb;
+    margin-bottom: 0.5rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 0.5rem;
+    background-color: #dbeafe;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background-color: #2563eb;
+    transition: width 0.3s ease;
+}
+
+.progressFill.exceeded {
+    background-color: #dc2626;
+}
+
+.detailsGrid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    font-size: 0.875rem;
+}
+
+.detailsItem p:first-child {
+    color: #6b7280;
+    margin-bottom: 0.25rem;
+}
+
+.detailsItem p:last-child {
+    font-weight: 600;
+}
+
+.warning {
+    margin-top: 1rem;
+    padding: 0.5rem;
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+    border-radius: 0.5rem;
+}
+
+.warning p {
+    color: #dc2626;
+    font-size: 0.875rem;
+}
+
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.125rem;
+    color: #4b5563;
+}
+
+.error {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    font-size: 1.125rem;
+    color: #dc2626;
+}
+
 .dashboardHeader {
     display: flex;
     justify-content: space-between;
@@ -20,149 +162,80 @@
     margin: 0;
 }
 
-.buttonGroup {
-    display: flex;
-    gap: 0.75rem;
-}
-
-.loanCard {
-    background: white;
-    border-radius: 0.75rem;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-}
-
-.loanDetails {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-}
-
-.detailItem {
-    padding: 1rem;
-    background: #f9fafb;
-    border-radius: 0.5rem;
+.notificationToggle {
+    background-color: #f3f4f6;
     border: 1px solid #e5e7eb;
-}
-
-.detailItem h4 {
-    color: #6b7280;
-    font-size: 0.875rem;
-    margin: 0 0 0.5rem 0;
-}
-
-.detailItem p {
-    color: #1f2937;
-    font-size: 1.25rem;
-    font-weight: 600;
-    margin: 0;
-}
-
-.installments {
-    margin-top: 1.5rem;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 1.5rem;
-}
-
-.installmentGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
-}
-
-.installmentCard {
-    background: #f9fafb;
-    border-radius: 0.5rem;
-    padding: 1rem;
-    border: 1px solid #e5e7eb;
-}
-
-.progressBar {
-    width: 100%;
-    height: 0.5rem;
-    background-color: #dbeafe;
-    border-radius: 0.25rem;
-    overflow: hidden;
-    margin: 0.5rem 0;
-}
-
-.progressFill {
-    height: 100%;
-    background-color: #2563eb;
-    transition: width 0.3s ease;
-}
-
-.linkButton {
-    background-color: #282c34;
-    color: white;
+    color: #374151;
     padding: 0.75rem 1.5rem;
-    border-radius: 0.375rem;
-    border: none;
+    border-radius: 0.5rem;
     font-weight: 500;
     cursor: pointer;
-    transition: background-color 0.2s;
+    transition: all 0.2s ease;
 }
 
-.linkButton:hover {
-    background-color: #364195;
+.notificationToggle.enabled {
+    background-color: #d1fae5;
+    border-color: #34d399;
+    color: #065f46;
 }
 
-.deleteButton {
-    background-color: #dc2626;
+.notificationToggle:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.transactionsButton {
+    width: 100%;
+    padding: 8px;
+    margin-top: 15px;
+    background-color: #007bff;
     color: white;
-}
-
-.deleteButton:hover {
-    background-color: #b91c1c;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
 }
 
 .transactionsList {
-    margin-top: 1rem;
-    border-top: 1px solid #e5e7eb;
-    padding-top: 1rem;
+    margin-top: 15px;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 4px;
 }
 
 .transactionItem {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 0.75rem;
-    background: white;
-    border-radius: 0.375rem;
-    margin-bottom: 0.5rem;
-    border: 1px solid #e5e7eb;
+    padding: 10px;
+    margin: 5px 0;
+    background-color: white;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
 }
 
-.loading {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 50vh;
-    color: #6b7280;
+.transactionDetails {
+    flex-grow: 1;
 }
 
-.error {
-    color: #dc2626;
-    padding: 1rem;
-    background: #fee2e2;
-    border-radius: 0.5rem;
-    margin: 1rem 0;
+.transactionDescription {
+    font-weight: 500;
+    margin: 0;
 }
 
-.message {
-    padding: 1rem;
-    margin-bottom: 1rem;
-    border-radius: 0.5rem;
+.transactionDate {
+    color: #6c757d;
+    font-size: 0.9em;
+    margin: 0;
 }
 
-.message.success {
-    background-color: #d1fae5;
-    color: #065f46;
+.transactionAmount {
+    font-weight: 500;
+    margin: 0;
+    padding-left: 15px;
 }
 
-.message.error {
-    background-color: #fee2e2;
-    color: #dc2626;
+.noTransactions, .loading {
+    text-align: center;
+    color: #6c757d;
+    padding: 10px;
 }
