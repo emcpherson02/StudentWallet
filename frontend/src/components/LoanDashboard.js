@@ -17,8 +17,8 @@ const LoanDashboard = () => {
         let availableAmount = 0;
 
         loan.instalmentDates.forEach((date, index) => {
-            const installmentDate = new Date(date);
-            if (currentDate >= installmentDate) {
+            const instalmentDate = new Date(date);
+            if (currentDate >= instalmentDate) {
                 availableAmount += loan.instalmentAmounts[index];
             }
         });
@@ -199,19 +199,19 @@ const LoanDashboard = () => {
                         </div>
 
                         <>
-                            {/* Find next installment */}
+                            {/* Find next instalment */}
                             {(() => {
-                                const nextInstallment = loanData.instalmentDates
+                                const nextInstalment = loanData.instalmentDates
                                     .map((date, index) => ({
                                         date,
                                         amount: loanData.instalmentAmounts[index]
                                     }))
                                     .find(inst => new Date(inst.date) > new Date());
 
-                                return nextInstallment ? (
+                                return nextInstalment ? (
                                     <CountdownTimer
-                                        nextInstallmentDate={nextInstallment.date}
-                                        amount={nextInstallment.amount}
+                                        nextInstalmentDate={nextInstalment.date}
+                                        amount={nextInstalment.amount}
                                     />
                                 ) : null;
                             })()}
@@ -222,19 +222,19 @@ const LoanDashboard = () => {
                             )}
                         </>
 
-                        <div className={styles.installments}>
-                            <h3>Installments</h3>
-                            <div className={styles.installmentGrid}>
+                        <div className={styles.instalments}>
+                            <h3>Instalments</h3>
+                            <div className={styles.instalmentGrid}>
                                 {loanData.instalmentDates.map((date, index) => (
-                                    <div key={index} className={styles.installmentCard}>
-                                        <div className={styles.installmentHeader}>
-                                            <h4>Installment {index + 1}</h4>
+                                    <div key={index} className={styles.instalmentCard}>
+                                        <div className={styles.instalmentHeader}>
+                                            <h4>Instalment {index + 1}</h4>
                                             {(() => {
-                                                const installmentDate = new Date(date);
+                                                const instalmentDate = new Date(date);
                                                 const currentDate = new Date();
-                                                const isReceived = currentDate >= installmentDate;
+                                                const isReceived = currentDate >= instalmentDate;
                                                 const isUpcoming = !isReceived &&
-                                                    installmentDate <= new Date(currentDate.setDate(currentDate.getDate() + 14));
+                                                    instalmentDate <= new Date(currentDate.setDate(currentDate.getDate() + 14));
 
                                                 return (
                                                     <span className={`${styles.statusBadge} ${
@@ -249,7 +249,7 @@ const LoanDashboard = () => {
                                                 );
                                             })()}
                                         </div>
-                                        <div className={styles.installmentDetails}>
+                                        <div className={styles.instalmentDetails}>
                                             <div className={styles.detail}>
                                                 <span className={styles.label}>Date:</span>
                                                 <span className={styles.value}>
