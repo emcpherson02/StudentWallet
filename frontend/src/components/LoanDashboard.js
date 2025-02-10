@@ -31,10 +31,53 @@ const LoanDashboard = () => {
     const [isLoanFormOpen, setIsLoanFormOpen] = useState(false);
     const [linkedTransactions, setLinkedTransactions] = useState([]);
     const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
     useEffect(() => {
         fetchLoanData();
+        const fetchNotificationStatus = async () => {
+            if (!currentUser) return;
+
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    'http://localhost:3001/user/user-data',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                setNotificationsEnabled(response.data.notificationsEnabled || false);
+            } catch (error) {
+                console.error('Error fetching notification status:', error);
+            }
+        };
+
+        fetchNotificationStatus();
     }, [currentUser]);
+
+    const toggleNotifications = async () => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.post(
+                'http://localhost:3001/user/toggle-notifications',
+                {
+                    userId: currentUser.uid,
+                    enabled: !notificationsEnabled
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setNotificationsEnabled(!notificationsEnabled);
+            setMessage(`Notifications ${!notificationsEnabled ? 'enabled' : 'disabled'} successfully`);
+        } catch (error) {
+            console.error('Error toggling notifications:', error);
+            setError('Failed to update notification settings');
+        }
+    };
 
     const fetchLoanData = async () => {
         if (!currentUser) return;
@@ -139,6 +182,12 @@ const LoanDashboard = () => {
                         )}
                         {loanData && (
                             <>
+                                <button
+                                    onClick={toggleNotifications}
+                                    className={`${styles.linkButton} ${notificationsEnabled ? styles.enabled : ''}`}
+                                >
+                                    {notificationsEnabled ? 'Disable Notifications' : 'Enable Notifications'}
+                                </button>
                                 <button
                                     onClick={() => setIsTransactionModalOpen(true)}
                                     className={styles.linkButton}

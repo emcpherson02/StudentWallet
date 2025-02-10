@@ -24,6 +24,7 @@ const BudgetRolloverService = require('./services/budgetRollover.service');
 const BudgetAnalyticsService = require('./services/budgetAnalytics.service');
 const LoanService = require('./services/loan.service');
 const BudgetRolloverSchedulerService = require('./services/budgetRolloverScheduler.service');
+const LoanNotificationService = require('./services/loan.notification.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -51,6 +52,7 @@ const port = process.env.PORT || 3001;
 
 // Initialize services with models
 const budgetNotificationService = new BudgetNotificationService(userModel);
+const loanNotificationService = new LoanNotificationService(userModel, loanModel);
 const authService = new AuthService(authModel);
 const userService = new UserService(userModel, budgetModel, budgetNotificationService);
 const plaidService = new PlaidService(plaidModel, budgetModel, budgetNotificationService);
@@ -58,9 +60,9 @@ const transactionService = new TransactionService(transactionModel, budgetModel,
 const budgetService = new BudgetService(budgetModel, transactionModel, budgetNotificationService);
 const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHistoryModel, budgetNotificationService);
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
-const loanService = new LoanService(loanModel, transactionModel);
 const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
 
+const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
 
 // Initialize controllers
 const authController = new AuthController(authService);

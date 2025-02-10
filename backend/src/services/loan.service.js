@@ -1,9 +1,10 @@
 const { DatabaseError, ValidationError, NotFoundError } = require('../utils/errors');
 
 class LoanService {
-    constructor(loanModel, transactionModel) {
+    constructor(loanModel, transactionModel, loanNotificationService) {
         this.loanModel = loanModel;
         this.transactionModel = transactionModel;
+        this.loanNotificationService = loanNotificationService;
     }
 
     async addLoan(userId, loanData) {
@@ -142,13 +143,11 @@ class LoanService {
 
     async linkAllTransactions(userId, loanId) {
         try {
-            // Get the loan to verify it exists and check remaining amount
             const loan = await this.getLoan(userId);
             if (!loan) {
                 throw new NotFoundError('Loan not found');
             }
 
-            // Get all user transactions
             const transactions = await this.transactionModel.findByUserId(userId);
             if (!transactions || transactions.length === 0) {
                 return { message: 'No transactions found to link' };
@@ -157,9 +156,7 @@ class LoanService {
             let totalLinkedAmount = 0;
             const linkedTransactions = [];
 
-            // Link each transaction
             for (const transaction of transactions) {
-                // Skip if the transaction would exceed remaining amount
                 if (totalLinkedAmount + transaction.Amount > loan.remainingAmount) {
                     continue;
                 }
@@ -177,6 +174,13 @@ class LoanService {
                 }
             }
 
+            // Check spending threshold after linking transactions
+            const availableAmount = this.calculateAvailableAmount(loan);
+            await this.loanNotificationService.checkSpendingThreshold(
+                userId,
+                availableAmount
+            );
+
             return {
                 message: 'Transactions linked successfully',
                 linkedTransactions: linkedTransactions.length,
@@ -186,6 +190,26 @@ class LoanService {
             if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to link transactions');
         }
+    }
+
+    calculateAvailableAmount(loan) {
+        const currentDate = new Date();
+        let availableAmount = 0;
+
+        loan.instalmentDates.forEach((date, index) => {
+            const instalmentDate = new Date(date);
+            if (currentDate >= instalmentDate) {
+                availableAmount += loan.instalmentAmounts[index];
+            }
+        });
+
+        return availableAmount;
+    }
+
+    calculateTotalSpent(transactions) {
+        return transactions.reduce((total, transaction) =>
+            total + Math.abs(transaction.Amount), 0
+        );
     }
 
     async unlinkAllTransactions(userId, loanId) {
@@ -235,29 +259,24 @@ class LoanService {
 
     async linkSingleTransaction(userId, loanId, transactionId) {
         try {
-            // Get the loan to verify it exists and check remaining amount
             const loan = await this.getLoan(userId);
             if (!loan) {
                 throw new NotFoundError('Loan not found');
             }
 
-            // Get the transaction
             const transaction = await this.transactionModel.findById(userId, transactionId);
             if (!transaction) {
                 throw new NotFoundError('Transaction not found');
             }
 
-            // Check if transaction is already linked
-            if (loan.trackedTransactions && loan.trackedTransactions.includes(transactionId)) {
+            if (loan.trackedTransactions?.includes(transactionId)) {
                 throw new ValidationError('Transaction is already linked to this loan');
             }
 
-            // Check if transaction amount would exceed remaining amount
             if (transaction.Amount > loan.remainingAmount) {
                 throw new ValidationError('Transaction amount exceeds remaining loan amount');
             }
 
-            // Link the transaction
             const linked = await this.loanModel.linkTransactionToLoan(
                 userId,
                 loanId,
@@ -268,6 +287,15 @@ class LoanService {
             if (!linked) {
                 throw new DatabaseError('Failed to link transaction');
             }
+
+            // Check spending threshold after linking transaction
+            const availableAmount = this.calculateAvailableAmount(loan);
+            const totalSpent = this.calculateTotalSpent(await this.transactionModel.findByUserId(userId));
+            await this.loanNotificationService.checkSpendingThreshold(
+                userId,
+                availableAmount,
+                totalSpent
+            );
 
             return {
                 message: 'Transaction linked successfully',

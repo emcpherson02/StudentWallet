@@ -13,6 +13,9 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
   <div className={styles.sidebar}>
     {showNav && (                         
     <nav className={styles.sidebarNav}>
+      <Link to="/plaid-link" className={styles.sidebarLink}>
+        Home
+      </Link>
       <Link to="/AboutUs" className={styles.sidebarLink}>
         About Us
       </Link>
@@ -27,6 +30,9 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
       </Link>
       <Link to="/loan-dashboard" className={styles.sidebarLink}>
         Loan Dashboard
+      </Link>
+      <Link to="/tips" className={styles.sidebarLink}>
+        Tips & Resources
       </Link>
     </nav>
     )}
