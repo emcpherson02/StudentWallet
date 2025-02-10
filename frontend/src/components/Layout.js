@@ -13,6 +13,9 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
   <div className={styles.sidebar}>
     {showNav && (                         
     <nav className={styles.sidebarNav}>
+      <Link to="/plaid-link" className={styles.sidebarLink}>
+        Home
+      </Link>
       <Link to="/AboutUs" className={styles.sidebarLink}>
         About Us
       </Link>
