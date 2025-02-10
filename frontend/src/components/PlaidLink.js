@@ -64,22 +64,51 @@ function PlaidLink() {
     try {
       console.log('Fetching Plaid accounts...');
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
 
-      console.log('Plaid accounts response:', response.data);
-      if (response.data.accounts) {
-        const processedAccounts = response.data.accounts.map(account => ({
-          id: account.account_id,
-          name: account.name,
-          officialName: account.official_name,
-          type: account.type,
-          subtype: account.subtype,
-          institutionName: account.institutionName
-        }));
+      // Fetch accounts
+      const accountsResponse = await axios.get(
+          `http://localhost:3001/plaid/accounts/${currentUser.uid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+      );
+
+      // Fetch transactions
+      const transactionsResponse = await axios.get(
+          'http://localhost:3001/transactions/user-transactions',
+          {
+            params: { userId: currentUser.uid },
+            headers: { Authorization: `Bearer ${token}` }
+          }
+      );
+
+      if (accountsResponse.data.accounts) {
+        const allTransactions = transactionsResponse.data.Transaction || [];
+
+        const processedAccounts = accountsResponse.data.accounts.map(account => {
+          // Calculate balance from transactions
+          const accountTransactions = allTransactions.filter(
+              transaction => transaction.accountId === account.account_id
+          );
+
+          const calculatedBalance = accountTransactions.reduce((sum, transaction) => {
+            return sum + (transaction.amount || 0);
+          }, 0);
+
+          return {
+            id: account.account_id,
+            name: account.name,
+            officialName: account.official_name,
+            type: account.type,
+            subtype: account.subtype,
+            institutionName: account.institutionName || accountsResponse.data.institutionName,
+            calculatedBalance: Math.abs(calculatedBalance),
+            transactionCount: accountTransactions.length
+          };
+        });
+
         console.log('Processed accounts:', processedAccounts);
         setAccounts(processedAccounts);
       } else {
@@ -279,11 +308,6 @@ function PlaidLink() {
             <section className={styles.gridSection}>
               <div className={styles.sectionHeader}>
                 <h2>Accounts</h2>
-                {linkedBank && (
-                    <button className={styles.viewAllButton}>
-                      View All <ArrowUpRight className="w-4 h-4" />
-                    </button>
-                )}
               </div>
               <div className={styles.accountsContainer}>
                 {!linkedBank ? (
@@ -303,16 +327,21 @@ function PlaidLink() {
                       {accounts.map((account) => (
                           <div key={account.id} className={styles.accountCard}>
                             <div className={styles.accountIcon}>
-                              <Banknote className="w-5 h-5" />
+                              <Banknote className="w-5 h-5"/>
                             </div>
                             <div className={styles.accountInfo}>
-                              <h4>{account.name}</h4>
-                              <p className={styles.accountType}>{account.type}</p>
-                              <p className={styles.accountBalance}>
-                                £{account.balance?.current?.toFixed(2) ||
-                                  account.balance?.available?.toFixed(2) ||
-                                  '0.00'}
+                              <h4>{account.institutionName}</h4>
+                              <p className={styles.accountType}>
+                                {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type}
                               </p>
+                              <div className={styles.accountBalanceContainer}>
+                                <p className={styles.accountBalance}>
+                                  £{account.calculatedBalance.toFixed(2)}
+                                </p>
+                                <span className={styles.transactionCount}>
+                            {account.transactionCount} transactions
+                          </span>
+                              </div>
                             </div>
                           </div>
                       ))}
@@ -329,13 +358,13 @@ function PlaidLink() {
                     onClick={() => setIsTransactionModalOpen(true)}
                     className={styles.iconButton}
                 >
-                  <Plus className="w-5 h-5" />
+                  <Plus className="w-5 h-5"/>
                 </button>
               </div>
               <div className={styles.transactionsContainer}>
                 {transactions.length === 0 ? (
                     <div className={styles.emptyStateCard}>
-                      <Wallet className="w-12 h-12 text-gray-400" />
+                      <Wallet className="w-12 h-12 text-gray-400"/>
                       <h3>No Transactions Yet</h3>
                       <p>Add your first transaction to get started</p>
                       <button
