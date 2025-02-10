@@ -3,6 +3,7 @@ const TransactionModel = require('./transaction.model');
 const BudgetModel = require('./budget.model');
 const PlaidModel = require('./plaid.model');
 const AuthModel = require('./auth.model');
+const LoanModel = require('./loan.model');
 const { db } = require('../config/firebase.config');
 const budgetHistoryModel = require('./budgetHistory.model');
 
@@ -12,5 +13,6 @@ module.exports = {
     budgetModel: new BudgetModel(db),
     plaidModel: new PlaidModel(db),
     authModel: new AuthModel(db),
-    budgetHistoryModel: new budgetHistoryModel(db)
+    budgetHistoryModel: new budgetHistoryModel(db),
+    loanModel: new LoanModel(db)
 };

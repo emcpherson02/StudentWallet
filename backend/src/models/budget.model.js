@@ -1,4 +1,5 @@
 const {budgetModel} = require("./index");
+const {NotFoundError} = require("../utils/errors");
 
 class BudgetModel {
     constructor(db) {
