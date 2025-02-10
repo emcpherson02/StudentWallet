@@ -11,6 +11,14 @@ const errorHandler = (err, req, res, next) => {
         });
     }
 
+    // Handle null, undefined or non-error cases
+    if (!err || typeof err !== 'object') {
+        return res.status(500).json({
+            status: 'error',
+            message: MESSAGE_ERROR_OCCURRED
+        });
+    }
+
     // Handle Firebase Admin errors
     if (err.code && err.code.startsWith('auth/')) {
         return res.status(401).json({
