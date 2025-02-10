@@ -94,15 +94,15 @@ const BudgetAnalytics = () => {
                             <div className={styles.summaryGrid}>
                                 <div className={styles.summaryCard}>
                                     <h3>Total Periods</h3>
-                                    <p>{analytics.summary.totalPeriods}</p>
+                                    <p>{analytics.summary?.totalPeriods || 0}</p>
                                 </div>
                                 <div className={styles.summaryCard}>
                                     <h3>Total Spent</h3>
-                                    <p>£{analytics.summary.totalSpent.toFixed(2)}</p>
+                                    <p>£{analytics.summary?.totalSpent?.toFixed(2) || '0.00'}</p>
                                 </div>
                                 <div className={styles.summaryCard}>
                                     <h3>Average Spent</h3>
-                                    <p>£{analytics.summary.averageSpent.toFixed(2)}</p>
+                                    <p>£{analytics.summary?.averageSpent?.toFixed(2) || '0.00'}</p>
                                 </div>
                             </div>
 

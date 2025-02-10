@@ -23,6 +23,7 @@ const BudgetNotificationService = require('./services/budget.notification.servic
 const BudgetRolloverService = require('./services/budgetRollover.service');
 const BudgetAnalyticsService = require('./services/budgetAnalytics.service');
 const LoanService = require('./services/loan.service');
+const BudgetRolloverSchedulerService = require('./services/budgetRolloverScheduler.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -58,6 +59,8 @@ const budgetService = new BudgetService(budgetModel, transactionModel, budgetNot
 const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHistoryModel, budgetNotificationService);
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
 const loanService = new LoanService(loanModel, transactionModel);
+const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
+
 
 // Initialize controllers
 const authController = new AuthController(authService);
