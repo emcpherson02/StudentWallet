@@ -1,4 +1,4 @@
-jest.mock('../../utils/errors', () => ({
+jest.mock('../../src/utils/errors', () => ({
     ValidationError: jest.fn().mockImplementation((message) => ({
         message,
         name: 'ValidationError',
@@ -7,12 +7,12 @@ jest.mock('../../utils/errors', () => ({
     }))
 }));
 
-const { ValidationError } = require('../../utils/errors');
+const { ValidationError } = require('../../src/utils/errors');
 const {
     validateTransaction,
     validateBudget,
     validateUserUpdate
-} = require('../validation.middleware');
+} = require('../../src/middleware/validation.middleware');
 
 describe('Validation Middleware', () => {
     let mockRequest;
