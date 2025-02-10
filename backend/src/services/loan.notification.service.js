@@ -1,6 +1,6 @@
 const nodemailer = require('nodemailer');
 const cron = require('node-cron');
-const {admin} = require("../config/firebase.config");
+const { admin } = require('../config/firebase.config');
 
 class LoanNotificationService {
     constructor(userModel) {
@@ -13,7 +13,6 @@ class LoanNotificationService {
             }
         });
 
-        // Initialize daily instalment check
         this.initializeDailyCheck();
     }
 
@@ -33,7 +32,7 @@ class LoanNotificationService {
         });
 
         // Run immediately for testing
-        this.immediateCheck();
+        // this.immediateCheck(); // REMOVE FOR PRODUCTION
     }
 
     async immediateCheck() {
@@ -60,7 +59,6 @@ class LoanNotificationService {
                 return;
             }
 
-            // Get current loan data to calculate actual spent amount
             const loanSnapshot = await this.userModel.db
                 .collection('users')
                 .doc(userId)
