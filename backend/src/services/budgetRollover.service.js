@@ -31,6 +31,15 @@ class BudgetRolloverService {
                 status: utilizationPercentage > 100 ? 'EXCEEDED' : 'WITHIN_LIMIT'
             });
 
+            // Send email notification
+            await this.notificationService.sendBudgetRolloverEmail(
+                userId,
+                budget.category,
+                budget.amount,
+                budget.spent,
+                unspentAmount
+            );
+
             // Calculate next period dates
             const nextPeriodDates = this.calculateNextPeriodDates(
                 budget.period,
