@@ -4,6 +4,7 @@ import Login from './components/Login';
 import Register from "./components/Register";
 import PlaidLink from './components/PlaidLink';
 import BudgetDashboard from './components/BudgetDashboard';
+import BudgetAnalytics from './components/budgetAnalytics';
 import LoanDashboard from "./components/LoanDashboard";
 import Tips from './components/Tips';
 import TransactionDashboard from "./components/TransactionDashboard";
@@ -18,6 +19,7 @@ function App() {
               <Route path="/plaid-link" element={<PlaidLink />} />
               <Route path={"/budget-dashboard"} element={<BudgetDashboard />} />
               <Route path={"/loan-dashboard"} element={<LoanDashboard />} />
+              <Route path="/budget-analytics" element={<BudgetAnalytics />} />
               <Route path={"/tips"} element={<Tips />} />
               <Route path="/transaction-dashboard" element={<TransactionDashboard />} />
               {/* Add other routes here */}

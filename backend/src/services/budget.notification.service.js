@@ -61,6 +61,33 @@ class BudgetNotificationService {
             throw error;
         }
     }
+
+    async sendBudgetRolloverEmail(userid, category, amount, spent, unspentAmount) {
+        const user = await this.userModel.findById(userid);
+        const userEmail = user.email;
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: userEmail,
+            subject: `Budget Rollover Alert - ${category} - StudentWallet`,
+            html: `
+                <h2>Budget Rollover Alert</h2>
+                <p>Your ${category} budget has been rolled over to the next period.</p>
+                <p>Original budget amount: £${amount}</p>
+                <p>Spent in previous period: £${spent}</p>
+                <p>Unspent amount rolled over: £${unspentAmount}</p>
+                <p>Please check your StudentWallet account to review your spending.</p>
+            `
+        };
+
+        try {
+            const result = await this.transporter.sendMail(mailOptions);
+            console.log('Email sent:', result);
+            return result;
+        } catch (error) {
+            console.error('Email sending failed:', error);
+            throw error;
+        }
+    }
 }
 
 module.exports = BudgetNotificationService;

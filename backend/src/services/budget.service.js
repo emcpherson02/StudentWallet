@@ -138,39 +138,30 @@ class BudgetService {
 
     async getBudgetSummary(userId) {
         try {
-            // Get all budgets and transactions from models
             const budgets = await this.budgetModel.findByUserId(userId);
-            const transactions = await this.transactionModel.findByUserId(userId);
 
-            // Calculate total budget amount across all categories
-            const totalBudgets = budgets.reduce((sum, budget) =>
-                sum + (Number(budget.amount) || 0), 0);
+            const categoryBreakdown = await Promise.all(budgets.map(async budget => {
+                const transactions = await this.getTransactionsByBudgetId(userId, budget.id);
+                const spent = transactions.reduce((sum, transaction) =>
+                    sum + Math.abs(transaction.Amount), 0);
 
-            // Calculate total amount spent across all transactions
-            const totalSpent = transactions.reduce((sum, transaction) =>
-                sum + (Number(transaction.Amount) || 0), 0);
-
-            // Generate detailed breakdown for each budget category
-            const categoryBreakdown = budgets.map(budget => {
-                // Find transactions that match this budget category
-                const categoryTransactions = transactions.filter(
-                    transaction => transaction.category === budget.category
-                );
-
-                // Calculate total spent in this category
-                const spent = categoryTransactions.reduce((sum, transaction) =>
-                    sum + (Number(transaction.Amount) || 0), 0);
-
-                // Return comprehensive information for this category
                 return {
                     budgetId: budget.id,
                     category: budget.category,
                     budgetAmount: Number(budget.amount) || 0,
                     spent: spent,
                     remaining: (Number(budget.amount) || 0) - spent,
-                    percentageUsed: budget.amount ? ((spent / budget.amount) * 100).toFixed(2) : "0.00"
+                    percentageUsed: budget.amount ? ((spent / budget.amount) * 100).toFixed(2) : "0.00",
+                    startDate: budget.startDate,
+                    endDate: budget.endDate,
+                    period: budget.period
                 };
-            });
+            }));
+
+            const totalBudgets = categoryBreakdown.reduce((sum, category) =>
+                sum + category.budgetAmount, 0);
+            const totalSpent = categoryBreakdown.reduce((sum, category) =>
+                sum + category.spent, 0);
 
             return {
                 totalBudgets,
@@ -199,29 +190,44 @@ class BudgetService {
     }
 
     async getTransactionsByBudgetId(userId, budgetId) {
-        try{
-            //Get budget to verify if it exists
+        try {
             const budget = await this.budgetModel.findById(userId, budgetId);
-            if(!budget){
+            if (!budget) {
                 throw new NotFoundError('Budget not found');
             }
-            //get tracked transactions
+
+            // Only get transactions that are tracked by this budget
             const trackedTransactions = budget.trackedTransactions || [];
-            //if no transactions are tracked, return empty array
-            if(trackedTransactions.length === 0){
+            if (trackedTransactions.length === 0) {
                 return [];
             }
-            // get all budget transactions
+
+            // Get tracked transactions
             const transactions = [];
-            for(const transactionId of trackedTransactions){
+            for (const transactionId of trackedTransactions) {
                 const transaction = await this.transactionModel.findById(userId, transactionId);
-                if(transaction){
-                    transactions.push(transaction);
+                if (transaction) {
+                    // Only include transactions within the budget period
+                    const transactionDate = new Date(transaction.date);
+                    const budgetStart = new Date(budget.startDate);
+                    const budgetEnd = new Date(budget.endDate);
+
+                    if (transactionDate >= budgetStart && transactionDate <= budgetEnd) {
+                        transactions.push(transaction);
+                    }
                 }
             }
 
+            // Calculate actual spent amount from current period transactions
+            const spent = transactions.reduce((total, transaction) =>
+                total + Math.abs(transaction.Amount), 0
+            );
+
+            // Update budget with correct spent amount
+            await this.budgetModel.update(userId, budgetId, { spent });
+
             return transactions;
-        }catch (error) {
+        } catch (error) {
             console.error('Error in getTransactionsByBudgetId:', error);
             throw new DatabaseError('Failed to fetch budget transactions');
         }

@@ -54,6 +54,30 @@ const options = {
                         description: { type: 'string' },
                         type: { type: 'string' }
                     }
+                },
+
+                Loan: {
+                    type: 'object',
+                    properties: {
+                        instalmentDates: {
+                            type: 'array',
+                            items: { type: 'string', format: 'date' }
+                        },
+                        instalmentAmounts: {
+                            type: 'array',
+                            items: { type: 'number' }
+                        },
+                        livingOption: {
+                            type: 'string',
+                            enum: ['away', 'home']
+                        },
+                        totalAmount: { type: 'number' },
+                        remainingAmount: { type: 'number' },
+                        trackedTransactions: {
+                            type: 'array',
+                            items: { type: 'string' }
+                        }
+                    }
                 }
             },
             securitySchemes: {
@@ -691,6 +715,339 @@ const options = {
                     responses: {
                         200: {
                             description: 'User updated successfully'
+                        }
+                    }
+                }
+            },
+            // Budget History routes
+            '/history/rollover': {
+                post: {
+                    tags: ['Budget History'],
+                    summary: 'Process budget rollover',
+                    security: [{ BearerAuth: [] }],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' },
+                                        budgetId: { type: 'string' }
+                                    },
+                                    required: ['userId', 'budgetId']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Budget rolled over successfully'
+                        },
+                        404: {
+                            description: 'Budget not found'
+                        }
+                    }
+                }
+            },
+
+            '/history/analytics': {
+                get: {
+                    tags: ['Budget History'],
+                    summary: 'Get budget analytics',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'query',
+                            name: 'userId',
+                            required: true,
+                            schema: { type: 'string' }
+                        },
+                        {
+                            in: 'query',
+                            name: 'category',
+                            required: true,
+                            schema: { type: 'string' }
+                        },
+                        {
+                            in: 'query',
+                            name: 'startDate',
+                            required: true,
+                            schema: { type: 'string', format: 'date' }
+                        },
+                        {
+                            in: 'query',
+                            name: 'endDate',
+                            required: true,
+                            schema: { type: 'string', format: 'date' }
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Analytics retrieved successfully'
+                        }
+                    }
+                }
+            },
+
+// Loan routes
+            '/loan/add_loan': {
+                post: {
+                    tags: ['Loan'],
+                    summary: 'Add a new maintenance loan',
+                    security: [{ BearerAuth: [] }],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' },
+                                        instalmentDates: {
+                                            type: 'array',
+                                            items: { type: 'string', format: 'date' }
+                                        },
+                                        instalmentAmounts: {
+                                            type: 'array',
+                                            items: { type: 'number' }
+                                        },
+                                        livingOption: {
+                                            type: 'string',
+                                            enum: ['away', 'home']
+                                        },
+                                        totalAmount: { type: 'number' }
+                                    },
+                                    required: ['userId', 'instalmentDates', 'instalmentAmounts', 'livingOption', 'totalAmount']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        201: {
+                            description: 'Loan added successfully'
+                        }
+                    }
+                }
+            },
+
+            '/loan/get_loan': {
+                get: {
+                    tags: ['Loan'],
+                    summary: 'Get user\'s maintenance loan',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'query',
+                            name: 'userId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'Loan retrieved successfully'
+                        }
+                    }
+                }
+            },
+
+            '/loan/update_loan/{loanId}': {
+                put: {
+                    tags: ['Loan'],
+                    summary: 'Update maintenance loan',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'loanId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' },
+                                        instalmentDates: {
+                                            type: 'array',
+                                            items: { type: 'string', format: 'date' }
+                                        },
+                                        instalmentAmounts: {
+                                            type: 'array',
+                                            items: { type: 'number' }
+                                        },
+                                        livingOption: {
+                                            type: 'string',
+                                            enum: ['away', 'home']
+                                        },
+                                        totalAmount: { type: 'number' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Loan updated successfully'
+                        }
+                    }
+                }
+            },
+
+            '/loan/delete_loan/{loanId}': {
+                delete: {
+                    tags: ['Loan'],
+                    summary: 'Delete maintenance loan',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'loanId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' }
+                                    },
+                                    required: ['userId']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Loan deleted successfully'
+                        }
+                    }
+                }
+            },
+
+            '/loan/link_all_transactions/{loanId}': {
+                post: {
+                    tags: ['Loan'],
+                    summary: 'Link all transactions to loan',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'loanId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' }
+                                    },
+                                    required: ['userId']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Transactions linked successfully'
+                        }
+                    }
+                }
+            },
+
+            '/loan/unlink_all_transactions/{loanId}': {
+                delete: {
+                    tags: ['Loan'],
+                    summary: 'Unlink all transactions from loan',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'loanId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' }
+                                    },
+                                    required: ['userId']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Transactions unlinked successfully'
+                        }
+                    }
+                }
+            },
+
+            '/user/toggle-notifications': {
+                post: {
+                    tags: ['User'],
+                    summary: 'Toggle user notifications',
+                    security: [{ BearerAuth: [] }],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    properties: {
+                                        userId: { type: 'string' },
+                                        enabled: { type: 'boolean' }
+                                    },
+                                    required: ['userId', 'enabled']
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Notifications toggled successfully'
+                        }
+                    }
+                }
+            },
+
+            '/user/delete_user/{userId}': {
+                delete: {
+                    tags: ['User'],
+                    summary: 'Delete user account',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'userId',
+                            required: true,
+                            schema: { type: 'string' }
+                        }
+                    ],
+                    responses: {
+                        200: {
+                            description: 'User deleted successfully'
                         }
                     }
                 }

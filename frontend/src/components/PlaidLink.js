@@ -244,6 +244,35 @@ function PlaidLink() {
     }
   };
 
+  const checkBudgetRollovers = useCallback(async () => {
+    try {
+      const token = await currentUser.getIdToken();
+      const userBudgets = await axios.get('http://localhost:3001/budget/get_budgets', {
+        params: { userId: currentUser.uid },
+        headers: { Authorization: `Bearer ${token}` }
+      });
+
+      const today = new Date();
+      for (const budget of (userBudgets.data.budgets || [])) {
+        const endDate = new Date(budget.endDate);
+        console.log(`[Frontend] Checking budget ${budget.id}, end date: ${endDate}`);
+
+        if (endDate <= today) {
+          console.log(`[Frontend] Processing rollover for budget ${budget.id}`);
+          await axios.post('http://localhost:3001/history/rollover', {
+            userId: currentUser.uid,
+            budgetId: budget.id
+          }, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+        }
+      }
+    } catch (error) {
+      console.error('[Frontend] Error during rollover check:', error);
+    }
+  }, [currentUser]);
+
+
   // Effects
   useEffect(() => {
     if (!currentUser) {
@@ -253,11 +282,15 @@ function PlaidLink() {
 
   useEffect(() => {
     if (currentUser) {
-      fetchUserDetails();
-      fetchTransactions();
-      fetchBudgets();
+      const init = async () => {
+        await checkBudgetRollovers();
+        await fetchUserDetails();
+        await fetchTransactions();
+        await fetchBudgets();
+      };
+      init();
     }
-  }, [currentUser, fetchUserDetails, fetchTransactions, fetchBudgets]);
+  }, [currentUser, checkBudgetRollovers, fetchUserDetails, fetchTransactions, fetchBudgets]);
 
   if (!currentUser) return null;
 
