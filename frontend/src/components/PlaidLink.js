@@ -7,7 +7,7 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import TransactionForm from './TransactionForm';
 import BudgetForm from './BudgetForm';
-import { Bell } from 'lucide-react';
+import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote } from 'lucide-react';
 import Layout from './Layout';
 
 function PlaidLink() {
@@ -64,22 +64,52 @@ function PlaidLink() {
     try {
       console.log('Fetching Plaid accounts...');
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/plaid/accounts/${currentUser.uid}`, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
 
-      console.log('Plaid accounts response:', response.data);
-      if (response.data.accounts) {
-        const processedAccounts = response.data.accounts.map(account => ({
-          id: account.account_id,
-          name: account.name,
-          officialName: account.official_name,
-          type: account.type,
-          subtype: account.subtype,
-          institutionName: account.institutionName
-        }));
+      // Fetch accounts
+      const accountsResponse = await axios.get(
+          `http://localhost:3001/plaid/accounts/${currentUser.uid}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`
+            }
+          }
+      );
+
+      // Fetch transactions
+      const transactionsResponse = await axios.get(
+          'http://localhost:3001/transactions/user-transactions',
+          {
+            params: { userId: currentUser.uid },
+            headers: { Authorization: `Bearer ${token}` }
+          }
+      );
+
+      if (accountsResponse.data.accounts) {
+        const allTransactions = transactionsResponse.data.Transaction || [];
+
+        const processedAccounts = accountsResponse.data.accounts.map(account => {
+          // Calculate balance from transactions
+          const accountTransactions = allTransactions.filter(
+              transaction => transaction.accountId === account.account_id
+          );
+
+          const calculatedBalance = accountTransactions.reduce((sum, transaction) => {
+            const transactionAmount = Number(transaction.amount) || 0;
+            return sum + transactionAmount;
+          }, 0);
+
+          return {
+            id: account.account_id,
+            name: account.name || 'Unknown Account',
+            officialName: account.official_name,
+            type: account.type || 'Account',
+            subtype: account.subtype,
+            institutionName: account.institutionName || accountsResponse.data.institutionName || 'Bank',
+            calculatedBalance: Math.abs(calculatedBalance || 0),
+            transactionCount: accountTransactions.length || 0
+          };
+        });
+
         console.log('Processed accounts:', processedAccounts);
         setAccounts(processedAccounts);
       } else {
@@ -235,164 +265,223 @@ function PlaidLink() {
   return (
       <Layout currentUser={currentUser} onLogout={handleLogout}>
         <div className={styles.pageContainer}>
-          {/* Account Overview Section */}
-          <section className={styles.contentSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Account Overview</h2>
+          {/* Welcome Section */}
+          <section className={styles.welcomeSection}>
+            <div className={styles.welcomeContent}>
+              <h1>Welcome back, {currentUser.displayName}</h1>
+              <p>Manage your finances and track your spending all in one place</p>
             </div>
-            <div className={styles.card}>
-              <div className={styles.userInfo}>
-                <p><strong>Name:</strong> {currentUser.displayName}</p>
-                <p><strong>Email:</strong> {currentUser.email}</p>
-              </div>
-              {message && (
-                  <div className={styles.messageBanner}>{message}</div>
-              )}
-            </div>
+            {message && (
+                <div className={styles.messageBanner}>{message}</div>
+            )}
           </section>
 
-          {/* Bank Connection Section */}
-          <section className={styles.contentSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Bank Account</h2>
-            </div>
-            <div className={styles.card}>
-              {!linkedBank ? (
-                  <div className={styles.connectBankSection}>
-                    <p>Connect your bank account to get started</p>
-                    <button onClick={startPlaidLink} className={styles.primaryButton}>
-                      Connect Bank Account
-                    </button>
-                  </div>
-              ) : (
-                  <div>
-                    <h3>Linked Accounts</h3>
+          {/* Quick Actions Grid */}
+          <section className={styles.quickActions}>
+            <button
+                onClick={() => setIsTransactionModalOpen(true)}
+                className={styles.actionCard}
+            >
+              <Plus className="w-6 h-6" />
+              <span>Add Transaction</span>
+            </button>
+            <button
+                onClick={() => setIsBudgetModalOpen(true)}
+                className={styles.actionCard}
+            >
+              <Wallet className="w-6 h-6" />
+              <span>Create Budget</span>
+            </button>
+            {!linkedBank && (
+                <button
+                    onClick={startPlaidLink}
+                    className={styles.actionCard}
+                >
+                  <CreditCard className="w-6 h-6" />
+                  <span>Link Bank</span>
+                </button>
+            )}
+          </section>
+
+          {/* Main Content Grid */}
+          <div className={styles.mainGrid}>
+            {/* Accounts Overview */}
+            <section className={styles.gridSection}>
+              <div className={styles.sectionHeader}>
+                <h2>Accounts</h2>
+              </div>
+              <div className={styles.accountsContainer}>
+                {!linkedBank ? (
+                    <div className={styles.emptyStateCard}>
+                      <CreditCard className="w-12 h-12 text-gray-400" />
+                      <h3>Link Your Bank Account</h3>
+                      <p>Connect your bank to automatically track expenses</p>
+                      <button
+                          onClick={startPlaidLink}
+                          className={styles.primaryButton}
+                      >
+                        Connect Now
+                      </button>
+                    </div>
+                ) : (
                     <div className={styles.accountsGrid}>
-                      {accounts.map((account, index) => (
-                          <div key={account.id || index} className={styles.accountCard}>
-                            <h4>{account.name || account.type}</h4>
-                            <p>
-                              <strong>Balance:</strong> £
-                              {account.balance?.current?.toFixed(2) ||
-                                  account.balance?.available?.toFixed(2) ||
-                                  'N/A'}
-                            </p>
+                      {accounts.map((account) => (
+                          // Using account.id as the key, and if that's not available,
+                          // create a unique key using both id and name
+                          <div key={account.id || `${account.name}-${account.type}`} className={styles.accountCard}>
+                            <div className={styles.accountIcon}>
+                              <Banknote className="w-5 h-5"/>
+                            </div>
+                            <div className={styles.accountInfo}>
+                              <h4>{account.institutionName}</h4>
+                              <p className={styles.accountType}>
+                                {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type}
+                              </p>
+                              <div className={styles.accountBalanceContainer}>
+                                <p className={styles.accountBalance}>
+                                  £{(account.calculatedBalance || 0).toFixed(2)}
+                                </p>
+                                <span className={styles.transactionCount}>
+                        {account.transactionCount} transactions
+                                </span>
+                              </div>
+                            </div>
                           </div>
                       ))}
                     </div>
-                  </div>
-              )}
-            </div>
-          </section>
-
-          {/* Transactions Section */}
-          <section className={styles.contentSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Transactions</h2>
-              <button
-                  onClick={() => {
-                    setIsTransactionModalOpen(true);
-                    appRef.current?.classList.add('modal-open');
-                  }}
-                  className={styles.primaryButton}
-              >
-                Add Transaction
-              </button>
-            </div>
-            <div className={styles.card}>
-              {transactionMessage && (
-                  <div className={styles.messageBanner}>{transactionMessage}</div>
-              )}
-              <div className={styles.transactionsList}>
-                {transactions.length > 0 ? (
-                    transactions.map((transaction, index) => (
-                        <div key={index} className={styles.transactionItem}>
-                          <div className={styles.transactionDetails}>
-                            <div><strong>Type:</strong> {transaction.type}</div>
-                            <div><strong>Amount:</strong> £{Math.abs(transaction.amount).toFixed(2)}</div>
-                            <div><strong>Date:</strong> {new Date(transaction.date).toLocaleDateString()}</div>
-                          </div>
-                        </div>
-                    ))
-                ) : (
-                    <p className={styles.emptyState}>No transactions available.</p>
                 )}
               </div>
-            </div>
-          </section>
+            </section>
 
-          {/* Budgets Section */}
-          <section className={styles.contentSection}>
-            <div className={styles.sectionHeader}>
-              <h2>Budgets</h2>
-              <div className={styles.buttonGroup}>
+            {/* Recent Transactions */}
+            <section className={styles.gridSection}>
+              <div className={styles.sectionHeader}>
+                <h2>Recent Transactions</h2>
                 <button
-                    onClick={() => {
-                      setIsBudgetModalOpen(true);
-                      appRef.current?.classList.add('modal-open');
-                    }}
-                    className={styles.primaryButton}
+                    onClick={() => setIsTransactionModalOpen(true)}
+                    className={styles.iconButton}
                 >
-                  Add Budget
-                </button>
-                <button
-                    onClick={() => navigate('/budget-dashboard')}
-                    className={styles.secondaryButton}
-                >
-                  View Dashboard
+                  <Plus className="w-5 h-5"/>
                 </button>
               </div>
-            </div>
-            <div className={styles.card}>
-              {budgets.length > 0 ? (
-                  <div className={styles.budgetsGrid}>
-                    {budgets.map((budget, index) => (
-                        <div key={index} className={styles.budgetCard}>
-                          <h4>{budget.category}</h4>
-                          <div className={styles.budgetDetails}>
-                            <div><strong>Amount:</strong> £{budget.amount}</div>
-                            <div><strong>Spent:</strong> £{budget.spent || 0}</div>
-                            <div><strong>Period:</strong> {budget.period}</div>
-                            <div className={styles.budgetDates}>
-                              <div>{new Date(budget.startDate).toLocaleDateString()}</div>
-                              <div>to</div>
-                              <div>{new Date(budget.endDate).toLocaleDateString()}</div>
+              <div className={styles.transactionsContainer}>
+                {transactions.length === 0 ? (
+                    <div className={styles.emptyStateCard}>
+                      <Wallet className="w-12 h-12 text-gray-400"/>
+                      <h3>No Transactions Yet</h3>
+                      <p>Add your first transaction to get started</p>
+                      <button
+                          onClick={() => setIsTransactionModalOpen(true)}
+                          className={styles.primaryButton}
+                      >
+                        Add Transaction
+                      </button>
+                    </div>
+                ) : (
+                    <div className={styles.transactionsList}>
+                      {transactions.slice(0, 5).map((transaction, index) => (
+                          <div key={index} className={styles.transactionItem}>
+                            <div className={styles.transactionInfo}>
+                              <h4>{transaction.type}</h4>
+                              <p>{new Date(transaction.date).toLocaleDateString()}</p>
+                            </div>
+                            <span className={styles.transactionAmount}>
+                        £{Math.abs(transaction.amount).toFixed(2)}
+                      </span>
+                          </div>
+                      ))}
+                    </div>
+                )}
+              </div>
+            </section>
+
+            {/* Active Budgets */}
+            <section className={styles.gridSection}>
+              <div className={styles.sectionHeader}>
+                <h2>Active Budgets</h2>
+                <div className={styles.headerActions}>
+                  <button
+                      onClick={() => setIsBudgetModalOpen(true)}
+                      className={styles.iconButton}
+                  >
+                    <Plus className="w-5 h-5" />
+                  </button>
+                  <button
+                      onClick={() => navigate('/budget-dashboard')}
+                      className={styles.viewAllButton}
+                  >
+                    View All <ArrowUpRight className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+              <div className={styles.budgetsContainer}>
+                {budgets.length === 0 ? (
+                    <div className={styles.emptyStateCard}>
+                      <Wallet className="w-12 h-12 text-gray-400" />
+                      <h3>No Budgets Set</h3>
+                      <p>Create your first budget to track spending</p>
+                      <button
+                          onClick={() => setIsBudgetModalOpen(true)}
+                          className={styles.primaryButton}
+                      >
+                        Create Budget
+                      </button>
+                    </div>
+                ) : (
+                    <div className={styles.budgetsGrid}>
+                      {budgets.slice(0, 4).map((budget, index) => (
+                          <div key={index} className={styles.budgetCard}>
+                            <div className={styles.budgetHeader}>
+                              <h4>{budget.category}</h4>
+                              <span className={styles.budgetPeriod}>{budget.period}</span>
+                            </div>
+                            <div className={styles.budgetProgress}>
+                              <div className={styles.progressBar}>
+                                <div
+                                    className={styles.progressFill}
+                                    style={{
+                                      width: `${Math.min((budget.spent / budget.amount) * 100, 100)}%`
+                                    }}
+                                />
+                              </div>
+                              <div className={styles.budgetStats}>
+                                <span>£{budget.spent || 0} spent</span>
+                                <span>of £{budget.amount}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                    ))}
-                  </div>
-              ) : (
-                  <p className={styles.emptyState}>No budgets available. Add your first budget to get started.</p>
-              )}
-            </div>
-          </section>
+                      ))}
+                    </div>
+                )}
+              </div>
+            </section>
+          </div>
+
+          {/* Modals */}
+          {isTransactionModalOpen && (
+              <TransactionForm
+                  userId={currentUser?.uid}
+                  onTransactionAdded={handleTransactionAdded}
+                  setMessage={setTransactionMessage}
+                  onClose={() => {
+                    setIsTransactionModalOpen(false);
+                    appRef.current?.classList.remove('modal-open');
+                  }}
+              />
+          )}
+
+          {isBudgetModalOpen && (
+              <BudgetForm
+                  userId={currentUser?.uid}
+                  onBudgetAdded={handleBudgetAdded}
+                  setMessage={setMessage}
+                  onClose={() => {
+                    setIsBudgetModalOpen(false);
+                    appRef.current?.classList.remove('modal-open');
+                  }}
+              />
+          )}
         </div>
-
-        {/* Modals */}
-        {isTransactionModalOpen && (
-            <TransactionForm
-                userId={currentUser?.uid}
-                onTransactionAdded={handleTransactionAdded}
-                setMessage={setTransactionMessage}
-                onClose={() => {
-                  setIsTransactionModalOpen(false);
-                  appRef.current?.classList.remove('modal-open');
-                }}
-            />
-        )}
-
-        {isBudgetModalOpen && (
-            <BudgetForm
-                userId={currentUser?.uid}
-                onBudgetAdded={handleBudgetAdded}
-                setMessage={setMessage}
-                onClose={() => {
-                  setIsBudgetModalOpen(false);
-                  appRef.current?.classList.remove('modal-open');
-                }}
-            />
-        )}
       </Layout>
   );
 }

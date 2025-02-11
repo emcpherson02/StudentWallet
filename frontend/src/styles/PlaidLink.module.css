@@ -393,3 +393,395 @@
         padding: 1rem;
     }
 }
+
+.pageContainer {
+    padding: 1.5rem;
+    max-width: 1400px;
+    margin: 0 auto;
+}
+
+.welcomeSection {
+    margin-bottom: 2rem;
+}
+
+.welcomeContent h1 {
+    font-size: 2rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.welcomeContent p {
+    color: #6b7280;
+    font-size: 1.125rem;
+}
+
+.messageBanner {
+    margin-top: 1rem;
+    padding: 1rem;
+    background-color: #f0fdf4;
+    border-radius: 0.5rem;
+    color: #166534;
+    border: 1px solid #dcfce7;
+}
+
+.quickActions {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.actionCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 1rem;
+    border: 1px solid #e5e7eb;
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.actionCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.mainGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+}
+
+.gridSection {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.sectionHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.sectionHeader h2 {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.headerActions {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+}
+
+.iconButton {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.iconButton:hover {
+    background: #e5e7eb;
+}
+
+.viewAllButton {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    color: #282c34;
+    font-size: 0.875rem;
+    font-weight: 500;
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: none;
+    border: none;
+    cursor: pointer;
+    transition: color 0.2s ease;
+}
+
+.viewAllButton:hover {
+    color: #364195;
+}
+
+.emptyStateCard {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background: #f9fafb;
+    border-radius: 1rem;
+    gap: 1rem;
+}
+
+.emptyStateCard h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.emptyStateCard p {
+    color: #6b7280;
+    margin: 0;
+}
+
+.primaryButton {
+    padding: 0.75rem 1.5rem;
+    background: #282c34;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.primaryButton:hover {
+    background: #364195;
+}
+
+.accountsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.accountCard {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.accountIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    color: #282c34;
+}
+
+.accountInfo {
+    flex: 1;
+}
+
+.accountInfo h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.accountType {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0 0 0.25rem 0;
+}
+
+.accountBalance {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #282c34;
+    margin: 0;
+}
+
+.transactionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.transactionItem {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.transactionInfo h4 {
+    font-size: 1rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.transactionInfo p {
+    font-size: 0.875rem;
+    color: #6b7280;
+    margin: 0;
+}
+
+.transactionAmount {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+}
+
+.budgetsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.budgetCard {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+}
+
+.budgetHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.budgetHeader h4 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0;
+}
+
+.budgetPeriod {
+    font-size: 0.75rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.375rem;
+}
+
+.budgetProgress {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.progressBar {
+    width: 100%;
+    height: 0.5rem;
+    background: #e5e7eb;
+    border-radius: 0.25rem;
+    overflow: hidden;
+}
+
+.progressFill {
+    height: 100%;
+    background: #282c34;
+    transition: width 0.3s ease;
+}
+
+.budgetStats {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pageContainer {
+        padding: 1rem;
+    }
+
+    .mainGrid {
+        grid-template-columns: 1fr;
+    }
+
+    .welcomeContent h1 {
+        font-size: 1.5rem;
+    }
+
+    .welcomeContent p {
+        font-size: 1rem;
+    }
+
+    .accountsGrid,
+    .budgetsGrid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Animation for message banner */
+@keyframes slideIn {
+    from {
+        transform: translateY(-1rem);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.messageBanner {
+    animation: slideIn 0.3s ease-out;
+}
+
+/* Hover effects */
+.accountCard:hover,
+.transactionItem:hover,
+.budgetCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease;
+}
+
+.accountInstitution {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #1f2937;
+    margin: 0 0 0.25rem 0;
+}
+
+.accountType {
+    font-size: 0.75rem;
+    color: #6b7280;
+    text-transform: capitalize;
+    margin: 0 0 0.25rem 0;
+}
+
+.accountBalanceContainer {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+}
+
+.accountBalance {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #282c34;
+    margin: 0;
+}
+
+.transactionCount {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
