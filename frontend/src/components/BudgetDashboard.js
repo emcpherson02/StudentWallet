@@ -8,14 +8,33 @@ const BudgetDashboard = () => {
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [transactions, setTransactions] = useState([]);
+    const [expandedBudget, setExpandedBudget] = useState(null);
 
     useEffect(() => {
-        const fetchBudgetData = async () => {
+        const fetchData = async () => {
             if (!currentUser) return;
 
             try {
                 const token = await currentUser.getIdToken();
-                const response = await axios.get(
+
+                // Fetch user data first
+                const userResponse = await axios.get(
+                    'http://localhost:3001/user/user-data',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                // Set notification status - explicitly convert to boolean
+                const isNotificationsEnabled = userResponse.data.notificationsEnabled === true;
+                console.log('Setting notifications to:', isNotificationsEnabled);
+                setNotificationsEnabled(isNotificationsEnabled);
+
+                // Fetch budget data
+                const budgetResponse = await axios.get(
                     'http://localhost:3001/budget/analytics/summary',
                     {
                         params: { userId: currentUser.uid },
@@ -23,17 +42,77 @@ const BudgetDashboard = () => {
                     }
                 );
 
-                setBudgetData(response.data.data);
+                setBudgetData(budgetResponse.data.data);
                 setLoading(false);
             } catch (err) {
-                console.error('Error fetching budget data:', err);
+                console.error('Error fetching data:', err);
                 setError('Failed to load budget data');
                 setLoading(false);
             }
         };
 
-        fetchBudgetData();
+        fetchData();
     }, [currentUser]);
+
+    const toggleNotifications = async () => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.post(
+                'http://localhost:3001/user/toggle-notifications',
+                {
+                    userId: currentUser.uid,
+                    enabled: !notificationsEnabled
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setNotificationsEnabled(!notificationsEnabled);
+        } catch (err) {
+            console.error('Error toggling notifications:', err);
+            setError('Failed to update notification settings');
+        }
+    };
+
+    const fetchTransactionsForBudget = async (budgetId) => {
+        if (!currentUser || !budgetId) return;
+
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await axios.get(
+                'http://localhost:3001/budget/transactions/',
+                {
+                    params: {
+                        userId: currentUser.uid,
+                        budgetId: budgetId
+                    },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setTransactions(prev => ({
+                ...prev,
+                [budgetId]: response.data.data
+            }));
+        } catch (err) {
+            console.error('Error fetching transactions:', err);
+        }
+    };
+
+    const toggleTransactions = (budgetId) => {
+        // If the clicked budget is already expanded, collapse it
+        if (expandedBudget === budgetId) {
+            setExpandedBudget(null);
+        }
+        // Otherwise, collapse any open budget and expand the clicked one
+        else {
+            setExpandedBudget(budgetId);
+            if (!transactions[budgetId]) {
+                fetchTransactionsForBudget(budgetId);
+            }
+        }
+    };
 
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
@@ -45,8 +124,21 @@ const BudgetDashboard = () => {
 
     if (!budgetData) return null;
 
+
     return (
         <div className={styles.dashboard}>
+            <div className={styles.dashboardHeader}>
+                <h1>Budget Dashboard</h1>
+                <button
+                    onClick={toggleNotifications}
+                    className={`${styles.notificationToggle} ${
+                        notificationsEnabled ? styles.enabled : ''
+                    }`}
+                >
+                    {notificationsEnabled ? 'Disable Email Notifications' : 'Enable Email Notifications'}
+                </button>
+            </div>
+
             {/* Summary Cards Section */}
             <div className={styles.summaryGrid}>
                 <div className={styles.summaryCard}>
@@ -84,7 +176,7 @@ const BudgetDashboard = () => {
                                     className={`${styles.progressFill} ${
                                         parseFloat(category.percentageUsed) > 100 ? styles.exceeded : ''
                                     }`}
-                                    style={{ width: `${Math.min(parseFloat(category.percentageUsed), 100)}%` }}
+                                    style={{width: `${Math.min(parseFloat(category.percentageUsed), 100)}%`}}
                                 />
                             </div>
                         </div>
@@ -115,6 +207,41 @@ const BudgetDashboard = () => {
                                 <p>
                                     Warning: Budget exceeded by {(parseFloat(category.percentageUsed) - 100).toFixed(1)}%
                                 </p>
+                            </div>
+                        )}
+                        <button
+                            className={styles.transactionsButton}
+                            onClick={() => toggleTransactions(category.budgetId)}  // Change from budgetData.id
+                        >
+                            {expandedBudget === category.budgetId ? 'Hide' : 'Show'} Transactions
+                            here
+                        </button>
+
+                        {expandedBudget === category.budgetId && (
+                            <div className={styles.transactionsList}>
+                                {transactions[category.budgetId] ? (
+                                    transactions[category.budgetId].length > 0 ? (
+                                        transactions[category.budgetId].map(transaction => (
+                                            <div key={transaction.id} className={styles.transactionItem}>
+                                                <div className={styles.transactionDetails}>
+                                                    <p className={styles.transactionDescription}>
+                                                        {transaction.Description}
+                                                    </p>
+                                                    <p className={styles.transactionDate}>
+                                                        {new Date(transaction.date).toLocaleDateString()}
+                                                    </p>
+                                                </div>
+                                                <p className={styles.transactionAmount}>
+                                                    £{Math.abs(transaction.Amount).toFixed(2)}
+                                                </p>
+                                            </div>
+                                        ))
+                                    ) : (
+                                        <p className={styles.noTransactions}>No transactions found</p>
+                                    )
+                                ) : (
+                                    <p className={styles.loading}>Loading transactions...</p>
+                                )}
                             </div>
                         )}
                     </div>

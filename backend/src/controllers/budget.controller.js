@@ -111,8 +111,8 @@ class BudgetController {
 
     async getBudgetTransactions(req, res, next) {
         try{
-            const{userId} = req.query;
-            const{budgetId} = req.body;
+            const{userId, budgetId} = req.query;
+
 
             if (!userId || !budgetId) {
                 throw new ValidationError('Missing required parameters');

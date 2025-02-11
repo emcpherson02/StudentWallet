@@ -4,6 +4,9 @@ import Login from './components/Login';
 import Register from "./components/Register";
 import PlaidLink from './components/PlaidLink';
 import BudgetDashboard from './components/BudgetDashboard';
+import LoanDashboard from "./components/LoanDashboard";
+import Tips from './components/Tips';
+import TransactionDashboard from "./components/TransactionDashboard";
 import PreferencesButton from './components/PreferencesButton';  // Make sure this matches your file name
 import PreferencesPage from './components/PreferencesPage';
 import { ThemeProvider } from './contexts/ThemeContext';
@@ -21,6 +24,9 @@ function App() {
               <Route path={"/register"} element={<Register />} />
               <Route path="/plaid-link" element={<PlaidLink />} />
               <Route path={"/budget-dashboard"} element={<BudgetDashboard />} />
+              <Route path={"/loan-dashboard"} element={<LoanDashboard />} />
+              <Route path={"/tips"} element={<Tips />} />
+              <Route path="/transaction-dashboard" element={<TransactionDashboard />} />
               <Route path="/preferencesButton" element={<PreferencesButton />} />
               <Route path="/preferences" element={<PreferencesPage />} />
               {/* Add other routes here */}

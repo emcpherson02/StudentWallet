@@ -1,0 +1,165 @@
+.tipsContainer {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.header p {
+    font-size: 1.125rem;
+    color: #6b7280;
+}
+
+.section {
+    margin-bottom: 3rem;
+}
+
+.section h2 {
+    font-size: 1.875rem;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+
+.tipsGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.tipCard {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease;
+}
+
+.tipCard:hover {
+    transform: translateY(-4px);
+}
+
+.iconContainer {
+    background: #282c34;
+    color: white;
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 1rem;
+}
+
+.tipCard h3 {
+    font-size: 1.25rem;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.tipCard p {
+    color: #6b7280;
+    line-height: 1.5;
+}
+
+.resourcesGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+}
+
+.resourceCard {
+    background: white;
+    border-radius: 1rem;
+    padding: 1.5rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+.resourceContent h3 {
+    font-size: 1.25rem;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.resourceContent p {
+    color: #6b7280;
+    margin-bottom: 1rem;
+}
+
+.resourceLink {
+    display: inline-flex;
+    align-items: center;
+    color: #282c34;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 0.5rem 0;
+    transition: color 0.2s ease;
+}
+
+.resourceLink:hover {
+    color: #364195;
+}
+
+.savingTips {
+    background: white;
+    border-radius: 1rem;
+    padding: 2rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.savingTips ul {
+    list-style-type: none;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+}
+
+.savingTips li {
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    position: relative;
+    padding-left: 2rem;
+}
+
+.savingTips li::before {
+    content: "•";
+    position: absolute;
+    left: 0.75rem;
+    color: #282c34;
+    font-size: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .tipsContainer {
+        padding: 1rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .section h2 {
+        font-size: 1.5rem;
+    }
+
+    .savingTips ul {
+        grid-template-columns: 1fr;
+    }
+}

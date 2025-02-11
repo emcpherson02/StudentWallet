@@ -1,0 +1,165 @@
+.transaction-modal {
+    padding: 1rem;
+}
+
+.sync-all-section {
+    margin-bottom: 2rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: 0.5rem;
+    text-align: center;
+}
+
+.button-sync-all {
+    width: 100%;
+    padding: 1rem;
+    background-color: #282c34;
+    color: white;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.button-sync-all:hover:not(:disabled) {
+    background-color: #364195;
+}
+
+.button-sync-all:disabled {
+    background-color: #e5e7eb;
+    cursor: not-allowed;
+}
+
+.transaction-list-header {
+    margin: 1rem 0;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.transaction-list-header h3 {
+    color: #4b5563;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.transaction-list {
+    max-height: 400px;
+    overflow-y: auto;
+    margin: 1rem 0;
+}
+
+.transaction-item {
+    padding: 0.75rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    margin-bottom: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.transaction-item:hover {
+    background-color: #f9fafb;
+}
+
+.transaction-item.selected {
+    background-color: #f3f4f6;
+    border-color: #d1d5db;
+}
+
+.transaction-label {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    cursor: pointer;
+}
+
+.transaction-checkbox {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.transaction-details {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transaction-type {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.transaction-date {
+    font-size: 0.875rem;
+    color: #6b7280;
+}
+
+.transaction-amount {
+    font-weight: 500;
+    color: #1f2937;
+}
+
+.modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 1rem;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 1px solid #e5e7eb;
+}
+
+.button-cancel,
+.button-link {
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.375rem;
+    font-weight: 500;
+    cursor: pointer;
+}
+
+.button-cancel {
+    background-color: white;
+    border: 1px solid #e5e7eb;
+    color: #4b5563;
+}
+
+.button-link {
+    background-color: #282c34;
+    border: none;
+    color: white;
+}
+
+.button-link:hover:not(:disabled) {
+    background-color: #364195;
+}
+
+.button-cancel:hover:not(:disabled) {
+    background-color: #f9fafb;
+}
+
+.button-cancel:disabled,
+.button-link:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.modal-error {
+    padding: 0.75rem;
+    background-color: #fee2e2;
+    color: #dc2626;
+    border-radius: 0.375rem;
+    margin-bottom: 1rem;
+}
+
+.modal-loading {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+}
+
+.no-transactions {
+    text-align: center;
+    color: #6b7280;
+    padding: 2rem;
+    background-color: #f9fafb;
+    border-radius: 0.375rem;
+}

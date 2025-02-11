@@ -13,14 +13,23 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
   <div className={styles.sidebar}>
     {showNav && (                         
     <nav className={styles.sidebarNav}>
+      <Link to="/plaid-link" className={styles.sidebarLink}>
+        Home
+      </Link>
       <Link to="/AboutUs" className={styles.sidebarLink}>
         About Us
       </Link>
-      <Link to="/TransactionDashboard" className={styles.sidebarLink}>
+      <Link to="/transaction-dashboard" className={styles.sidebarLink}>
         Transaction Dashboard
       </Link>
       <Link to="/budget-dashboard" className={styles.sidebarLink}>
         Budget Dashboard
+      </Link>
+      <Link to="/loan-dashboard" className={styles.sidebarLink}>
+        Loan Dashboard
+      </Link>
+      <Link to="/tips" className={styles.sidebarLink}>
+        Tips & Resources
       </Link>
     </nav>
     )}
