@@ -52,6 +52,20 @@ class TransactionController {
             next(error);
         }
     }
+
+    async getTransactionAnalytics(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const analytics = await this.transactionService.getTransactionAnalytics(userId);
+
+            res.status(200).json({
+                status: 'success',
+                data: analytics
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = TransactionController;

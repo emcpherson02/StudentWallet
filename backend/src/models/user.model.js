@@ -45,6 +45,22 @@ class UserModel {
         }));
     }
 
+    async findAllWithNotifications() {
+        try {
+            const snapshot = await this.db.collection(this.collection)
+                .where('notificationsEnabled', '==', true)
+                .get();
+
+            return snapshot.docs.map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
+        } catch (error) {
+            console.error('Error finding users with notifications:', error);
+            throw error;
+        }
+    }
+
     async delete(userId) {
         const userRef = this.db.collection(this.collection).doc(userId);
         const doc = await userRef.get();

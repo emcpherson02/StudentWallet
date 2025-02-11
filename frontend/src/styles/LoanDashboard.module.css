@@ -369,3 +369,11 @@
         grid-template-columns: 1fr;
     }
 }
+
+.linkButton.enabled {
+    background-color: #059669;
+}
+
+.linkButton.enabled:hover {
+    background-color: #047857;
+}

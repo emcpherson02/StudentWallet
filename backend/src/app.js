@@ -20,6 +20,7 @@ const BudgetService = require('./services/budget.service');
 const UserService = require('./services/user.service');
 const BudgetNotificationService = require('./services/budget.notification.service');
 const LoanService = require('./services/loan.service');
+const LoanNotificationService = require('./services/loan.notification.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -45,12 +46,13 @@ const port = process.env.PORT || 3001;
 
 // Initialize services with models
 const budgetNotificationService = new BudgetNotificationService(userModel);
+const loanNotificationService = new LoanNotificationService(userModel, loanModel);
 const authService = new AuthService(authModel);
 const userService = new UserService(userModel, budgetModel, budgetNotificationService);
 const plaidService = new PlaidService(plaidModel, budgetModel, budgetNotificationService);
 const transactionService = new TransactionService(transactionModel, budgetModel, budgetNotificationService);
 const budgetService = new BudgetService(budgetModel, transactionModel, budgetNotificationService);
-const loanService = new LoanService(loanModel, transactionModel);
+const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
 
 // Initialize controllers
 const authController = new AuthController(authService);

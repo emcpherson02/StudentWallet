@@ -1,4 +1,5 @@
 const { NotFoundError, ValidationError } = require('../utils/errors');
+const { admin } = require('../config/firebase.config');
 
 class LoanModel {
     constructor(db) {
@@ -63,7 +64,7 @@ class LoanModel {
                         .collection('users')
                         .doc(userId)
                         .collection('Transactions')
-                        .where('id', 'in', loanData.trackedTransactions)
+                        .where(admin.firestore.FieldPath.documentId(), 'in', loanData.trackedTransactions)
                         .get();
 
                     transactions.push(...transactionsSnapshot.docs.map(tDoc => ({
@@ -79,6 +80,7 @@ class LoanModel {
                 });
             }
 
+            console.log('Found loans:', loans);
             return loans;
         } catch (error) {
             console.error('Error finding loans:', error);
