@@ -567,3 +567,75 @@
         transform: translateX(0);
     }
 }
+
+.transactionCard {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.25rem;
+    background-color: white;
+    border-radius: 0.75rem;
+    margin-bottom: 0.75rem;
+    transition: all 0.2s ease;
+    border: 1px solid #e5e7eb;
+}
+
+.transactionCard:hover {
+    transform: translateX(4px);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+    border-color: #d1d5db;
+}
+
+.typeAndDate {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.transactionType {
+    font-weight: 600;
+    color: #111827;
+    font-size: 1rem;
+}
+
+.transactionDate {
+    color: #6b7280;
+    font-size: 0.875rem;
+}
+
+.transactionCategory {
+    display: inline-flex;
+    padding: 0.25rem 0.75rem;
+    background-color: #f3f4f6;
+    border-radius: 1rem;
+    font-size: 0.75rem;
+    color: #4b5563;
+    font-weight: 500;
+    align-items: center;
+}
+
+.dateHeader {
+    padding: 1rem 0;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.dateHeader span {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: #374151;
+}
+
+.transactionAmount {
+    font-size: 1.125rem;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+.positive {
+    color: #059669;
+}
+
+.negative {
+    color: #dc2626;
+}

@@ -155,45 +155,63 @@ const TransactionDashboard = () => {
                         <div className={styles.transactionsList}>
                             {Object.entries(
                                 transactions.reduce((groups, transaction) => {
-                                    const date = new Date(transaction.date).toLocaleDateString('en-GB', {
+                                    const date = new Date(transaction.date);
+                                    const monthYear = date.toLocaleDateString('en-GB', {
                                         year: 'numeric',
                                         month: 'long'
                                     });
-                                    if (!groups[date]) groups[date] = [];
-                                    groups[date].push(transaction);
+                                    if (!groups[monthYear]) groups[monthYear] = [];
+                                    groups[monthYear].push(transaction);
                                     return groups;
                                 }, {})
-                            ).map(([date, groupTransactions]) => (
-                                <div key={date} className={styles.transactionGroup}>
-                                    <div className={styles.dateHeader}>
-                                        <span>{date}</span>
-                                    </div>
-                                    {groupTransactions.map((transaction, index) => (
-                                        <div key={index} className={styles.transactionCard}>
-                                            <div className={styles.transactionInfo}>
-                                                <div className={styles.transactionMain}>
-                                    <span className={styles.transactionType}>
-                                        {transaction.type}
-                                    </span>
-                                                    <span className={styles.transactionDate}>
-                                        {new Date(transaction.date).toLocaleDateString('en-GB', {
-                                            day: 'numeric'
-                                        })}
-                                    </span>
-                                                </div>
-                                                <span className={styles.transactionCategory}>
-                                    {transaction.category}
-                                </span>
-                                            </div>
-                                            <div className={styles.transactionAmount}>
-                                <span className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
-                                    £{Math.abs(Number(transaction.amount)).toFixed(2)}
-                                </span>
-                                            </div>
+                            )
+                                // Sort months in descending order (most recent first)
+                                .sort(([dateA], [dateB]) => {
+                                    const [monthA, yearA] = dateA.split(' ').reverse();
+                                    const [monthB, yearB] = dateB.split(' ').reverse();
+                                    return yearB - yearA || new Date(dateB).getMonth() - new Date(dateA).getMonth();
+                                })
+                                .map(([monthYear, groupTransactions]) => (
+                                    <div key={monthYear} className={styles.transactionGroup}>
+                                        <div className={styles.dateHeader}>
+                                            <span>{monthYear}</span>
                                         </div>
-                                    ))}
-                                </div>
-                            ))}
+                                        {groupTransactions
+                                            // Sort transactions within each month by date (most recent first)
+                                            .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                            .map((transaction) => (
+                                                <div
+                                                    key={transaction.id || `${transaction.type}-${transaction.date}-${transaction.amount}`}
+                                                    className={styles.transactionCard}>
+                                                    <div className={styles.transactionInfo}>
+                                                        <div className={styles.transactionMain}>
+                                                            <div className={styles.typeAndDate}>
+                                            <span className={styles.transactionType}>
+                                                {transaction.type}
+                                            </span>
+                                                                <span className={styles.transactionDate}>
+                                                {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                    day: 'numeric'
+                                                })} {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                                    month: 'short'
+                                                                })}
+                                            </span>
+                                                            </div>
+                                                            <span className={styles.transactionCategory}>
+                                            {transaction.category}
+                                        </span>
+                                                        </div>
+                                                    </div>
+                                                    <div className={styles.transactionAmount}>
+                                    <span
+                                        className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
+                                        £{Math.abs(Number(transaction.amount)).toFixed(2)}
+                                    </span>
+                                                    </div>
+                                                </div>
+                                            ))}
+                                    </div>
+                                ))}
                         </div>
                     ) : (
                         <div className={styles.emptyState}>

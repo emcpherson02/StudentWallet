@@ -326,7 +326,9 @@ function PlaidLink() {
                 ) : (
                     <div className={styles.accountsGrid}>
                       {accounts.map((account) => (
-                          <div key={account.id} className={styles.accountCard}>
+                          // Using account.id as the key, and if that's not available,
+                          // create a unique key using both id and name
+                          <div key={account.id || `${account.name}-${account.type}`} className={styles.accountCard}>
                             <div className={styles.accountIcon}>
                               <Banknote className="w-5 h-5"/>
                             </div>
@@ -340,8 +342,7 @@ function PlaidLink() {
                                   £{(account.calculatedBalance || 0).toFixed(2)}
                                 </p>
                                 <span className={styles.transactionCount}>
-                                  {account.transactionCount}
-                                  transactions
+                        {account.transactionCount} transactions
                                 </span>
                               </div>
                             </div>
