@@ -130,18 +130,17 @@ const BudgetDashboard = () => {
         <Layout CurrentUser={currentUser}>
             <div className={styles.dashboard}>
                 <div className={styles.dashboardHeader}>
-                    <h1>Budget Dashboard</h1>
-                    <button
-                        onClick={toggleNotifications}
-                        className={`${styles.notificationToggle} ${
-                            notificationsEnabled ? styles.enabled : ''
-                        }`}
-                    >
-                        {notificationsEnabled ? 'Disable Email Notifications' : 'Enable Email Notifications'}
-                    </button>
+                    <h1>Budget Overview</h1>
+                    <div className={styles.headerActions}>
+                        <button
+                            onClick={toggleNotifications}
+                            className={`${styles.notificationToggle} ${notificationsEnabled ? styles.enabled : ''}`}
+                        >
+                            {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
+                        </button>
+                    </div>
                 </div>
 
-                {/* Summary Cards Section */}
                 <div className={styles.summaryGrid}>
                     <div className={styles.summaryCard}>
                         <h3>Total Budget</h3>
@@ -149,12 +148,10 @@ const BudgetDashboard = () => {
                             £{budgetData.totalBudgets.toFixed(2)}
                         </p>
                     </div>
-
                     <div className={styles.summaryCard}>
                         <h3>Total Spent</h3>
                         <p>£{budgetData.totalSpent.toFixed(2)}</p>
                     </div>
-
                     <div className={styles.summaryCard}>
                         <h3>Remaining</h3>
                         <p className={budgetData.remaining >= 0 ? styles.positive : styles.negative}>
@@ -163,91 +160,91 @@ const BudgetDashboard = () => {
                     </div>
                 </div>
 
-                {/* Category Breakdown Cards */}
-                <div className={styles.categoriesGrid}>
-                    {budgetData.categoryBreakdown.map((category, index) => (
-                        <div key={index} className={styles.categoryCard}>
-                            <h3>{category.category}</h3>
+                <div className={styles.categorySection}>
+                    <h2>Category Breakdown</h2>
+                    <div className={styles.categoriesGrid}>
+                        {budgetData.categoryBreakdown.map((category, index) => (
+                            <div key={index} className={styles.categoryCard}>
+                                <div className={styles.categoryHeader}>
+                                    <h3>{category.category}</h3>
+                                    <span className={styles.progressLabel}>
+                                        {parseFloat(category.percentageUsed).toFixed(1)}% Used
+                                    </span>
+                                </div>
 
-                            <div className={styles.progressContainer}>
-                            <span className={styles.progressLabel}>
-                                {parseFloat(category.percentageUsed).toFixed(1)}% Used
-                            </span>
-                                <div className={styles.progressBar}>
-                                    <div
-                                        className={`${styles.progressFill} ${
-                                            parseFloat(category.percentageUsed) > 100 ? styles.exceeded : ''
-                                        }`}
-                                        style={{width: `${Math.min(parseFloat(category.percentageUsed), 100)}%`}}
-                                    />
+                                <div className={styles.progressContainer}>
+                                    <div className={styles.progressBar}>
+                                        <div
+                                            className={`${styles.progressFill} ${
+                                                parseFloat(category.percentageUsed) > 100 ? styles.exceeded : ''
+                                            }`}
+                                            style={{width: `${Math.min(parseFloat(category.percentageUsed), 100)}%`}}
+                                        />
+                                    </div>
                                 </div>
-                            </div>
 
-                            <div className={styles.detailsGrid}>
-                                <div className={styles.detailsItem}>
-                                    <p>Budget</p>
-                                    <p>£{category.budgetAmount.toFixed(2)}</p>
+                                <div className={styles.detailsGrid}>
+                                    <div className={styles.detailsItem}>
+                                        <p>Budget</p>
+                                        <p>£{category.budgetAmount.toFixed(2)}</p>
+                                    </div>
+                                    <div className={styles.detailsItem}>
+                                        <p>Spent</p>
+                                        <p>£{category.spent.toFixed(2)}</p>
+                                    </div>
+                                    <div className={styles.detailsItem}>
+                                        <p>Remaining</p>
+                                        <p className={category.remaining >= 0 ? styles.positive : styles.negative}>
+                                            £{category.remaining.toFixed(2)}
+                                        </p>
+                                    </div>
                                 </div>
-                                <div className={styles.detailsItem}>
-                                    <p>Spent</p>
-                                    <p>£{category.spent.toFixed(2)}</p>
-                                </div>
-                                <div className={styles.detailsItem}>
-                                    <p>Remaining</p>
-                                    <p className={category.remaining >= 0 ? styles.positive : styles.negative}>
-                                        £{category.remaining.toFixed(2)}
-                                    </p>
-                                </div>
-                                <div className={styles.detailsItem}>
-                                    <p>Progress</p>
-                                    <p>{parseFloat(category.percentageUsed).toFixed(1)}%</p>
-                                </div>
-                            </div>
 
-                            {parseFloat(category.percentageUsed) > 100 && (
-                                <div className={styles.warning}>
-                                    <p>
-                                        Warning: Budget exceeded by {(parseFloat(category.percentageUsed) - 100).toFixed(1)}%
-                                    </p>
-                                </div>
-                            )}
-                            <button
-                                className={styles.transactionsButton}
-                                onClick={() => toggleTransactions(category.budgetId)}  // Change from budgetData.id
-                            >
-                                {expandedBudget === category.budgetId ? 'Hide' : 'Show'} Transactions
-                                here
-                            </button>
+                                {parseFloat(category.percentageUsed) > 100 && (
+                                    <div className={styles.warning}>
+                                        <p>
+                                            Budget exceeded by {(parseFloat(category.percentageUsed) - 100).toFixed(1)}%
+                                        </p>
+                                    </div>
+                                )}
 
-                            {expandedBudget === category.budgetId && (
-                                <div className={styles.transactionsList}>
-                                    {transactions[category.budgetId] ? (
-                                        transactions[category.budgetId].length > 0 ? (
-                                            transactions[category.budgetId].map(transaction => (
-                                                <div key={transaction.id} className={styles.transactionItem}>
-                                                    <div className={styles.transactionDetails}>
-                                                        <p className={styles.transactionDescription}>
-                                                            {transaction.Description}
-                                                        </p>
-                                                        <p className={styles.transactionDate}>
-                                                            {new Date(transaction.date).toLocaleDateString()}
+                                <button
+                                    className={styles.transactionsButton}
+                                    onClick={() => toggleTransactions(category.budgetId)}
+                                >
+                                    {expandedBudget === category.budgetId ? 'Hide' : 'View'} Transactions
+                                </button>
+
+                                {expandedBudget === category.budgetId && (
+                                    <div className={styles.transactionsList}>
+                                        {transactions[category.budgetId] ? (
+                                            transactions[category.budgetId].length > 0 ? (
+                                                transactions[category.budgetId].map(transaction => (
+                                                    <div key={transaction.id} className={styles.transactionItem}>
+                                                        <div className={styles.transactionDetails}>
+                                                            <p className={styles.transactionDescription}>
+                                                                {transaction.Description}
+                                                            </p>
+                                                            <p className={styles.transactionDate}>
+                                                                {new Date(transaction.date).toLocaleDateString()}
+                                                            </p>
+                                                        </div>
+                                                        <p className={styles.transactionAmount}>
+                                                            £{Math.abs(transaction.Amount).toFixed(2)}
                                                         </p>
                                                     </div>
-                                                    <p className={styles.transactionAmount}>
-                                                        £{Math.abs(transaction.Amount).toFixed(2)}
-                                                    </p>
-                                                </div>
-                                            ))
+                                                ))
+                                            ) : (
+                                                <p className={styles.noTransactions}>No transactions found</p>
+                                            )
                                         ) : (
-                                            <p className={styles.noTransactions}>No transactions found</p>
-                                        )
-                                    ) : (
-                                        <p className={styles.loading}>Loading transactions...</p>
-                                    )}
-                                </div>
-                            )}
-                        </div>
-                    ))}
+                                            <p className={styles.loading}>Loading transactions...</p>
+                                        )}
+                                    </div>
+                                )}
+                            </div>
+                        ))}
+                    </div>
                 </div>
             </div>
         </Layout>
