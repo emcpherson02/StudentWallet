@@ -94,18 +94,19 @@ function PlaidLink() {
           );
 
           const calculatedBalance = accountTransactions.reduce((sum, transaction) => {
-            return sum + (transaction.amount || 0);
+            const transactionAmount = Number(transaction.amount) || 0;
+            return sum + transactionAmount;
           }, 0);
 
           return {
             id: account.account_id,
-            name: account.name,
+            name: account.name || 'Unknown Account',
             officialName: account.official_name,
-            type: account.type,
+            type: account.type || 'Account',
             subtype: account.subtype,
-            institutionName: account.institutionName || accountsResponse.data.institutionName,
-            calculatedBalance: Math.abs(calculatedBalance),
-            transactionCount: accountTransactions.length
+            institutionName: account.institutionName || accountsResponse.data.institutionName || 'Bank',
+            calculatedBalance: Math.abs(calculatedBalance || 0),
+            transactionCount: accountTransactions.length || 0
           };
         });
 
@@ -358,7 +359,9 @@ function PlaidLink() {
                 ) : (
                     <div className={styles.accountsGrid}>
                       {accounts.map((account) => (
-                          <div key={account.id} className={styles.accountCard}>
+                          // Using account.id as the key, and if that's not available,
+                          // create a unique key using both id and name
+                          <div key={account.id || `${account.name}-${account.type}`} className={styles.accountCard}>
                             <div className={styles.accountIcon}>
                               <Banknote className="w-5 h-5"/>
                             </div>
@@ -369,11 +372,11 @@ function PlaidLink() {
                               </p>
                               <div className={styles.accountBalanceContainer}>
                                 <p className={styles.accountBalance}>
-                                  £{account.calculatedBalance.toFixed(2)}
+                                  £{(account.calculatedBalance || 0).toFixed(2)}
                                 </p>
                                 <span className={styles.transactionCount}>
-                            {account.transactionCount} transactions
-                          </span>
+                        {account.transactionCount} transactions
+                                </span>
                               </div>
                             </div>
                           </div>

@@ -29,6 +29,12 @@ const setupTransactionRoutes = (router, transactionController, authMiddleware) =
         transactionController.deleteTransaction.bind(transactionController)
     );
 
+    router.get(
+        '/analytics',
+        authMiddleware.verifyToken,
+        transactionController.getTransactionAnalytics.bind(transactionController)
+    );
+
     return router;
 };
 

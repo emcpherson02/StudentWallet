@@ -108,6 +108,57 @@ class TransactionService {
             throw new DatabaseError('Failed to delete transaction');
         }
     }
+
+    async getTransactionAnalytics(userId) {
+        try {
+            const transactions = await this.transactionModel.findByUserId(userId);
+
+            // Calculate total spent
+            const totalSpent = transactions.reduce((sum, transaction) =>
+                sum + Math.abs(transaction.Amount || 0), 0);
+
+            // Calculate average transaction
+            const averageTransaction = transactions.length > 0 ?
+                totalSpent / transactions.length : 0;
+
+            // Calculate daily spending patterns with averages
+            const dailySpending = transactions.reduce((acc, transaction) => {
+                const day = new Date(transaction.date).getDay();
+                if (!acc[day]) {
+                    acc[day] = {
+                        total: 0,
+                        count: 0
+                    };
+                }
+                acc[day].total += Math.abs(transaction.Amount || 0);
+                acc[day].count += 1;
+                return acc;
+            }, {});
+
+            // Format daily spending for all days of week
+            const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            const dailySpendingPattern = days.map((day, index) => {
+                const dayData = dailySpending[index] || { total: 0, count: 0 };
+                const averageAmount = dayData.count > 0 ? dayData.total / dayData.count : 0;
+
+                return {
+                    day,
+                    amount: averageAmount,
+                    totalSpent: dayData.total,
+                    transactionCount: dayData.count
+                };
+            });
+
+            return {
+                totalSpent,
+                averageTransaction,
+                totalTransactions: transactions.length,
+                dailySpendingPattern
+            };
+        } catch (error) {
+            throw new DatabaseError('Failed to get transaction analytics');
+        }
+    }
 }
 
 module.exports = TransactionService;

@@ -7,6 +7,7 @@ import BudgetDashboard from './components/BudgetDashboard';
 import BudgetAnalytics from './components/budgetAnalytics';
 import LoanDashboard from "./components/LoanDashboard";
 import Tips from './components/Tips';
+import TransactionDashboard from "./components/TransactionDashboard";
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
               <Route path={"/loan-dashboard"} element={<LoanDashboard />} />
               <Route path="/budget-analytics" element={<BudgetAnalytics />} />
               <Route path={"/tips"} element={<Tips />} />
+              <Route path="/transaction-dashboard" element={<TransactionDashboard />} />
               {/* Add other routes here */}
           </Routes>
       </div>
