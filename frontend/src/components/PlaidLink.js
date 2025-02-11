@@ -94,18 +94,19 @@ function PlaidLink() {
           );
 
           const calculatedBalance = accountTransactions.reduce((sum, transaction) => {
-            return sum + (transaction.amount || 0);
+            const transactionAmount = Number(transaction.amount) || 0;
+            return sum + transactionAmount;
           }, 0);
 
           return {
             id: account.account_id,
-            name: account.name,
+            name: account.name || 'Unknown Account',
             officialName: account.official_name,
-            type: account.type,
+            type: account.type || 'Account',
             subtype: account.subtype,
-            institutionName: account.institutionName || accountsResponse.data.institutionName,
-            calculatedBalance: Math.abs(calculatedBalance),
-            transactionCount: accountTransactions.length
+            institutionName: account.institutionName || accountsResponse.data.institutionName || 'Bank',
+            calculatedBalance: Math.abs(calculatedBalance || 0),
+            transactionCount: accountTransactions.length || 0
           };
         });
 
@@ -336,11 +337,12 @@ function PlaidLink() {
                               </p>
                               <div className={styles.accountBalanceContainer}>
                                 <p className={styles.accountBalance}>
-                                  £{account.calculatedBalance.toFixed(2)}
+                                  £{(account.calculatedBalance || 0).toFixed(2)}
                                 </p>
                                 <span className={styles.transactionCount}>
-                            {account.transactionCount} transactions
-                          </span>
+                                  {account.transactionCount}
+                                  transactions
+                                </span>
                               </div>
                             </div>
                           </div>

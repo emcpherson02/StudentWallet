@@ -16,15 +16,18 @@ import styles from '../styles/TransactionDashboard.module.css';
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
     const [analytics, setAnalytics] = useState(null);
+    const [transactions, setTransactions] = useState([]); // Add this state
     const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        const fetchAnalytics = async () => {
+        const fetchData = async () => {
             if (!currentUser) return;
 
             try {
                 const token = await currentUser.getIdToken();
-                const response = await axios.get(
+
+                // Fetch analytics
+                const analyticsResponse = await axios.get(
                     'http://localhost:3001/transactions/analytics',
                     {
                         params: { userId: currentUser.uid },
@@ -32,15 +35,25 @@ const TransactionDashboard = () => {
                     }
                 );
 
-                setAnalytics(response.data.data);
+                // Fetch transactions
+                const transactionsResponse = await axios.get(
+                    'http://localhost:3001/transactions/user-transactions',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                setAnalytics(analyticsResponse.data.data);
+                setTransactions(transactionsResponse.data.Transaction || []); // Set transactions from response
                 setLoading(false);
             } catch (error) {
-                console.error('Error fetching analytics:', error);
+                console.error('Error fetching data:', error);
                 setLoading(false);
             }
         };
 
-        fetchAnalytics();
+        fetchData();
     }, [currentUser]);
 
     if (loading) {
@@ -89,18 +102,18 @@ const TransactionDashboard = () => {
                     <div className={styles.chartContainer}>
                         <ResponsiveContainer>
                             <BarChart data={analytics?.dailySpendingPattern || []}>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />
+                                <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
                                 <XAxis
                                     dataKey="day"
-                                    tick={{ fill: '#6b7280' }}
-                                    axisLine={{ stroke: '#e5e7eb' }}
+                                    tick={{fill: '#6b7280'}}
+                                    axisLine={{stroke: '#e5e7eb'}}
                                 />
                                 <YAxis
-                                    tick={{ fill: '#6b7280' }}
-                                    axisLine={{ stroke: '#e5e7eb' }}
+                                    tick={{fill: '#6b7280'}}
+                                    axisLine={{stroke: '#e5e7eb'}}
                                 />
                                 <Tooltip
-                                    content={({ active, payload }) => {
+                                    content={({active, payload}) => {
                                         if (active && payload && payload.length) {
                                             const data = payload[0].payload;
                                             const amount = typeof data.amount === 'number' ? data.amount.toFixed(2) : '0.00';
@@ -132,6 +145,61 @@ const TransactionDashboard = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
+                </section>
+                <section className={styles.transactionsSection}>
+                    <div className={styles.transactionsHeader}>
+                        <h2 className={styles.transactionsTitle}>Transaction History</h2>
+                    </div>
+
+                    {transactions.length > 0 ? (
+                        <div className={styles.transactionsList}>
+                            {Object.entries(
+                                transactions.reduce((groups, transaction) => {
+                                    const date = new Date(transaction.date).toLocaleDateString('en-GB', {
+                                        year: 'numeric',
+                                        month: 'long'
+                                    });
+                                    if (!groups[date]) groups[date] = [];
+                                    groups[date].push(transaction);
+                                    return groups;
+                                }, {})
+                            ).map(([date, groupTransactions]) => (
+                                <div key={date} className={styles.transactionGroup}>
+                                    <div className={styles.dateHeader}>
+                                        <span>{date}</span>
+                                    </div>
+                                    {groupTransactions.map((transaction, index) => (
+                                        <div key={index} className={styles.transactionCard}>
+                                            <div className={styles.transactionInfo}>
+                                                <div className={styles.transactionMain}>
+                                    <span className={styles.transactionType}>
+                                        {transaction.type}
+                                    </span>
+                                                    <span className={styles.transactionDate}>
+                                        {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                            day: 'numeric'
+                                        })}
+                                    </span>
+                                                </div>
+                                                <span className={styles.transactionCategory}>
+                                    {transaction.category}
+                                </span>
+                                            </div>
+                                            <div className={styles.transactionAmount}>
+                                <span className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
+                                    £{Math.abs(Number(transaction.amount)).toFixed(2)}
+                                </span>
+                                            </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        <div className={styles.emptyState}>
+                            <p>No transactions found</p>
+                        </div>
+                    )}
                 </section>
             </div>
         </Layout>
