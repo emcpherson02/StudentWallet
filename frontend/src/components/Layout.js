@@ -56,8 +56,8 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
         </button>
         {showUserMenu && (
           <div className={styles.userMenu}>
-            <Link to="/settings" className={styles.userMenuItem}>
-              Settings
+            <Link to="/preferences" className={styles.userMenuItem}>
+              Preferences
             </Link>
             <button onClick={onLogout} className={styles.userMenuItem}>
               Logout
