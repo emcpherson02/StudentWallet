@@ -76,6 +76,13 @@ const BudgetDashboard = () => {
         }
     };
 
+    const isWithinBudgetPeriod = (transactionDate, startDate, endDate) => {
+        const txDate = new Date(transactionDate);
+        const budgetStart = new Date(startDate);
+        const budgetEnd = new Date(endDate);
+        return txDate >= budgetStart && txDate <= budgetEnd;
+    };
+
     const fetchTransactionsForBudget = async (budgetId) => {
         if (!currentUser || !budgetId) return;
 
@@ -92,13 +99,22 @@ const BudgetDashboard = () => {
                 }
             );
 
+            const budget = budgetData.categoryBreakdown.find(b => b.budgetId === budgetId);
+            const filteredTransactions = response.data.data.filter(tx =>
+                isWithinBudgetPeriod(tx.date, budget.startDate, budget.endDate)
+            );
+
             setTransactions(prev => ({
                 ...prev,
-                [budgetId]: response.data.data
+                [budgetId]: filteredTransactions
             }));
         } catch (err) {
             console.error('Error fetching transactions:', err);
         }
+    };
+
+    const calculatePercentage = (spent, budget) => {
+        return (spent / budget) * 100;
     };
 
     const toggleTransactions = (budgetId) => {
@@ -176,9 +192,11 @@ const BudgetDashboard = () => {
                                     <div className={styles.progressBar}>
                                         <div
                                             className={`${styles.progressFill} ${
-                                                parseFloat(category.percentageUsed) > 100 ? styles.exceeded : ''
+                                                calculatePercentage(category.spent, category.budgetAmount) > 100 ? styles.exceeded : ''
                                             }`}
-                                            style={{width: `${Math.min(parseFloat(category.percentageUsed), 100)}%`}}
+                                            style={{
+                                                width: `${Math.min(calculatePercentage(category.spent, category.budgetAmount), 100)}%`
+                                            }}
                                         />
                                     </div>
                                 </div>
