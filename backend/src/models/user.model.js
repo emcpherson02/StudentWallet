@@ -89,6 +89,54 @@ class UserModel {
         await userRef.delete();
         return true;
     }
+
+    async addCategory(userId, category) {
+        const userRef = this.db.collection(this.collection).doc(userId);
+        const categoriesRef = userRef.collection('categories').doc('custom');
+        const doc = await categoriesRef.get();
+
+        if (!doc.exists) {
+            await categoriesRef.set({ categories: [category] });
+            return category;
+        }
+
+        const currentCategories = doc.data().categories;
+        if (!currentCategories.includes(category)) {
+            await categoriesRef.update({
+                categories: [...currentCategories, category]
+            });
+        }
+
+        return category;
+    }
+
+    async getCategories(userId) {
+        const categoriesRef = this.db
+            .collection(this.collection)
+            .doc(userId)
+            .collection('categories')
+            .doc('custom');
+
+        const doc = await categoriesRef.get();
+        return doc.exists ? doc.data().categories : [];
+    }
+
+    async deleteCategory(userId, category) {
+        const categoriesRef = this.db
+            .collection(this.collection)
+            .doc(userId)
+            .collection('categories')
+            .doc('custom');
+
+        const doc = await categoriesRef.get();
+        if (!doc.exists) return false;
+
+        const currentCategories = doc.data().categories;
+        const updatedCategories = currentCategories.filter(c => c !== category);
+
+        await categoriesRef.update({ categories: updatedCategories });
+        return true;
+    }
 }
 
 module.exports = UserModel;
