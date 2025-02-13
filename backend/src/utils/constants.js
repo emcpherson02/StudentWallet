@@ -11,8 +11,19 @@ const TRANSACTION_CATEGORIES = {
     OTHER: 'Other'
 };
 
-const validateCategory = (category) => {
-    return Object.values(TRANSACTION_CATEGORIES).includes(category);
+const validateCategory = async (category, userModel, userId) => {
+    // Check default categories
+    const defaultValid = Object.values(TRANSACTION_CATEGORIES).includes(category);
+    if (defaultValid) return true;
+
+    // Check custom categories
+    try {
+        const customCategories = await userModel.getCategories(userId);
+        return customCategories.includes(category);
+    } catch (error) {
+        console.error('Error validating category:', error);
+        return false;
+    }
 };
 
 module.exports = {
