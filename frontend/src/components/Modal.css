@@ -63,6 +63,24 @@
     margin-top: 20px;
 }
 
+.new-category-input {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.new-category-input input {
+    padding: 0.5rem;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.375rem;
+    width: 100%;
+}
+
+.new-category-input .button-group {
+    display: flex;
+    gap: 0.5rem;
+}
+
 .button {
     padding: 8px 16px;
     border-radius: 4px;
