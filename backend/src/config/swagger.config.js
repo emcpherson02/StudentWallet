@@ -665,6 +665,41 @@ const options = {
                     }
                 }
             },
+            '/transactions/update_transaction/{transactionId}': {
+                put: {
+                    tags: ['Transactions'],
+                    summary: 'Update a Transaction',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [
+                        {
+                            in: 'path',
+                            name: 'transactionId',
+                            required: true,
+                            schema: {
+                                type: 'string'
+                            }
+                        }
+                    ],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    $ref: '#/components/schemas/Transaction'
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Transaction updated successfully'
+                        },
+                        404: {
+                            description: 'Transaction not found'
+                        }
+                    }
+                }
+            },
             '/user/user-data': {
                 get: {
                     tags: ['User'],
