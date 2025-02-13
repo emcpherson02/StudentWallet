@@ -159,6 +159,46 @@ class TransactionService {
             throw new DatabaseError('Failed to get transaction analytics');
         }
     }
+
+    async updateCategory(userId, transactionId, category, budgetId) {
+        try {
+            const transaction = await this.transactionModel.findById(userId, transactionId);
+            if (!transaction) {
+                throw new NotFoundError('Transaction not found');
+            }
+            console.log('Found transaction:', transaction);
+
+            // Update transaction category
+            const updatedTransaction = await this.transactionModel.update(userId, transactionId, {
+                category,
+                lastUpdated: new Date().toISOString()
+            });
+            console.log('Updated transaction:', updatedTransaction);
+
+            // If there's a matching budget, link the transaction
+            if (budgetId) {
+                await this.budgetModel.linkTransactionToBudget(userId, budgetId, transactionId);
+
+                // Update budget spent amount
+                const budget = await this.budgetModel.findById(userId, budgetId);
+                const newSpent = (budget.spent || 0) + Math.abs(transaction.Amount);
+                await this.budgetModel.update(userId, budgetId, { spent: newSpent });
+
+                // Check budget limit and send notification if needed
+                await this.budgetNotificationService.checkAndNotifyBudgetLimit(
+                    userId,
+                    category,
+                    newSpent,
+                    budget.amount
+                );
+            }
+            console.log('Linked transaction to budget:', budgetId);
+
+            return updatedTransaction;
+        } catch (error) {
+            throw new DatabaseError('Failed to update transaction category');
+        }
+    }
 }
 
 module.exports = TransactionService;

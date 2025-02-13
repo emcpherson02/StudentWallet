@@ -66,6 +66,27 @@ class TransactionController {
             next(error);
         }
     }
+
+    async updateCategory(req, res, next) {
+        try {
+            const { userId, transactionId, category, budgetId } = req.body;
+
+            const updatedTransaction = await this.transactionService.updateCategory(
+                userId,
+                transactionId,
+                category,
+                budgetId
+            );
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Transaction category updated successfully',
+                data: updatedTransaction
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = TransactionController;

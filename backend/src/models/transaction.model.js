@@ -13,7 +13,7 @@ class TransactionModel {
         }
 
         const transactionRef = await userRef.collection('Transactions').add(transactionData);
-        return { id: transactionRef.id, ...transactionData };
+        return {id: transactionRef.id, ...transactionData};
     }
 
     async findByUserId(userId) {
@@ -25,7 +25,7 @@ class TransactionModel {
         }
 
         const snapshot = await userRef.collection('Transactions').get();
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+        return snapshot.docs.map(doc => ({id: doc.id, ...doc.data()}));
     }
 
     async findById(userId, transactionId) {
@@ -39,7 +39,7 @@ class TransactionModel {
             return null;
         }
 
-        return { id: transactionDoc.id, ...transactionDoc.data() };
+        return {id: transactionDoc.id, ...transactionDoc.data()};
     }
 
     async delete(userId, transactionId) {
@@ -54,6 +54,24 @@ class TransactionModel {
         await transactionRef.delete();
         return true;
     }
-}
 
+    async update(userId, transactionId, updates) {
+        const TransactionRef = this.db
+            .collection('users')
+            .doc(userId)
+            .collection('Transactions')
+            .doc(transactionId);
+
+        const doc = await TransactionRef.get();
+        if (!doc.exists) {
+            return null;
+        }
+
+        await TransactionRef.update(updates);
+        const updatedDoc = await TransactionRef.get();
+        return { id: updatedDoc.id, ...updatedDoc.data() };
+
+
+    }
+}
 module.exports = TransactionModel;

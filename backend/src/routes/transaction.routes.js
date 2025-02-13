@@ -35,6 +35,12 @@ const setupTransactionRoutes = (router, transactionController, authMiddleware) =
         transactionController.getTransactionAnalytics.bind(transactionController)
     );
 
+    router.post(
+        '/update-category',
+        authMiddleware.verifyToken,
+        transactionController.updateCategory.bind(transactionController)
+    )
+
     return router;
 };
 
