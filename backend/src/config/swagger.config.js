@@ -719,6 +719,121 @@ const options = {
                     }
                 }
             },
+            '/user/categories': {
+                get: {
+                    tags: ['User'],
+                    summary: 'Get user\'s custom categories',
+                    security: [{ BearerAuth: [] }],
+                    parameters: [{
+                        in: 'query',
+                        name: 'userId',
+                        required: true,
+                        schema: { type: 'string' }
+                    }],
+                    responses: {
+                        200: {
+                            description: 'Custom categories retrieved successfully',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            status: { type: 'string', example: 'success' },
+                                            data: {
+                                                type: 'array',
+                                                items: { type: 'string' },
+                                                example: ['Gardening', 'Hobbies']
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            '/user/categories/add': {
+                post: {
+                    tags: ['User'],
+                    summary: 'Add a custom category',
+                    security: [{ BearerAuth: [] }],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    required: ['userId', 'category'],
+                                    properties: {
+                                        userId: { type: 'string' },
+                                        category: { type: 'string' }
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        201: {
+                            description: 'Category added successfully',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            status: { type: 'string', example: 'success' },
+                                            message: { type: 'string', example: 'Category added successfully' },
+                                            data: { type: 'string', example: 'Gardening' }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
+            '/user/categories/{category}': {
+                delete: {
+                    tags: ['User'],
+                    summary: 'Delete a custom category',
+                    security: [{BearerAuth: []}],
+                    parameters: [{
+                        in: 'path',
+                        name: 'category',
+                        required: true,
+                        schema: {type: 'string'}
+                    }],
+                    requestBody: {
+                        required: true,
+                        content: {
+                            'application/json': {
+                                schema: {
+                                    type: 'object',
+                                    required: ['userId'],
+                                    properties: {
+                                        userId: {type: 'string'}
+                                    }
+                                }
+                            }
+                        }
+                    },
+                    responses: {
+                        200: {
+                            description: 'Category deleted successfully',
+                            content: {
+                                'application/json': {
+                                    schema: {
+                                        type: 'object',
+                                        properties: {
+                                            status: {type: 'string', example: 'success'},
+                                            message: {type: 'string', example: 'Category deleted successfully'}
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            },
             // Budget History routes
             '/history/rollover': {
                 post: {
