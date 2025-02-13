@@ -12,6 +12,7 @@ import {
     ResponsiveContainer,
 } from 'recharts';
 import styles from '../styles/TransactionDashboard.module.css';
+import UncategorizedTransactions from './UncategorisedTransaction';
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
@@ -145,6 +146,9 @@ const TransactionDashboard = () => {
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
+                </section>
+                <section className={styles.transactionsSection}>
+                    <UncategorizedTransactions />
                 </section>
                 <section className={styles.transactionsSection}>
                     <div className={styles.transactionsHeader}>
