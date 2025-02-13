@@ -1,0 +1,165 @@
+.uncategorizedWrapper {
+    padding: 20px;
+    background: #fff;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.header h2 {
+    font-size: 20px;
+    font-weight: 600;
+    color: #111827;
+    margin: 0;
+}
+
+.dateRange {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.dateInput {
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f9fafb;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.dateInput svg {
+    color: #6b7280;
+    margin-right: 8px;
+}
+
+.dateInput input {
+    border: none;
+    background: transparent;
+    font-size: 14px;
+    width: 100px;
+}
+
+.dateInput input:focus {
+    outline: none;
+}
+
+.transactionsList {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.transactionItem {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    border-bottom: 1px solid #f3f4f6;
+}
+
+.txInfo {
+    flex: 1;
+}
+
+.txName {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+}
+
+.txDate {
+    font-size: 12px;
+    color: #6b7280;
+    margin-top: 2px;
+}
+
+.txAmount {
+    font-size: 14px;
+    font-weight: 500;
+    color: #111827;
+    margin: 0 24px;
+}
+
+.categorySelect {
+    width: 140px;
+    padding: 6px 24px 6px 8px;
+    font-size: 14px;
+    border: 1px solid #e5e7eb;
+    border-radius: 4px;
+    background: white;
+    cursor: pointer;
+    appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%236b7280'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 8px center;
+    background-size: 12px;
+}
+
+.successMessage {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    background: #ecfdf5;
+    color: #047857;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    animation: slideIn 0.3s ease;
+}
+
+.emptyState {
+    text-align: center;
+    padding: 32px;
+    color: #6b7280;
+}
+
+.loader {
+    width: 24px;
+    height: 24px;
+    border: 2px solid #f3f4f6;
+    border-top: 2px solid #6366f1;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    margin: 32px auto;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@media (max-width: 640px) {
+    .header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 16px;
+    }
+
+    .dateRange {
+        width: 100%;
+        flex-direction: column;
+    }
+
+    .dateInput {
+        width: 100%;
+    }
+
+    .dateInput input {
+        width: 100%;
+    }
+}
