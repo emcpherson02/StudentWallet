@@ -8,7 +8,6 @@ import { auth } from '../utils/firebase';
 import UpdateUserForm from './UpdateUserForm';
 import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
-import ThemeToggleSection from './ThemeToggleSection';
 import Layout from './Layout';
 
 function PreferencesPage() {
@@ -58,8 +57,10 @@ function PreferencesPage() {
         <Layout currentUser={currentUser}>
             <div className={styles.pageContainer}>
                 <header className={styles.pageHeader}>
-                    <h1>Account Preferences</h1>
-                    <p className={styles.subtitle}>Manage your account settings and preferences</p>
+                    <h1>Account Settings</h1>
+                    <p className={styles.subtitle}>
+                        Manage your account preferences and settings
+                    </p>
                 </header>
 
                 {message && (
@@ -70,7 +71,7 @@ function PreferencesPage() {
 
                 <div className={styles.contentGrid}>
                     {/* User Details Section */}
-                    <section className={styles.section}>
+                    <section className={styles.card}>
                         <div className={styles.sectionHeader}>
                             <h2>User Details</h2>
                             <button
@@ -84,17 +85,21 @@ function PreferencesPage() {
                         <div className={styles.userDetails}>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Name</span>
-                                <span className={styles.detailValue}>{currentUser.displayName || 'Not set'}</span>
+                                <span className={styles.detailValue}>
+                                    {currentUser.displayName || 'Not set'}
+                                </span>
                             </div>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Email</span>
-                                <span className={styles.detailValue}>{currentUser.email}</span>
+                                <span className={styles.detailValue}>
+                                    {currentUser.email}
+                                </span>
                             </div>
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Account Created</span>
                                 <span className={styles.detailValue}>
-                                    {currentUser.metadata?.creationTime 
-                                        ? new Date(currentUser.metadata.creationTime).toLocaleDateString() 
+                                    {currentUser.metadata?.creationTime
+                                        ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
                                         : 'Not available'}
                                 </span>
                             </div>
@@ -115,18 +120,13 @@ function PreferencesPage() {
                         )}
                     </section>
 
-                    {/* Theme Toggle Section */}
-                    <section className={styles.section}>
-                        <ThemeToggleSection />
-                    </section>
-
                     {/* Password Section */}
-                    <section className={styles.section}>
+                    <section className={styles.card}>
                         <ChangePassword currentUser={currentUser} />
                     </section>
 
                     {/* Account Deletion Section */}
-                    <section className={styles.dangerSection}>
+                    <section className={styles.deleteSection}>
                         <DeleteAccountButton currentUser={currentUser} />
                     </section>
                 </div>
