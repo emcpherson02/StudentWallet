@@ -103,6 +103,38 @@
     font-weight: 500;
 }
 
+.headerWithInfo {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.infoIcon {
+    color: #6b7280;
+    cursor: help;
+    padding: 0.25rem;
+    border-radius: 9999px;
+    transition: color 0.2s ease;
+}
+
+.infoIcon:hover {
+    color: #374151;
+}
+
+.notificationDescription {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin-top: -0.5rem;
+}
+
+.primaryButton.enabled {
+    background-color: #059669;
+}
+
+.primaryButton.enabled:hover {
+    background-color: #047857;
+}
+
 .deleteSection {
     background: white;
     border-radius: 0.75rem;

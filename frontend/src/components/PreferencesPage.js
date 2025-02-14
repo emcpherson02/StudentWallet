@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate } from 'react-router-dom';
 import styles from '../styles/Preferences.module.css';
@@ -17,11 +17,32 @@ function PreferencesPage() {
     const [showUpdateForm, setShowUpdateForm] = useState(false);
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]);
+    const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-    if (!currentUser) {
-        navigate('/login');
-        return null;
-    }
+    const fetchNotificationStatus = async () => {
+        if (!currentUser) return;
+        try {
+            const token = await currentUser.getIdToken();
+            const response = await axios.get(
+                'http://localhost:3001/user/user-data',
+                {
+                    params: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+            setNotificationsEnabled(response.data.notificationsEnabled || false);
+        } catch (error) {
+            console.error('Error fetching notification status:', error);
+        }
+    };
+
+    useEffect(() => {
+        if (currentUser) {
+            fetchNotificationStatus();
+        } else {
+            navigate('/login');
+        }
+    }, [currentUser, navigate]);
 
     const fetchUserDetails = async () => {
         try {
@@ -44,6 +65,27 @@ function PreferencesPage() {
         }
     };
 
+    const toggleNotifications = async () => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.post(
+                'http://localhost:3001/user/toggle-notifications',
+                {
+                    userId: currentUser.uid,
+                    enabled: !notificationsEnabled
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setNotificationsEnabled(!notificationsEnabled);
+            setMessage(`Notifications ${!notificationsEnabled ? 'enabled' : 'disabled'} successfully`);
+        } catch (error) {
+            console.error('Error toggling notifications:', error);
+        }
+    };
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -52,6 +94,8 @@ function PreferencesPage() {
             console.error('Error logging out:', error);
         }
     };
+
+    if (!currentUser) return null;
 
     return (
         <Layout currentUser={currentUser}>
@@ -123,6 +167,31 @@ function PreferencesPage() {
                     {/* Password Section */}
                     <section className={styles.card}>
                         <ChangePassword currentUser={currentUser} />
+                    </section>
+
+                    {/* Notifications Section */}
+                    <section className={styles.card}>
+                        <div className={styles.sectionHeader}>
+                            <div className={styles.headerWithInfo}>
+                                <h2>Email Notifications</h2>
+                                <div className={styles.infoIcon} title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <button
+                                onClick={toggleNotifications}
+                                className={`${styles.primaryButton} ${notificationsEnabled ? styles.enabled : ''}`}
+                            >
+                                {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
+                            </button>
+                        </div>
+                        <p className={styles.notificationDescription}>
+                            Get timely updates about your budgets, loan instalments, and important account activities.
+                        </p>
                     </section>
 
                     {/* Account Deletion Section */}
