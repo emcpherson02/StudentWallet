@@ -1,0 +1,140 @@
+.App {
+    min-height: calc(100vh - 4rem);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.pageContainer {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+/* Main content grid */
+.mainContent {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 20px;
+    margin-bottom: 20px;
+}
+
+/* Card styles */
+.card {
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    background: white;
+}
+
+.card h2 {
+    color: #1f2937;
+    margin-top: 0;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+}
+
+/* User info section */
+.userDetailsSection {
+    background: white;
+}
+
+.userDetailItem {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    list-style: none;
+}
+
+.userDetailItem div {
+    display: flex;
+    justify-content: space-between;
+    color: #1f2937;
+}
+
+/* Message banner */
+.messageBanner {
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #d1fae5;
+    color: #065f46;
+    margin-bottom: 1.5rem;
+    border: 1px solid #6ee7b7;
+}
+
+/* Button styles */
+.primaryButton {
+    background-color: #282c34;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: auto;
+    display: inline-block;
+}
+
+.primaryButton:hover {
+    background-color: #364195;
+}
+
+/* Theme section retained from existing styles */
+.themeSection {
+    margin-top: 1rem;
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+}
+
+/* Delete section */
+.deleteSection {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Updated header styles */
+.pageHeader {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+.pageHeader h1 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.125rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .pageContainer {
+        padding: 1rem;
+    }
+
+    .mainContent {
+        grid-template-columns: 1fr;
+    }
+
+    .card {
+        margin-bottom: 1rem;
+    }
+
+    .userDetailItem div {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+}

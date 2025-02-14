@@ -1,5 +1,5 @@
 import React from 'react';
-import './Modal.css';
+import '../styles/Modal.css';
 
 const Modal = ({ title, onClose, children }) => {
     return (
@@ -10,7 +10,7 @@ const Modal = ({ title, onClose, children }) => {
                     <button onClick={onClose} className="close-button">×</button>
                 </div>
                 <div className="modal-body">
-                    {children}
+
                 </div>
             </div>
         </div>
