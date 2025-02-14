@@ -25,6 +25,7 @@ class LoanNotificationService {
                 console.log('Found users with notifications:', users);
                 for (const user of users) {
                     await this.checkUpcomingInstalments(user.id);
+                    await this.checkSpendingThreshold(user.id);
                 }
             } catch (error) {
                 console.error('Error in daily instalment check:', error);
@@ -48,7 +49,7 @@ class LoanNotificationService {
         }
     }
 
-    async checkSpendingThreshold(userId, availableAmount) {
+    async checkSpendingThreshold(userId) {
         try {
             console.log('Checking spending threshold for user:', userId);
             const user = await this.userModel.findById(userId);
@@ -73,41 +74,58 @@ class LoanNotificationService {
 
             const loan = loanSnapshot.docs[0].data();
 
-            // Fetch transaction details for tracked transactions
-            const transactions = [];
-            if (loan.trackedTransactions && loan.trackedTransactions.length > 0) {
-                const transactionsSnapshot = await this.userModel.db
-                    .collection('users')
-                    .doc(userId)
-                    .collection('Transactions')
-                    .where(admin.firestore.FieldPath.documentId(), 'in', loan.trackedTransactions)
-                    .get();
+            // Get the total available amount up to the current date
+            const currentDate = new Date();
+            let totalAvailable = 0;
+            loan.instalmentDates.forEach((date, index) => {
+                const instalmentDate = new Date(date);
+                if (currentDate >= instalmentDate) {
+                    totalAvailable += loan.instalmentAmounts[index];
+                }
+            });
 
-                transactions.push(...transactionsSnapshot.docs.map(doc => doc.data()));
-            }
-
+            // Calculate current spending
+            const transactions = loan.trackedTransactions || [];
             if (transactions.length === 0) {
                 console.log('No transactions found');
                 return;
             }
 
-            const currentSpent = transactions.reduce((total, transaction) =>
-                total + Math.abs(transaction.Amount), 0);
+            const currentSpent = await this.calculateTotalSpent(userId, transactions);
             console.log('Current spent amount:', currentSpent);
-            console.log('Available amount:', availableAmount);
+            console.log('Total available amount:', totalAvailable);
 
-            const spendingPercentage = (currentSpent / availableAmount) * 100;
+            const spendingPercentage = (currentSpent / totalAvailable) * 100;
             console.log('Spending percentage:', spendingPercentage);
 
             if (spendingPercentage >= 80) {
                 await this.sendSpendingAlert(user.email, {
                     spentAmount: currentSpent,
-                    availableAmount,
+                    availableAmount: totalAvailable,
                     percentage: spendingPercentage
                 });
             }
         } catch (error) {
             console.error('Error checking spending threshold:', error);
+        }
+    }
+
+    async calculateTotalSpent(userId, transactionIds) {
+        try {
+            const transactionsSnapshot = await this.userModel.db
+                .collection('users')
+                .doc(userId)
+                .collection('Transactions')
+                .where(admin.firestore.FieldPath.documentId(), 'in', transactionIds)
+                .get();
+
+            return transactionsSnapshot.docs.reduce((total, doc) => {
+                const transaction = doc.data();
+                return total + Math.abs(transaction.Amount || 0);
+            }, 0);
+        } catch (error) {
+            console.error('Error calculating total spent:', error);
+            return 0;
         }
     }
 
