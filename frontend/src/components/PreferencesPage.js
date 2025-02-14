@@ -9,6 +9,7 @@ import UpdateUserForm from './UpdateUserForm';
 import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
 import ThemeToggleSection from './ThemeToggleSection';
+import Layout from './Layout';
 
 function PreferencesPage() {
     const { currentUser } = useAuth();
@@ -17,6 +18,11 @@ function PreferencesPage() {
     const [showUpdateForm, setShowUpdateForm] = useState(false);
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]);
+
+    if (!currentUser) {
+        navigate('/login');
+        return null;
+    }
 
     const fetchUserDetails = async () => {
         try {
@@ -30,7 +36,6 @@ function PreferencesPage() {
             const { linkedBank, accounts } = response.data;
             setLinkedBank(linkedBank);
             setAccounts(accounts || []);
-            // Refresh the user display if needed
             if (response.data.displayName && response.data.displayName !== currentUser.displayName) {
                 await currentUser.updateProfile({ displayName: response.data.displayName });
             }
@@ -49,83 +54,84 @@ function PreferencesPage() {
         }
     };
 
-    if (!currentUser) {
-        return null;
-    }
-
     return (
-        <div className={styles.App}>
-            <div className={styles.header}>
-            <div className={styles.headerLeft}>
-                    <button
-                        className={styles.backButton}
-                        onClick={() => navigate('/plaid-link')}
-                    >
-                        ← Back
-                    </button>
-                </div>
-                <h1>Account Preferences</h1>
-                <button
-                    className={styles.logoutButton}
-                    onClick={handleLogout}
-                >
-                    Logout
-                </button>
-            </div>
-            <div className={styles.mainContent}>
-                <div className={`${styles.card} ${styles.userDetailsSection}`}>
-                    <h2>User Details</h2>
-                    {message && (
-                        <div className={styles.messageBanner}>
-                            {message}
-                        </div>
-                    )}
-                    
-                    <button
-                        className={styles.primaryButton}
-                        onClick={() => setShowUpdateForm(true)}
-                    >
-                        Update Account Details
-                    </button>
+        <Layout currentUser={currentUser}>
+            <div className={styles.pageContainer}>
+                <header className={styles.pageHeader}>
+                    <h1>Account Preferences</h1>
+                    <p className={styles.subtitle}>Manage your account settings and preferences</p>
+                </header>
 
-                    {currentUser ? (
-                        <ul>
-                            <li className={styles.userDetailItem}>
-                                <div><strong>Name:</strong> {currentUser.displayName || 'Not set'}</div>
-                                <div><strong>Email:</strong> {currentUser.email}</div>
-                                <div>
-                                    <strong>Account Created:</strong> {currentUser.metadata?.creationTime 
+                {message && (
+                    <div className={styles.messageBanner}>
+                        {message}
+                    </div>
+                )}
+
+                <div className={styles.contentGrid}>
+                    {/* User Details Section */}
+                    <section className={styles.section}>
+                        <div className={styles.sectionHeader}>
+                            <h2>User Details</h2>
+                            <button
+                                className={styles.primaryButton}
+                                onClick={() => setShowUpdateForm(true)}
+                            >
+                                Update Details
+                            </button>
+                        </div>
+
+                        <div className={styles.userDetails}>
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Name</span>
+                                <span className={styles.detailValue}>{currentUser.displayName || 'Not set'}</span>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Email</span>
+                                <span className={styles.detailValue}>{currentUser.email}</span>
+                            </div>
+                            <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Account Created</span>
+                                <span className={styles.detailValue}>
+                                    {currentUser.metadata?.creationTime 
                                         ? new Date(currentUser.metadata.creationTime).toLocaleDateString() 
                                         : 'Not available'}
-                                </div>
-                            </li>
-                        </ul>
-                    ) : (
-                        <p>No user details available.</p>
-                    )}
+                                </span>
+                            </div>
+                        </div>
 
-                    {showUpdateForm && (
-                        <UpdateUserForm
-                            userId={currentUser.uid}
-                            currentUser={currentUser}
-                            onUserUpdated={() => {
-                                fetchUserDetails();
-                                setShowUpdateForm(false);
-                                setMessage('User details updated successfully!');
-                            }}
-                            setMessage={setMessage}
-                            onClose={() => setShowUpdateForm(false)}
-                        />
-                    )}
+                        {showUpdateForm && (
+                            <UpdateUserForm
+                                userId={currentUser.uid}
+                                currentUser={currentUser}
+                                onUserUpdated={() => {
+                                    fetchUserDetails();
+                                    setShowUpdateForm(false);
+                                    setMessage('User details updated successfully!');
+                                }}
+                                setMessage={setMessage}
+                                onClose={() => setShowUpdateForm(false)}
+                            />
+                        )}
+                    </section>
+
+                    {/* Theme Toggle Section */}
+                    <section className={styles.section}>
+                        <ThemeToggleSection />
+                    </section>
+
+                    {/* Password Section */}
+                    <section className={styles.section}>
+                        <ChangePassword currentUser={currentUser} />
+                    </section>
+
+                    {/* Account Deletion Section */}
+                    <section className={styles.dangerSection}>
+                        <DeleteAccountButton currentUser={currentUser} />
+                    </section>
                 </div>
             </div>
-            <ThemeToggleSection />
-
-            <ChangePassword currentUser={currentUser} />
-
-            <DeleteAccountButton currentUser={currentUser} />
-
-        </div>
+        </Layout>
     );
 }
 

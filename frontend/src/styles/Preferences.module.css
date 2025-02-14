@@ -1,94 +1,12 @@
 .App {
-    padding: 20px;
+    min-height: calc(100vh - 4rem);
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+}
+
+.pageContainer {
+    padding: 2rem;
     max-width: 1200px;
     margin: 0 auto;
-    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
-    min-height: 100vh;
-    
-}
-
-/* Header styles */
-.header {
-    position: relative;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
-    margin-bottom: 30px;
-    border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.backButton {
-    background: none;
-    border: none;
-    color: #0066cc;
-    font-size: 1rem;
-    padding: 8px 12px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    transition: color 0.2s ease;
-}
-
-.backButton:hover {
-    color: #0052a3;
-}
-
-.header h1 {
-    margin: 0;
-    color: #2c3e50;
-    font-size: 2rem;
-    font-weight: bold;
-}
-
-.headerButtons {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-.headerLeft {
-    display: flex;
-    align-items: center;
-    gap: 15px;
-}
-
-/* Button styles */
-.primaryButton {
-    background: #0066cc;
-    color: white;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 4px;
-    cursor: pointer;
-    font-weight: 500;
-    transition: background-color 0.2s ease;
-}
-
-.primaryButton:hover {
-    background: #0052a3;
-}
-
-.logoutButton {
-    background: #dc3545;
-    color: white;
-    border: none;
-    padding: 8px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-    transition: background-color 0.2s ease;
-}
-
-.logoutButton:hover {
-    background: #c82333;
-}
-
-.deleteSection {
-    margin-top: 1rem;
-    background: #dc3545;
-    box-shadow: none !important;
-    padding: 8px 16px;
 }
 
 /* Main content grid */
@@ -101,117 +19,122 @@
 
 /* Card styles */
 .card {
-    border-radius: 8px;
-    padding: 20px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border-radius: 0.75rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+    background: white;
 }
 
 .card h2 {
-    color: #2c3e50;
+    color: #1f2937;
     margin-top: 0;
-    margin-bottom: 20px;
-    font-size: 1.5rem;
-}
-
-.card h3 {
-    color: #34495e;
-    margin-top: 0;
-    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.25rem;
+    font-weight: 600;
 }
 
 /* User info section */
-.userInfo {
-    background: linear-gradient(to bottom right, #ffffff, #f8f9fa);
+.userDetailsSection {
+    background: white;
 }
 
-.userInfo p {
-    margin: 10px 0;
-    color: #2c3e50;
+.userDetailItem {
+    display: grid;
+    gap: 0.75rem;
+    padding: 1rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+    list-style: none;
+}
+
+.userDetailItem div {
+    display: flex;
+    justify-content: space-between;
+    color: #1f2937;
 }
 
 /* Message banner */
 .messageBanner {
-    background: #d4edda;
-    color: #155724;
-    padding: 10px;
-    border-radius: 4px;
-    margin: 10px 0;
+    padding: 1rem;
+    border-radius: 0.5rem;
+    background-color: #d1fae5;
+    color: #065f46;
+    margin-bottom: 1.5rem;
+    border: 1px solid #6ee7b7;
 }
 
-/* Transaction/User details item */
-.transactionItem {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 8px 16px;
-    border-bottom: 1px solid #ddd;
+/* Button styles */
+.primaryButton {
+    background-color: #282c34;
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 0.5rem;
+    border: none;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    width: auto;
+    display: inline-block;
 }
 
-.transactionItem div {
-    display: flex;
-    justify-content: space-between;
-    color: #2c3e50;
+.primaryButton:hover {
+    background-color: #364195;
 }
 
-/* Accounts section */
-.accountsGrid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 15px;
+/* Theme section retained from existing styles */
+.themeSection {
+    margin-top: 1rem;
+    background: white;
+    border-radius: 0.75rem;
+    padding: 1.5rem;
 }
 
-.accountCard {
-    background: #f8f9fa;
-    padding: 15px;
-    border-radius: 6px;
-    transition: transform 0.2s ease;
+/* Delete section */
+.deleteSection {
+    margin-top: 1rem;
+    padding: 1.5rem;
+    background: white;
+    border-radius: 0.75rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.accountCard:hover {
-    transform: translateY(-2px);
+/* Updated header styles */
+.pageHeader {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e5e7eb;
 }
 
-.accountCard p {
-    margin: 8px 0;
-    color: #2c3e50;
+.pageHeader h1 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
 }
 
-/* Connect bank section */
-.connectBankSection {
-    text-align: center;
-    padding: 20px;
-}
-
-.connectBankSection p {
-    color: #666;
-    margin-bottom: 20px;
+.subtitle {
+    color: #6b7280;
+    font-size: 1.125rem;
 }
 
 /* Responsive adjustments */
 @media (max-width: 768px) {
+    .pageContainer {
+        padding: 1rem;
+    }
+
     .mainContent {
         grid-template-columns: 1fr;
     }
 
-    .header {
-        flex-direction: column;
-        text-align: center;
-        gap: 10px;
+    .card {
+        margin-bottom: 1rem;
     }
 
-    .transactionItem {
+    .userDetailItem div {
         flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .headerButtons {
-        width: 100%;
-        justify-content: center;
+        gap: 0.5rem;
     }
 }
