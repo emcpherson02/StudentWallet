@@ -1,8 +1,9 @@
 // Layout.js
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell } from 'lucide-react';
-import styles from '../styles/PlaidLink.module.css';
+import { Bell, Home, Users, LineChart, Wallet, PiggyBank, Library, BarChart2 } from 'lucide-react';
+import styles from '../styles/Layout.module.css';
+
 
 const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);
@@ -74,7 +75,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                     </button>
                     {showUserMenu && (
                         <div className={styles.userMenu}>
-                          <Link to="/settings" className={styles.userMenuItem}>
+                          <Link to="/preferences" className={styles.userMenuItem}>
                             Settings
                           </Link>
                           <button onClick={onLogout} className={styles.userMenuItem}>
