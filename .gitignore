@@ -9,3 +9,22 @@ backend/package.json
 
 /package.json
 /package-lock.json
+/backend/coverage/lcov-report/controllers/auth.controller.js.html
+/backend/coverage/lcov-report/base.css
+/backend/coverage/lcov-report/block-navigation.js
+/backend/coverage/lcov-report/controllers/budget.controller.js.html
+/backend/coverage/clover.xml
+/backend/coverage/lcov-report/utils/constants.js.html
+/backend/coverage/coverage-final.json
+/backend/coverage/lcov-report/middleware/error.middleware.js.html
+/backend/coverage/lcov-report/utils/errors.js.html
+/backend/coverage/lcov-report/favicon.png
+/backend/coverage/lcov-report/controllers/index.html
+/backend/coverage/lcov-report/middleware/index.html
+/backend/coverage/lcov-report/utils/index.html
+/backend/coverage/lcov-report/index.html
+/backend/coverage/lcov.info
+/backend/coverage/lcov-report/prettify.css
+/backend/coverage/lcov-report/prettify.js
+/backend/coverage/lcov-report/sort-arrow-sprite.png
+/backend/coverage/lcov-report/sorter.js
