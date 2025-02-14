@@ -8,9 +8,15 @@ import BudgetAnalytics from './components/budgetAnalytics';
 import LoanDashboard from "./components/LoanDashboard";
 import Tips from './components/Tips';
 import TransactionDashboard from "./components/TransactionDashboard";
+import PreferencesPage from './components/PreferencesPage';
+import { ThemeProvider } from './contexts/ThemeContext';
+import './styles/darkMode.css';
+
+
 
 function App() {
   return (
+    <ThemeProvider>
       <div className="App">
           <Routes>
               <Route path="/" element={<Home />} />
@@ -22,9 +28,11 @@ function App() {
               <Route path="/budget-analytics" element={<BudgetAnalytics />} />
               <Route path={"/tips"} element={<Tips />} />
               <Route path="/transaction-dashboard" element={<TransactionDashboard />} />
+              <Route path="/preferences" element={<PreferencesPage />} />
               {/* Add other routes here */}
           </Routes>
       </div>
+      </ThemeProvider>
   );
 }
 

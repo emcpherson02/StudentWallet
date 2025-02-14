@@ -1,7 +1,8 @@
-import React, { useState, memo } from 'react';
+// Layout.js
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Bell, Home, Users, LineChart, Wallet, PiggyBank, Library, BarChart2 } from 'lucide-react';
-import styles from '../styles/Layout.module.css';
+import { Bell } from 'lucide-react';
+import styles from '../styles/PlaidLink.module.css';
 
 const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
   const [showUserMenu, setShowUserMenu] = useState(false);

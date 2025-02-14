@@ -1,0 +1,144 @@
+/* darkMode.css - Based on ThemeToggleSection styling */
+.dark {
+    background-color: #111827;
+    color: #f3f4f6;
+    transition: background-color 150ms, color 150ms;
+  }
+  
+  /* Card styling */
+  .dark .card {
+    background-color: #edf0f5;
+    color: #4d6391;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1);
+    transition: background-color 150ms, color 150ms;
+  }
+  
+  /* Secondary text */
+  .dark p, 
+  .dark .secondary-text {
+    color: #9ca3af;
+  }
+  
+  /* Headings */
+  .dark h1, 
+  .dark h2, 
+  .dark h3, 
+  .dark h4, 
+  .dark h5, 
+  .dark h6 {
+    color: #f3f4f6;
+  }
+  
+  /* Main content areas */
+  .dark .mainContent,
+  .dark .PlaidLink,
+  .dark .preferences-page {
+    background-color: #111827;
+    color: #f3f4f6;
+  }
+  
+  /* Buttons */
+  .dark .btn-primary {
+    background-color: #3b82f6;
+    color: white;
+  }
+  
+  .dark .btn-secondary {
+    background-color: #e5e7eb;
+    color: #374151;
+  }
+  
+  /* Form inputs */
+  .dark input,
+  .dark select,
+  .dark textarea {
+    background-color: #4b5563;
+    color: #f3f4f6;
+    border: 1px solid #6b7280;
+  }
+  
+  .dark input:focus,
+  .dark select:focus,
+  .dark textarea:focus {
+    border-color: #3b82f6;
+    outline: none;
+  }
+  
+  /* Links */
+  .dark a {
+    color: #60a5fa;
+  }
+  
+  .dark a:hover {
+    color: #93c5fd;
+  }
+  
+  /* Top navigation/header */
+  .dark .header {
+    background-color: #374151;
+    color: #f3f4f6;
+  }
+  
+  /* Tables and lists */
+  .dark table,
+  .dark .list-item {
+    border-color: #4b5563;
+  }
+  
+  .dark tr:hover,
+  .dark .list-item:hover {
+    background-color: #4b5563;
+  }
+  
+  /* Modal/Dialog */
+  .dark .modal {
+    background-color: #374151;
+    color: #f3f4f6;
+  }
+  
+  .dark .modal-header {
+    border-bottom-color: #4b5563;
+  }
+  
+  /* Specific sections */
+  .dark .user-details,
+  .dark .password-settings,
+  .dark .transactions-section,
+  .dark .budgets-section {
+    background-color: #374151;
+    color: #f3f4f6;
+  }
+  
+  /* Back button */
+  .dark .back-button {
+    color: #60a5fa;
+  }
+  
+  /* Close Account button */
+  .dark .close-account {
+    background-color: #dc2626;
+    color: white;
+  }
+  
+  /* Logout button */
+  .dark .logout {
+    background-color: #dc2626;
+    color: white;
+  }
+  
+  /* Success/Error messages */
+  .dark .success-message {
+    background-color: #065f46;
+    color: #f3f4f6;
+  }
+  
+  .dark .error-message {
+    background-color: #dc2626;
+    color: #f3f4f6;
+  }
+  
+  /* Transitions for smooth theme switching */
+  .dark * {
+    transition: background-color 150ms, color 150ms, border-color 150ms, box-shadow 150ms;
+  }
