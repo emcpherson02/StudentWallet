@@ -109,6 +109,42 @@ class UserService {
             throw new DatabaseError('Failed to delete user');
         }
     }
+
+    async addCategory(userId, category) {
+        if (!userId || !category) {
+            throw new ValidationError('Missing required parameters');
+        }
+
+        try {
+            return await this.userModel.addCategory(userId, category);
+        } catch (error) {
+            throw new DatabaseError('Failed to add category');
+        }
+    }
+
+    async getCategories(userId) {
+        if (!userId) {
+            throw new ValidationError('Missing userId');
+        }
+
+        try {
+            return await this.userModel.getCategories(userId);
+        } catch (error) {
+            throw new DatabaseError('Failed to get categories');
+        }
+    }
+
+    async deleteCategory(userId, category) {
+        if (!userId || !category) {
+            throw new ValidationError('Missing required parameters');
+        }
+
+        try {
+            return await this.userModel.deleteCategory(userId, category);
+        } catch (error) {
+            throw new DatabaseError('Failed to delete category');
+        }
+    }
 }
 
 module.exports = UserService;

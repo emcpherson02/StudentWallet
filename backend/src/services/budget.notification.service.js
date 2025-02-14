@@ -74,7 +74,7 @@ class BudgetNotificationService {
                 <p>Your ${category} budget has been rolled over to the next period.</p>
                 <p>Original budget amount: £${amount}</p>
                 <p>Spent in previous period: £${spent}</p>
-                <p>Unspent amount rolled over: £${unspentAmount}</p>
+                <p>Unspent amount: £${unspentAmount}</p>
                 <p>Please check your StudentWallet account to review your spending.</p>
             `
         };

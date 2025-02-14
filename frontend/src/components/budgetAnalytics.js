@@ -4,17 +4,50 @@ import axios from 'axios';
 import { LineChart,Line ,BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Layout from './Layout';
 import styles from '../styles/BudgetAnalytics.module.css';
+import {useEffect} from "react";
+import {TRANSACTION_CATEGORIES} from "../utils/constants";
 
 const BudgetAnalytics = () => {
     const { currentUser } = useAuth();
     const [analytics, setAnalytics] = useState(null);
     const [loading, setLoading] = useState(false);
+    const [categories, setCategories] = useState(['Groceries']);
     const [error, setError] = useState(null);
     const [dateRange, setDateRange] = useState({
         startDate: new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString().split('T')[0],
         endDate: new Date().toISOString().split('T')[0]
     });
     const [selectedCategory, setSelectedCategory] = useState('Groceries');
+    const defaultCategories = Object.values(TRANSACTION_CATEGORIES);
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    'http://localhost:3001/user/categories',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                // Extract custom categories from response data
+                const customCategories = response.data.data || [];
+
+                // Combine default and custom categories
+                const allCategories = [...defaultCategories, ...customCategories];
+
+                // Remove duplicates and set categories
+                setCategories([...new Set(allCategories)]);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                setCategories(defaultCategories);
+            }
+        };
+
+        fetchCategories();
+    }, [currentUser]);
 
     const fetchAnalytics = async () => {
         try {
@@ -84,13 +117,15 @@ const BudgetAnalytics = () => {
                         </div>
                         <div className={styles.inputWrapper}>
                             <label>Category</label>
-                            <select value={selectedCategory} onChange={(e) => setSelectedCategory(e.target.value)}>
-                                <option value="Groceries">Groceries</option>
-                                <option value="Utilities">Utilities</option>
-                                <option value="Entertainment">Entertainment</option>
-                                <option value="Transportation">Transportation</option>
-                                <option value="Rent">Rent</option>
-                                <option value="Other">Other</option>
+                            <select
+                                value={selectedCategory}
+                                onChange={(e) => setSelectedCategory(e.target.value)}
+                            >
+                                {categories.map(category => (
+                                    <option key={category} value={category}>
+                                        {category}
+                                    </option>
+                                ))}
                             </select>
                         </div>
                     </div>

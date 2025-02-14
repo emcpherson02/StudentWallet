@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/BudgetDashboard.module.css';
 import Layout from './Layout';
+import PieChartComponent from './PieChartComponent';
+import {signOut} from "firebase/auth";
+import {auth} from "../utils/firebase";
+import { useNavigate, Link } from 'react-router-dom';
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
@@ -12,6 +16,7 @@ const BudgetDashboard = () => {
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [transactions, setTransactions] = useState([]);
     const [expandedBudget, setExpandedBudget] = useState(null);
+    const navigate = useNavigate();
 
     useEffect(() => {
         const fetchData = async () => {
@@ -131,6 +136,35 @@ const BudgetDashboard = () => {
         }
     };
 
+    const handleLogout = useCallback(async () => {
+        try {
+            await signOut(auth);
+            navigate('/login');
+        } catch (error) {
+            console.error('Error logging out:', error);
+        }
+    }, [navigate]);
+
+// Function to prepare data for the Budget Allocation pie chart
+    const prepareBudgetAllocationData = () => {
+        if (!budgetData) return [];
+
+        return budgetData.categoryBreakdown.map(category => ({
+            name: category.category,
+            value: category.budgetAmount
+        }));
+    };
+
+    // Function to prepare data for the Spending Breakdown pie chart
+    const prepareSpendingBreakdownData = () => {
+        if (!budgetData) return [];
+
+        return budgetData.categoryBreakdown.map(category => ({
+            name: category.category,
+            value: category.spent
+        }));
+    };
+
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
     }
@@ -143,7 +177,7 @@ const BudgetDashboard = () => {
 
 
     return (
-        <Layout CurrentUser={currentUser}>
+        <Layout CurrentUser={currentUser} onLogout={handleLogout} showNav={true}>
             <div className={styles.dashboard}>
                 <div className={styles.dashboardHeader}>
                     <h1>Budget Overview</h1>
@@ -173,6 +207,12 @@ const BudgetDashboard = () => {
                         <p className={budgetData.remaining >= 0 ? styles.positive : styles.negative}>
                             £{budgetData.remaining.toFixed(2)}
                         </p>
+                    </div>
+                </div>
+                <div className={styles.pieChartSection}>
+                    <div className={styles.pieChartContainer}>
+                        <PieChartComponent data={prepareBudgetAllocationData()} title="Budget Allocation" />
+                        <PieChartComponent data={prepareSpendingBreakdownData()} title="Spending Breakdown" />
                     </div>
                 </div>
 

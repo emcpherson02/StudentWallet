@@ -26,6 +26,24 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.deleteUser.bind(userController)
     )
 
+    router.post(
+        '/categories/add',
+        authMiddleware.verifyToken,
+        userController.addCategory.bind(userController)
+    );
+
+    router.get(
+        '/categories',
+        authMiddleware.verifyToken,
+        userController.getCategories.bind(userController)
+    );
+
+    router.delete(
+        '/categories/:category',
+        authMiddleware.verifyToken,
+        userController.deleteCategory.bind(userController)
+    );
+
     return router;
 };
 

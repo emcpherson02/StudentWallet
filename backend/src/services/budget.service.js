@@ -2,10 +2,11 @@ const { DatabaseError, ValidationError, NotFoundError } = require('../utils/erro
 const { validateCategory } = require('../utils/constants');
 
 class BudgetService {
-    constructor(budgetModel, transactionModel, budgetNotificationService) {
+    constructor(budgetModel, transactionModel, budgetNotificationService, userModel) {
         this.budgetModel = budgetModel;
         this.transactionModel = transactionModel;
         this.budgetNotificationService = budgetNotificationService;
+        this.userModel = userModel;
     }
 
     async addBudget(userId, budgetData) {
@@ -15,12 +16,13 @@ class BudgetService {
             throw new ValidationError('Missing required fields');
         }
 
-        if (!validateCategory(category)) {
-            throw new ValidationError('Invalid category');
-        }
-
         try {
-            // Create the budget
+            // Validate category
+            const isValidCategory = await validateCategory(category, this.userModel, userId);
+            if (!isValidCategory) {
+                throw new ValidationError('Invalid category');
+            }
+
             const budget = {
                 category,
                 amount,
@@ -72,7 +74,7 @@ class BudgetService {
 
             return createdBudget;
         } catch (error) {
-            if (error instanceof NotFoundError) throw error;
+            if (error instanceof ValidationError) throw error;
             throw new DatabaseError('Failed to add Budget');
         }
     }

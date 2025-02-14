@@ -65,6 +65,51 @@ class UserController {
             next(error);
         }
     }
+
+    async addCategory(req, res, next) {
+        try {
+            const { userId, category } = req.body;
+            const newCategory = await this.userService.addCategory(userId, category);
+
+            res.status(201).json({
+                status: 'success',
+                message: 'Category added successfully',
+                data: newCategory
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getCategories(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const categories = await this.userService.getCategories(userId);
+
+            res.status(200).json({
+                status: 'success',
+                data: categories
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async deleteCategory(req, res, next) {
+        try {
+            const { userId } = req.body;
+            const { category } = req.params;
+
+            await this.userService.deleteCategory(userId, category);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Category deleted successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = UserController;

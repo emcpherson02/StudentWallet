@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
+import { TRANSACTION_CATEGORIES } from '../utils/constants';
 
 const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) => {
     const { currentUser } = useAuth();
@@ -9,8 +10,44 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
         amount: '',
         date: new Date().toISOString().slice(0, 10),
         description: '',
+        category: '',
         type: 'manual'
     });
+    const [categories, setCategories] = useState([]);
+    const [isAddingCategory, setIsAddingCategory] = useState(false);
+    const [newCategory, setNewCategory] = useState('');
+
+    const defaultCategories = Object.values(TRANSACTION_CATEGORIES);
+
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    'http://localhost:3001/user/categories',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                // Extract custom categories from response data
+                const customCategories = response.data.data || [];
+
+                // Combine default and custom categories
+                const allCategories = [...defaultCategories, ...customCategories];
+
+                // Remove duplicates and set categories
+                setCategories([...new Set(allCategories)]);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                setCategories(defaultCategories);
+            }
+        };
+
+        fetchCategories();
+    }, [currentUser]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
@@ -44,11 +81,39 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
         }
     };
 
+    const handleAddCategory = async () => {
+        if (!newCategory.trim()) return;
+
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.post(
+                'http://localhost:3001/user/categories/add',
+                {
+                    userId: currentUser.uid,
+                    category: newCategory.trim()
+                },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setCategories(prev => [...prev, newCategory.trim()]);
+            setFormData(prev => ({ ...prev, category: newCategory.trim() }));
+            setNewCategory('');
+            setIsAddingCategory(false);
+        } catch (error) {
+            console.error('Error adding category:', error);
+            setMessage('Failed to add category');
+        }
+    };
+
     const handleChange = (e) => {
-        setFormData({
-            ...formData,
-            [e.target.name]: e.target.value
-        });
+        const { name, value } = e.target;
+        if (name === 'category' && value === 'add_new') {
+            setIsAddingCategory(true);
+            return;
+        }
+        setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     return (
@@ -69,20 +134,47 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
 
                 <div className="form-group">
                     <label>Category</label>
-                    <select
-                        name="category"
-                        value={formData.category}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">Select Category</option>
-                        <option value="Groceries">Groceries</option>
-                        <option value="Utilities">Utilities</option>
-                        <option value="Entertainment">Entertainment</option>
-                        <option value="Transportation">Transportation</option>
-                        <option value="Rent">Rent</option>
-                        <option value="Other">Other</option>
-                    </select>
+                    {!isAddingCategory ? (
+                        <select
+                            name="category"
+                            value={formData.category}
+                            onChange={handleChange}
+                            required
+                        >
+                            <option value="">Select Category</option>
+                            {categories.map((category) => (
+                                <option key={category} value={category}>
+                                    {category}
+                                </option>
+                            ))}
+                            <option value="add_new">+ Add New Category</option>
+                        </select>
+                    ) : (
+                        <div className="new-category-input">
+                            <input
+                                type="text"
+                                value={newCategory}
+                                onChange={(e) => setNewCategory(e.target.value)}
+                                placeholder="Enter new category"
+                            />
+                            <div className="button-group">
+                                <button
+                                    type="button"
+                                    onClick={handleAddCategory}
+                                    className="button primary-button"
+                                >
+                                    Add
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => setIsAddingCategory(false)}
+                                    className="button secondary-button"
+                                >
+                                    Cancel
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </div>
 
                 <div className="form-group">
