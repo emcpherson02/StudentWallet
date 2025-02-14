@@ -7,6 +7,7 @@ import LoanForm from './LoanForm';
 import Layout from './Layout';
 import CountdownTimer from './CountdownTimer';
 import SpendingTrend from './SpendingTrend';
+import { ButtonGroup, AddLoanButton } from "./LoanButtonGroup";
 
 const LoanDashboard = () => {
     const { currentUser } = useAuth();
@@ -172,41 +173,17 @@ const LoanDashboard = () => {
                 <div className={styles.dashboardHeader}>
                     <h1>Loan Dashboard</h1>
                     <div className={styles.buttonGroup}>
-                        {!loanData && (
-                            <button
-                                onClick={() => setIsLoanFormOpen(true)}
-                                className={styles.linkButton}
-                            >
-                                Add Loan
-                            </button>
-                        )}
                         {loanData && (
-                            <>
-                                <button
-                                    onClick={toggleNotifications}
-                                    className={`${styles.linkButton} ${notificationsEnabled ? styles.enabled : ''}`}
-                                >
-                                    {notificationsEnabled ? 'Disable Notifications' : 'Enable Notifications'}
-                                </button>
-                                <button
-                                    onClick={() => setIsTransactionModalOpen(true)}
-                                    className={styles.linkButton}
-                                >
-                                    Sync Transactions
-                                </button>
-                                <button
-                                    onClick={handleUnlinkTransactions}
-                                    className={styles.linkButton}
-                                >
-                                    Unlink Transactions
-                                </button>
-                                <button
-                                    onClick={handleDeleteLoan}
-                                    className={`${styles.linkButton} ${styles.deleteButton}`}
-                                >
-                                    Delete Loan
-                                </button>
-                            </>
+                            <ButtonGroup
+                                toggleNotifications={toggleNotifications}
+                                setIsTransactionModalOpen={setIsTransactionModalOpen}
+                                handleUnlinkTransactions={handleUnlinkTransactions}
+                                handleDeleteLoan={handleDeleteLoan}
+                            />
+                        )}
+
+                        {!loanData && (
+                            <AddLoanButton onClick={() => setIsLoanFormOpen(true)} />
                         )}
                     </div>
                 </div>
