@@ -7,6 +7,7 @@ import PieChartComponent from './PieChartComponent';
 import {signOut} from "firebase/auth";
 import {auth} from "../utils/firebase";
 import { useNavigate, Link } from 'react-router-dom';
+import {Trash2} from 'lucide-react';
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
@@ -165,6 +166,27 @@ const BudgetDashboard = () => {
         }));
     };
 
+    const handleDeleteBudget = async (budgetId) => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.delete(
+                `http://localhost:3001/budget/delete_budget/${budgetId}`,
+                {
+                    data: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+
+                }
+            );
+            setBudgetData(prev => ({
+                ...prev,
+                categoryBreakdown: prev.categoryBreakdown.filter(cat => cat.budgetId !== budgetId)
+            }));
+        } catch (error) {
+            console.error('Error deleting budget:', error);
+        }
+    };
+
+
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
     }
@@ -223,9 +245,21 @@ const BudgetDashboard = () => {
                             <div key={index} className={styles.categoryCard}>
                                 <div className={styles.categoryHeader}>
                                     <h3>{category.category}</h3>
-                                    <span className={styles.progressLabel}>
-                                        {parseFloat(category.percentageUsed).toFixed(1)}% Used
-                                    </span>
+                                    <div className={styles.categoryHeaderActions}>
+        <span className={styles.timePeriod}>
+            {category.period}
+        </span>
+                                        <span className={styles.progressLabel}>
+            {parseFloat(category.percentageUsed).toFixed(1)}% Used
+        </span>
+                                        <button
+                                            onClick={() => handleDeleteBudget(category.budgetId)}
+                                            className={styles.deleteButton}
+                                            aria-label="Delete budget"
+                                        >
+                                            <Trash2 size={18} />
+                                        </button>
+                                    </div>
                                 </div>
 
                                 <div className={styles.progressContainer}>
