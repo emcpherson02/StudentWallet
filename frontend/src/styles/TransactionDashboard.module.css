@@ -708,3 +708,28 @@
     width: 100%;
     height: 400px;
 }
+
+.pieChartsContainer {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.pieChartWrapper {
+    flex: 1;
+    min-width: 0; /* Prevents flex items from overflowing */
+}
+
+/* Add responsive styling for mobile devices */
+@media (max-width: 1024px) {
+    .pieChartsContainer {
+        flex-direction: column;
+        align-items: center;
+    }
+
+    .pieChartWrapper {
+        width: 100%;
+        max-width: 500px;
+    }
+}

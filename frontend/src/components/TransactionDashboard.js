@@ -105,6 +105,19 @@ const TransactionDashboard = () => {
         ];
     };
 
+    const prepareCategoryData = (transactions) => {
+        const categoryTotals = transactions.reduce((acc, transaction) => {
+            const category = transaction.category || 'Uncategorized';
+            acc[category] = (acc[category] || 0) + Math.abs(Number(transaction.amount));
+            return acc;
+        }, {});
+
+        return Object.entries(categoryTotals).map(([category, total]) => ({
+            name: category,
+            value: total
+        }));
+    };
+
     return (
         <Layout currentUser={currentUser}>
             <div className={styles.dashboard}>
@@ -155,12 +168,20 @@ const TransactionDashboard = () => {
                 </section>
 
                 <section className={styles.chartSection}>
-                    <h2 className={styles.chartTitle}>Transaction Sources</h2>
-                    <div className={styles.chartContainer}>
-                        <PieChartComponent
-                            data={prepareTransactionSourceData(transactions)}
-                            title="Cash vs Bank Transactions"
-                        />
+                    <h2 className={styles.chartTitle}>Transaction Analysis</h2>
+                    <div className={styles.pieChartsContainer}>
+                        <div className={styles.pieChartWrapper}>
+                            <PieChartComponent
+                                data={prepareTransactionSourceData(transactions)}
+                                title="Cash vs Bank Transactions"
+                            />
+                        </div>
+                        <div className={styles.pieChartWrapper}>
+                            <PieChartComponent
+                                data={prepareCategoryData(transactions)}
+                                title="Spending by Category"
+                            />
+                        </div>
                     </div>
                 </section>
 
