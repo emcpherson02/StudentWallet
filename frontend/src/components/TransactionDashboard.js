@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
+import PieChartComponent from './PieChartComponent';
 import {
     BarChart,
     Bar,
@@ -88,6 +89,22 @@ const TransactionDashboard = () => {
         );
     }
 
+    const prepareTransactionSourceData = (transactions) => {
+        const plaidTransactions = transactions.filter(t => t.isPlaidTransaction).length;
+        const manualTransactions = transactions.filter(t => !t.isPlaidTransaction).length;
+
+        return [
+            {
+                name: "Bank Transactions",
+                value: plaidTransactions
+            },
+            {
+                name: "Cash Transactions",
+                value: manualTransactions
+            }
+        ];
+    };
+
     return (
         <Layout currentUser={currentUser}>
             <div className={styles.dashboard}>
@@ -137,8 +154,18 @@ const TransactionDashboard = () => {
                     </div>
                 </section>
 
+                <section className={styles.chartSection}>
+                    <h2 className={styles.chartTitle}>Transaction Sources</h2>
+                    <div className={styles.chartContainer}>
+                        <PieChartComponent
+                            data={prepareTransactionSourceData(transactions)}
+                            title="Cash vs Bank Transactions"
+                        />
+                    </div>
+                </section>
+
                 <section className={styles.transactionsSection}>
-                    <UncategorizedTransactions />
+                    <UncategorizedTransactions/>
                 </section>
 
                 <section className={styles.transactionsSection}>
@@ -212,7 +239,7 @@ const TransactionDashboard = () => {
                                                             className={styles.deleteButton}
                                                             aria-label="Delete transaction"
                                                         >
-                                                        <Trash2 size={20} />
+                                                            <Trash2 size={20}/>
                                                         </button>
                                                     </div>
                                                 </div>
