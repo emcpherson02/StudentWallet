@@ -66,6 +66,16 @@ class UserController {
         }
     }
 
+    async getNotificationHistory(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const notifications = await this.userService.getNotificationHistory(userId);
+            res.json({ notifications });
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async addCategory(req, res, next) {
         try {
             const { userId, category } = req.body;

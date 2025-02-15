@@ -61,6 +61,20 @@ class UserModel {
         }
     }
 
+    async getNotificationHistory(userId) {
+        const userRef = this.db.collection(this.collection).doc(userId);
+        const snapshot = await userRef
+            .collection('notifications')
+            .orderBy('timestamp', 'desc')
+            .limit(10)
+            .get();
+
+        return snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+    }
+
     async delete(userId) {
         const userRef = this.db.collection(this.collection).doc(userId);
         const doc = await userRef.get();
