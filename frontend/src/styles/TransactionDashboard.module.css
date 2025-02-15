@@ -669,3 +669,26 @@
     align-items: center;
     gap: 1rem;
 }
+
+.transactionIcon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+}
+
+.plaidIcon {
+    color: #3b82f6;  /* Blue colour for Plaid transactions */
+}
+
+.manualIcon {
+    color: #059669;  /* Green colour for manual transactions */
+}
+
+.transactionMain {
+    display: flex;
+    align-items: center;
+}

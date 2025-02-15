@@ -13,7 +13,7 @@ import {
 } from 'recharts';
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
-import {Trash2} from "lucide-react";
+import {Trash2, Banknote, RefreshCw} from "lucide-react";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
@@ -178,25 +178,33 @@ const TransactionDashboard = () => {
                                                     className={styles.transactionCard}>
                                                     <div className={styles.transactionInfo}>
                                                         <div className={styles.transactionMain}>
+                                                            <div className={styles.transactionIcon}>
+                                                                {transaction.isPlaidTransaction ?
+                                                                    <RefreshCw size={16}
+                                                                               className={styles.plaidIcon}/> :
+                                                                    <Banknote size={16} className={styles.manualIcon}/>
+                                                                }
+                                                            </div>
                                                             <div className={styles.typeAndDate}>
-                                                       <span className={styles.transactionType}>
-                                                           {transaction.type}
-                                                       </span>
+                                                                <span className={styles.transactionType}>
+                                                                    {transaction.type}
+                                                                </span>
                                                                 <span className={styles.transactionDate}>
-                                                           {new Date(transaction.date).toLocaleDateString('en-GB', {
-                                                               day: 'numeric'
-                                                           })} {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                                    {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                                        day: 'numeric'
+                                                                    })} {new Date(transaction.date).toLocaleDateString('en-GB', {
                                                                     month: 'short'
                                                                 })}
-                                                       </span>
+                                                                </span>
                                                             </div>
                                                             <span className={styles.transactionCategory}>
-                                                       {transaction.category}
-                                                   </span>
+                                                                {transaction.category}
+                                                            </span>
                                                         </div>
                                                     </div>
                                                     <div className={styles.transactionActions}>
-                                               <span className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
+                                               <span
+                                                   className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
                                                    £{Math.abs(Number(transaction.amount)).toFixed(2)}
                                                </span>
                                                         <button
@@ -204,7 +212,7 @@ const TransactionDashboard = () => {
                                                             className={styles.deleteButton}
                                                             aria-label="Delete transaction"
                                                         >
-                                                            <Trash2 size={20} />
+                                                        <Trash2 size={20} />
                                                         </button>
                                                     </div>
                                                 </div>
