@@ -2,6 +2,7 @@ import React, { useState, memo } from 'react';
 import { Link } from 'react-router-dom';
 import { Bell, Home, Users, LineChart, Wallet, PiggyBank, Library, BarChart2 } from 'lucide-react';
 import styles from '../styles/Layout.module.css';
+import NotificationHistory from "./NotificationHistory";
 
 const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -60,10 +61,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                     <h1 className={styles.siteTitle}>Student Wallet</h1>
                     {showNav && (
                         <div className={styles.topBarActions}>
-                            <button className={`${styles.notificationBtn} notificationBtn`}>
-                                <Bell size={20} />
-                                <span className={styles.notificationBadge}>2</span>
-                            </button>
+                            <NotificationHistory />
                             <div className={styles.userMenuContainer}>
                                 <button
                                     onClick={() => setShowUserMenu(!showUserMenu)}

@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import { X } from 'lucide-react';
-import styles from '../styles/ProductTour.css';
 
 const tourSteps = [
     {
@@ -35,14 +34,14 @@ const tourSteps = [
     },
     {
         title: "Navigation Menu",
-        content: "Access different sections like Transactions, Budget, Analytics, and Loan management.",
+        content: "Access different pages like Transactions Dashboard, Budget Dashboard, Analytics, and Loan management.",
         target: '.sidebarNav',
         position: 'right'
     },
     {
         title: "Notifications",
         content: "Check your notification history here for budget alerts and loan updates.",
-        target: '.notificationBtn',
+        target: '.notification-button',
         position: 'left'
     },
     {
@@ -110,7 +109,7 @@ const ProductTour = ({ onComplete }) => {
                 break;
             case 'left':
                 // Special handling for notification button and user menu
-                if (currentTourStep.target.includes('notificationBtn') || currentTourStep.target.includes('userBtn')) {
+                if (currentTourStep.target.includes('notification-button') || currentTourStep.target.includes('userBtn')) {
                     // Calculate if there's enough space above
                     const spaceAbove = rect.top;
                     const popupHeight = 180; // Approximate height of popup
