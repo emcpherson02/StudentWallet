@@ -105,6 +105,23 @@ class UserService {
             throw new DatabaseError('Failed to delete category');
         }
     }
+
+    async toggleNotifications(userId, enabled) {
+        if (!userId) {
+            throw new ValidationError('Missing userId');
+        }
+
+        try {
+            const updated = await this.userModel.update(userId, { notificationsEnabled: enabled });
+            if (!updated) {
+                throw new NotFoundError('User not found');
+            }
+            return { notificationsEnabled: enabled };
+        } catch (error) {
+            if (error instanceof NotFoundError) throw error;
+            throw new DatabaseError('Failed to update notification settings');
+        }
+    }
 }
 
 module.exports = UserService;
