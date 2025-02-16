@@ -6,6 +6,13 @@ function Home() {
     return (
         <div className={styles.Home}>
             <header className={styles.HomeHeader}>
+                <div className={styles.logoContainer}>
+                    <img
+                        src="/LogoNew.webp"
+                        alt="StudentWallet Logo"
+                        className={styles.logo}
+                    />
+                </div>
                 <h1>Welcome to StudentWallet</h1>
                 <p>Your one-stop solution for managing finances efficiently as a student.</p>
                 <div className={styles.HomeButtons}>

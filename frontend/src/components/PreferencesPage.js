@@ -9,7 +9,7 @@ import UpdateUserForm from './UpdateUserForm';
 import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
 import Layout from './Layout';
-
+import CategoryManagement from './CustomCategoryManagement';
 function PreferencesPage() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -193,7 +193,10 @@ function PreferencesPage() {
                             Get timely updates about your budgets, loan instalments, and important account activities.
                         </p>
                     </section>
-
+                    {/* Categories Management Section */}
+                    <section className={styles.card}>
+                        <CategoryManagement />
+                    </section>
                     {/* Account Deletion Section */}
                     <section className={styles.deleteSection}>
                         <DeleteAccountButton currentUser={currentUser} />

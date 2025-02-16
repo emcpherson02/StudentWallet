@@ -75,10 +75,12 @@ const BudgetAnalytics = () => {
 
     // Format date range for the Budget Spend Trends chart
     const formattedData = useMemo(() => {
-        return analytics?.trends?.spentTrends.map(item => ({
+        const data = analytics?.trends?.spentTrends.map(item => ({
             ...item,
-            dateRange: new Date(item.date).toLocaleString("default", { month: "short", year: "numeric" })
+            dateRange: new Date(item.date).toLocaleString("default", { month: "short", year: "numeric" }),
+            sortDate: new Date(item.date)
         })) || [];
+        return data.sort((a, b) => a.sortDate - b.sortDate);
     }, [analytics]);
 
     return (

@@ -63,4 +63,26 @@
     text-decoration: none;
     font-weight: bold;
 }
+.logoContainer {
+    margin-bottom: 1rem;
+}
 
+.logo {
+    width: 120px;
+    height: 120px;
+    margin: 0 auto;
+    display: block;
+    animation: float 3s ease-in-out infinite;
+}
+
+@keyframes float {
+    0% {
+        transform: translateY(0px);
+    }
+    50% {
+        transform: translateY(-10px);
+    }
+    100% {
+        transform: translateY(0px);
+    }
+}
