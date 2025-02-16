@@ -19,7 +19,7 @@ class LoanNotificationService {
 
     initializeDailyCheck() {
         // Run at 9 AM every day
-        cron.schedule('31 23 * * *', async () => {
+        cron.schedule('0 9 * * *', async () => {
             try {
                 console.log('Running daily instalment check...');
                 const users = await this.userModel.findAllWithNotifications();
