@@ -9,6 +9,8 @@ import TransactionForm from './TransactionForm';
 import BudgetForm from './BudgetForm';
 import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote } from 'lucide-react';
 import Layout from './Layout';
+import ProductTour from './ProductTour';
+import '../styles/ProductTour.css';
 
 function PlaidLink() {
   const {currentUser} = useAuth();
@@ -310,7 +312,7 @@ function PlaidLink() {
           </section>
 
           {/* Quick Actions Grid */}
-          <section className={styles.quickActions}>
+          <section className={`${styles.quickActions} quickActions`}>
             <button
                 onClick={() => setIsTransactionModalOpen(true)}
                 className={styles.actionCard}
@@ -343,7 +345,7 @@ function PlaidLink() {
               <div className={styles.sectionHeader}>
                 <h2>Accounts</h2>
               </div>
-              <div className={styles.accountsContainer}>
+              <div className={`${styles.accountsContainer} accountsContainer`}>
                 {!linkedBank ? (
                     <div className={styles.emptyStateCard}>
                       <CreditCard className="w-12 h-12 text-gray-400" />
@@ -397,7 +399,7 @@ function PlaidLink() {
                   <Plus className="w-5 h-5"/>
                 </button>
               </div>
-              <div className={styles.transactionsContainer}>
+              <div className={`${styles.transactionsContainer} transactionsContainer`}>
                 {transactions.length === 0 ? (
                     <div className={styles.emptyStateCard}>
                       <Wallet className="w-12 h-12 text-gray-400"/>
@@ -447,7 +449,7 @@ function PlaidLink() {
                   </button>
                 </div>
               </div>
-              <div className={styles.budgetsContainer}>
+              <div className={`${styles.budgetsContainer} budgetsContainer`}>
                 {budgets.length === 0 ? (
                     <div className={styles.emptyStateCard}>
                       <Wallet className="w-12 h-12 text-gray-400" />
@@ -514,6 +516,9 @@ function PlaidLink() {
                   }}
               />
           )}
+          <ProductTour
+              onComplete={() => console.log('Tour completed!')}
+          />
         </div>
       </Layout>
   );

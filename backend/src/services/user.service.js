@@ -122,6 +122,14 @@ class UserService {
             throw new DatabaseError('Failed to update notification settings');
         }
     }
+
+    async getNotificationHistory(userId) {
+        try {
+            return await this.userModel.getNotificationHistory(userId);
+        } catch (error) {
+            throw new DatabaseError('Failed to fetch notification history');
+        }
+    }
 }
 
 module.exports = UserService;
