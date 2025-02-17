@@ -44,6 +44,12 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.deleteCategory.bind(userController)
     );
 
+    router.get(
+        '/notification-history',
+        authMiddleware.verifyToken,
+        userController.getNotificationHistory.bind(userController)
+    );
+
     return router;
 };
 

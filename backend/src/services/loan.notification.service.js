@@ -5,6 +5,7 @@ const { admin } = require('../config/firebase.config');
 class LoanNotificationService {
     constructor(userModel) {
         this.userModel = userModel;
+        this.db = userModel.db;
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -99,7 +100,7 @@ class LoanNotificationService {
             console.log('Spending percentage:', spendingPercentage);
 
             if (spendingPercentage >= 80) {
-                await this.sendSpendingAlert(user.email, {
+                await this.sendSpendingAlert(userId, user.email, {
                     spentAmount: currentSpent,
                     availableAmount: totalAvailable,
                     percentage: spendingPercentage
@@ -159,7 +160,7 @@ class LoanNotificationService {
 
                 if (daysUntil <= 3 && daysUntil > 0) {
                     console.log('Sending instalment reminder');
-                    await this.sendInstalmentReminder(user.email, nextInstalment);
+                    await this.sendInstalmentReminder(userId, user.email, nextInstalment);
                 }
             }
         } catch (error) {
@@ -186,7 +187,7 @@ class LoanNotificationService {
         return Math.ceil(difference / (1000 * 60 * 60 * 24));
     }
 
-    async sendSpendingAlert(userEmail, data) {
+    async sendSpendingAlert(userId, userEmail, data) {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: userEmail,
@@ -205,6 +206,11 @@ class LoanNotificationService {
         try {
             const result = await this.transporter.sendMail(mailOptions);
             console.log('Spending alert email sent:', result);
+            await this.storeNotification(
+                userId,  // Use the userId that was passed in
+                'Loan Spending Alert',
+                `You have spent ${data.percentage.toFixed(1)}% of your available loan amount.`
+            );
             return result;
         } catch (error) {
             console.error('Failed to send spending alert email:', error);
@@ -212,7 +218,7 @@ class LoanNotificationService {
         }
     }
 
-    async sendInstalmentReminder(userEmail, instalment) {
+    async sendInstalmentReminder(userId, userEmail, instalment) {
         const mailOptions = {
             from: process.env.EMAIL_USER,
             to: userEmail,
@@ -231,10 +237,32 @@ class LoanNotificationService {
         try {
             const result = await this.transporter.sendMail(mailOptions);
             console.log('Instalment reminder email sent:', result);
+            await this.storeNotification(
+                userId,  // Use the userId that was passed in
+                'Loan Instalment Reminder',
+                `Your next loan instalment is due in ${this.calculateDaysUntil(instalment.date)} days.`
+            );
             return result;
         } catch (error) {
             console.error('Failed to send instalment reminder email:', error);
             throw error;
+        }
+    }
+
+    async storeNotification(userId, title, message) {
+        try {
+            console.log('Storing notification for user:', userId);
+            const userRef = this.db.collection('users').doc(userId);
+            const result = await userRef.collection('notifications').add({
+                title,
+                message,
+                timestamp: new Date().toISOString(),
+                type: 'email'
+            });
+            console.log('Notification stored successfully:', result.id);
+        } catch (error) {
+            console.error('Error storing notification:', error);
+            console.error('Error details:', {userId, title, message});
         }
     }
 }
