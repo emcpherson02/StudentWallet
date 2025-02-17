@@ -1,0 +1,105 @@
+.aboutContainer {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: #f9fafb;
+    min-height: calc(100vh - 4rem);
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 3rem;
+}
+
+.header h1 {
+    font-size: 2.5rem;
+    color: #1f2937;
+    margin-bottom: 1rem;
+}
+
+.subtitle {
+    font-size: 1.125rem;
+    color: #6b7280;
+}
+
+.projectSection,
+.featuresSection,
+.teamSection,
+.contactSection {
+    background: white;
+    border-radius: 0.75rem;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+h2 {
+    font-size: 1.5rem;
+    color: #1f2937;
+    margin-bottom: 1.5rem;
+}
+
+p {
+    color: #4b5563;
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+.featuresGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+}
+
+.featureCard {
+    background: #f9fafb;
+    padding: 1.5rem;
+    border-radius: 0.5rem;
+    border: 1px solid #e5e7eb;
+}
+
+.featureCard h3 {
+    color: #1f2937;
+    font-size: 1.125rem;
+    margin-bottom: 0.75rem;
+}
+
+.featureCard p {
+    color: #6b7280;
+    font-size: 0.875rem;
+    margin: 0;
+}
+
+.contactSection {
+    text-align: center;
+}
+
+.contactButton {
+    display: inline-block;
+    background: #282c34;
+    color: white;
+    padding: 0.75rem 2rem;
+    border-radius: 0.5rem;
+    text-decoration: none;
+    font-weight: 500;
+    transition: background-color 0.2s;
+    margin-top: 1rem;
+}
+
+.contactButton:hover {
+    background: #364195;
+}
+
+@media (max-width: 768px) {
+    .aboutContainer {
+        padding: 1rem;
+    }
+
+    .header h1 {
+        font-size: 2rem;
+    }
+
+    .featuresGrid {
+        grid-template-columns: 1fr;
+    }
+}

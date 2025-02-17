@@ -26,7 +26,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                     <Home size={20} />
                     <span>Home</span>
                   </Link>
-                  <Link to="/AboutUs" className={styles.navLink}>
+                  <Link to="/about-us" className={styles.navLink}>
                     <Users size={20} />
                     <span>About Us</span>
                   </Link>
