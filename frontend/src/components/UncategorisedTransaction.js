@@ -5,6 +5,7 @@ import DatePicker from 'react-datepicker';
 import { Calendar, DollarSign } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/UncategorisedTransaction.css';
+import { TRANSACTION_CATEGORIES } from '../utils/constants';
 
 const UncategorizedTransaction = () => {
     const { currentUser } = useAuth();
@@ -18,15 +19,38 @@ const UncategorizedTransaction = () => {
         return new Date(now.getFullYear(), now.getMonth(), 1);
     });
     const [endDate, setEndDate] = useState(new Date());
+    const [categories, setCategories] = useState([]);
+    const defaultCategories = Object.values(TRANSACTION_CATEGORIES);
 
-    const categories = [
-        'Groceries',
-        'Utilities',
-        'Entertainment',
-        'Transportation',
-        'Rent',
-        'Other'
-    ];
+
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    'http://localhost:3001/user/categories',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                // Extract custom categories from response data
+                const customCategories = response.data.data || [];
+
+                // Combine default and custom categories
+                const allCategories = [...defaultCategories, ...customCategories];
+
+                // Remove duplicates and set categories
+                setCategories([...new Set(allCategories)]);
+            } catch (error) {
+                console.error('Error fetching categories:', error);
+                setCategories(defaultCategories);
+            }
+        };
+
+        fetchCategories();
+    }, [currentUser]);
 
     const fetchData = async () => {
         try {
@@ -100,7 +124,7 @@ const UncategorizedTransaction = () => {
     return (
         <div className="uncategorizedWrapper">
             <div className="header">
-                <h2>Uncategorized Transactions</h2>
+                <h2>Uncategorised Transactions</h2>
                 <div className="dateRange">
                     <div className="dateInput">
                         <Calendar size={16} />
@@ -125,7 +149,7 @@ const UncategorizedTransaction = () => {
             {successMessage && <div className="successMessage">{successMessage}</div>}
 
             {filteredTransactions.length === 0 ? (
-                <div className="emptyState">No uncategorized transactions found</div>
+                <div className="emptyState">No uncategorised transactions found</div>
             ) : (
                 <div className="transactionsList">
                     {filteredTransactions.map(tx => (

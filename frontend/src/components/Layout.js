@@ -39,7 +39,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                             </Link>
                             <Link to="/budget-analytics" className={styles.navLink}>
                                 <BarChart2 size={20} />
-                                <span>Analytics</span>
+                                <span>Historical Analytics</span>
                             </Link>
                             <Link to="/loan-dashboard" className={styles.navLink}>
                                 <PiggyBank size={20} />
