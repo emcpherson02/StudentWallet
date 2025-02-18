@@ -66,7 +66,7 @@ const AboutUs = () => {
                         We're always looking to improve StudentWallet and would love to hear your feedback. 
                         If you have any questions or suggestions, please feel free to reach out to our team.
                     </p>
-                    <a href="mailto:team@studentwallet.com" className={styles.contactButton}>
+                    <a href="mailto:csc3032team15@gmail.com" className={styles.contactButton}>
                         Contact Us
                     </a>
                 </section>
