@@ -9,6 +9,7 @@ import LoanDashboard from "./components/LoanDashboard";
 import Tips from './components/Tips';
 import TransactionDashboard from "./components/TransactionDashboard";
 import PreferencesPage from './components/PreferencesPage';
+import AboutUs from './components/AboutUs';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './styles/darkMode.css';
 
@@ -29,6 +30,7 @@ function App() {
               <Route path={"/tips"} element={<Tips />} />
               <Route path="/transaction-dashboard" element={<TransactionDashboard />} />
               <Route path="/preferences" element={<PreferencesPage />} />
+              <Route path="/about-us" element={<AboutUs />} />
               {/* Add other routes here */}
           </Routes>
       </div>

@@ -2,6 +2,7 @@
   "dependencies": {
     "@radix-ui/react-select": "^2.1.5",
     "@radix-ui/react-switch": "^1.1.2",
-    "lucide-react": "^0.474.0"
+    "lucide-react": "^0.474.0",
+    "react-datepicker": "^8.0.0"
   }
 }
