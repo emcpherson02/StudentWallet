@@ -5,10 +5,7 @@ serviceAccountKey.json
 frontend/src/.env
 backend/.env
 .env
-backend/package.json
 
-/package.json
-/package-lock.json
 /backend/coverage/lcov-report/controllers/auth.controller.js.html
 /backend/coverage/lcov-report/base.css
 /backend/coverage/lcov-report/block-navigation.js
