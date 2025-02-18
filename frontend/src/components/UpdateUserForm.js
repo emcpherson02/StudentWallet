@@ -16,7 +16,7 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClos
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.put(
-                `http://localhost:3001/user/update/${userId}`,
+                `http://localhost:3001/user/update_user/${userId}`,
                 {
                     displayName: formData.name,
                     email: formData.email,

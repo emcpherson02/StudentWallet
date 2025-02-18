@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
+import PieChartComponent from './PieChartComponent';
 import {
     BarChart,
     Bar,
@@ -13,6 +14,7 @@ import {
 } from 'recharts';
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
+import {Trash2, Banknote, RefreshCw} from "lucide-react";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
@@ -57,6 +59,26 @@ const TransactionDashboard = () => {
         fetchData();
     }, [currentUser]);
 
+    const handleDeleteTransaction = async (transactionId) => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.delete(
+                `http://localhost:3001/transactions/delete_transaction/${transactionId}`,
+                {
+                    data: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Remove the deleted transaction from state
+            setTransactions(prevTransactions =>
+                prevTransactions.filter(transaction => transaction.id !== transactionId)
+            );
+        } catch (error) {
+            console.error('Error deleting transaction:', error);
+        }
+    };
+
     if (loading) {
         return (
             <Layout currentUser={currentUser}>
@@ -67,6 +89,35 @@ const TransactionDashboard = () => {
         );
     }
 
+    const prepareTransactionSourceData = (transactions) => {
+        const plaidTransactions = transactions.filter(t => t.isPlaidTransaction).length;
+        const manualTransactions = transactions.filter(t => !t.isPlaidTransaction).length;
+
+        return [
+            {
+                name: "Bank Transactions",
+                value: plaidTransactions
+            },
+            {
+                name: "Cash Transactions",
+                value: manualTransactions
+            }
+        ];
+    };
+
+    const prepareCategoryData = (transactions) => {
+        const categoryTotals = transactions.reduce((acc, transaction) => {
+            const category = transaction.category || 'Uncategorized';
+            acc[category] = (acc[category] || 0) + Math.abs(Number(transaction.amount));
+            return acc;
+        }, {});
+
+        return Object.entries(categoryTotals).map(([category, total]) => ({
+            name: category,
+            value: total
+        }));
+    };
+
     return (
         <Layout currentUser={currentUser}>
             <div className={styles.dashboard}>
@@ -75,7 +126,6 @@ const TransactionDashboard = () => {
                     <p className={styles.subtitle}>Analyse your spending patterns and trends</p>
                 </header>
 
-                {/* Stats Overview */}
                 <div className={styles.statsGrid}>
                     <div className={styles.statCard}>
                         <p className={styles.statLabel}>Average Transaction</p>
@@ -97,59 +147,48 @@ const TransactionDashboard = () => {
                     </div>
                 </div>
 
-                {/* Daily Spending Chart */}
                 <section className={styles.chartSection}>
                     <h2 className={styles.chartTitle}>Daily Spending Pattern</h2>
                     <div className={styles.chartContainer}>
                         <ResponsiveContainer>
                             <BarChart data={analytics?.dailySpendingPattern || []}>
                                 <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0"/>
-                                <XAxis
-                                    dataKey="day"
-                                    tick={{fill: '#6b7280'}}
-                                    axisLine={{stroke: '#e5e7eb'}}
-                                />
-                                <YAxis
-                                    tick={{fill: '#6b7280'}}
-                                    axisLine={{stroke: '#e5e7eb'}}
-                                />
-                                <Tooltip
-                                    content={({active, payload}) => {
-                                        if (active && payload && payload.length) {
-                                            const data = payload[0].payload;
-                                            const amount = typeof data.amount === 'number' ? data.amount.toFixed(2) : '0.00';
-                                            const totalSpent = typeof data.totalSpent === 'number' ? data.totalSpent.toFixed(2) : '0.00';
-
-                                            return (
-                                                <div className={styles.customTooltip}>
-                                                    <p className={styles.tooltipLabel}>{data.day}</p>
-                                                    <p>Average Spend: £{amount}</p>
-                                                    <p>Total Spent: £{totalSpent}</p>
-                                                    <p>Number of Transactions: {data.transactionCount || 0}</p>
-                                                </div>
-                                            );
-                                        }
-                                        return null;
-                                    }}
-                                    contentStyle={{
-                                        background: 'white',
-                                        border: '1px solid #e5e7eb',
-                                        borderRadius: '0.5rem',
-                                        padding: '0.75rem'
-                                    }}
-                                />
-                                <Bar
-                                    dataKey="amount"
-                                    fill="#3b82f6"
-                                    radius={[4, 4, 0, 0]}
-                                />
+                                <XAxis dataKey="day" tick={{fill: '#6b7280'}} axisLine={{stroke: '#e5e7eb'}}/>
+                                <YAxis tick={{fill: '#6b7280'}} axisLine={{stroke: '#e5e7eb'}}/>
+                                <Tooltip contentStyle={{
+                                    background: 'white',
+                                    border: '1px solid #e5e7eb',
+                                    borderRadius: '0.5rem',
+                                    padding: '0.75rem'
+                                }}/>
+                                <Bar dataKey="amount" fill="#3b82f6" radius={[4, 4, 0, 0]}/>
                             </BarChart>
                         </ResponsiveContainer>
                     </div>
                 </section>
-                <section className={styles.transactionsSection}>
-                    <UncategorizedTransactions />
+
+                <section className={styles.chartSection}>
+                    <h2 className={styles.chartTitle}>Transaction Analysis</h2>
+                    <div className={styles.pieChartsContainer}>
+                        <div className={styles.pieChartWrapper}>
+                            <PieChartComponent
+                                data={prepareTransactionSourceData(transactions)}
+                                title="Cash vs Bank Transactions"
+                            />
+                        </div>
+                        <div className={styles.pieChartWrapper}>
+                            <PieChartComponent
+                                data={prepareCategoryData(transactions)}
+                                title="Spending by Category"
+                            />
+                        </div>
+                    </div>
                 </section>
+
+                <section className={styles.transactionsSection}>
+                    <UncategorizedTransactions/>
+                </section>
+
                 <section className={styles.transactionsSection}>
                     <div className={styles.transactionsHeader}>
                         <h2 className={styles.transactionsTitle}>Transaction History</h2>
@@ -169,7 +208,6 @@ const TransactionDashboard = () => {
                                     return groups;
                                 }, {})
                             )
-                                // Sort months in descending order (most recent first)
                                 .sort(([dateA], [dateB]) => {
                                     const [monthA, yearA] = dateA.split(' ').reverse();
                                     const [monthB, yearB] = dateB.split(' ').reverse();
@@ -181,7 +219,6 @@ const TransactionDashboard = () => {
                                             <span>{monthYear}</span>
                                         </div>
                                         {groupTransactions
-                                            // Sort transactions within each month by date (most recent first)
                                             .sort((a, b) => new Date(b.date) - new Date(a.date))
                                             .map((transaction) => (
                                                 <div
@@ -189,28 +226,42 @@ const TransactionDashboard = () => {
                                                     className={styles.transactionCard}>
                                                     <div className={styles.transactionInfo}>
                                                         <div className={styles.transactionMain}>
+                                                            <div className={styles.transactionIcon}>
+                                                                {transaction.isPlaidTransaction ?
+                                                                    <RefreshCw size={16}
+                                                                               className={styles.plaidIcon}/> :
+                                                                    <Banknote size={16} className={styles.manualIcon}/>
+                                                                }
+                                                            </div>
                                                             <div className={styles.typeAndDate}>
-                                            <span className={styles.transactionType}>
-                                                {transaction.type}
-                                            </span>
+                                                                <span className={styles.transactionType}>
+                                                                    {transaction.type}
+                                                                </span>
                                                                 <span className={styles.transactionDate}>
-                                                {new Date(transaction.date).toLocaleDateString('en-GB', {
-                                                    day: 'numeric'
-                                                })} {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                                    {new Date(transaction.date).toLocaleDateString('en-GB', {
+                                                                        day: 'numeric'
+                                                                    })} {new Date(transaction.date).toLocaleDateString('en-GB', {
                                                                     month: 'short'
                                                                 })}
-                                            </span>
+                                                                </span>
                                                             </div>
                                                             <span className={styles.transactionCategory}>
-                                            {transaction.category}
-                                        </span>
+                                                                {transaction.category}
+                                                            </span>
                                                         </div>
                                                     </div>
-                                                    <div className={styles.transactionAmount}>
-                                    <span
-                                        className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
-                                        £{Math.abs(Number(transaction.amount)).toFixed(2)}
-                                    </span>
+                                                    <div className={styles.transactionActions}>
+                                               <span
+                                                   className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
+                                                   £{Math.abs(Number(transaction.amount)).toFixed(2)}
+                                               </span>
+                                                        <button
+                                                            onClick={() => handleDeleteTransaction(transaction.id)}
+                                                            className={styles.deleteButton}
+                                                            aria-label="Delete transaction"
+                                                        >
+                                                            <Trash2 size={20}/>
+                                                        </button>
                                                     </div>
                                                 </div>
                                             ))}

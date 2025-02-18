@@ -3,6 +3,7 @@ const nodemailer = require('nodemailer');
 class BudgetNotificationService {
     constructor(userModel) {
         this.userModel = userModel;
+        this.db = userModel.db;
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -30,6 +31,11 @@ class BudgetNotificationService {
                 console.log('Budget limit exceeded, sending email to:', user.email);
                 await this.sendBudgetLimitEmail(user.email, budgetCategory, spent, limit);
                 console.log('Email sent successfully');
+                await this.storeNotification(
+                    userId,
+                    'Budget Limit Alert',
+                    `Your ${budgetCategory} budget has reached its limit.`
+                );
             } else {
                 console.log('Budget within limits:', { spent, limit });
             }
@@ -82,10 +88,32 @@ class BudgetNotificationService {
         try {
             const result = await this.transporter.sendMail(mailOptions);
             console.log('Email sent:', result);
+            await this.storeNotification(
+                userid,
+                'Budget Rollover Alert',
+                `Your ${category} budget has been rolled over to the next period.`
+            );
             return result;
         } catch (error) {
             console.error('Email sending failed:', error);
             throw error;
+        }
+    }
+
+    async storeNotification(userId, title, message) {
+        try {
+            console.log('Storing notification for user:', userId);
+            const userRef = this.db.collection('users').doc(userId);
+            const result = await userRef.collection('notifications').add({
+                title,
+                message,
+                timestamp: new Date().toISOString(),
+                type: 'email'
+            });
+            console.log('Notification stored successfully:', result.id);
+        } catch (error) {
+            console.error('Error storing notification:', error);
+            console.error('Error details:', {userId, title, message});
         }
     }
 }

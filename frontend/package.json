@@ -4,6 +4,7 @@
   "private": true,
   "dependencies": {
     "@jest/globals": "^29.7.0",
+    "ansi-styles": "^6.2.1",
     "axios": "^1.7.7",
     "firebase": "^11.0.1",
     "lucide-react": "^0.460.0",

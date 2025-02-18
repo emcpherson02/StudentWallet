@@ -48,8 +48,8 @@
 }
 
 .navLink:hover {
-    background-color: #f3f4f6;
-    color: #1a73e8;
+    background-color: #1a73e8;
+    color: white;
 }
 
 .navLink span {
