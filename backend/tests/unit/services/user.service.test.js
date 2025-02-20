@@ -1,5 +1,5 @@
 const UserService = require('../../../src/services/user.service');
-const { NotFoundError, DatabaseError } = require('../../../src/utils/errors');
+const { NotFoundError, DatabaseError, ValidationError } = require('../../../src/utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../../../src/utils/constants');
 const { admin } = require('../../../src/config/firebase.config');
 
@@ -14,16 +14,22 @@ jest.mock('../../../src/config/firebase.config', () => ({
 describe('UserService', () => {
     let userService;
     let mockUserModel;
+    let mockBudgetModel;
+    let mockBudgetNotificationService;
 
     beforeEach(() => {
         mockUserModel = {
             findById: jest.fn(),
             getLinkedAccounts: jest.fn(),
             update: jest.fn(),
-            delete: jest.fn()
+            delete: jest.fn(),
+            addCategory: jest.fn(),
+            getCategories: jest.fn(),
+            deleteCategory: jest.fn(),
+            getNotificationHistory: jest.fn()
         };
 
-        userService = new UserService(mockUserModel);
+        userService = new UserService(mockUserModel, mockBudgetModel, mockBudgetNotificationService);
     });
 
     afterEach(() => {
@@ -36,37 +42,34 @@ describe('UserService', () => {
             id: userId,
             name: 'Test User',
             email: 'test@example.com',
-            linkedBank: true
+            linkedBank: true,
+            notificationsEnabled: true
         };
-        const mockAccounts = [
-            { type: 'checking', balance: 1000 },
-            { type: 'savings', balance: 5000 }
-        ];
 
-        it('should return user data with linked accounts when bank is connected', async () => {
+        it('should return user data with linkedBank and notifications status', async () => {
             mockUserModel.findById.mockResolvedValue(mockUserData);
-            mockUserModel.getLinkedAccounts.mockResolvedValue(mockAccounts);
 
             const result = await userService.getUserData(userId);
 
             expect(result).toEqual({
                 linkedBank: true,
-                accounts: mockAccounts
+                notificationsEnabled: true
             });
             expect(mockUserModel.findById).toHaveBeenCalledWith(userId);
-            expect(mockUserModel.getLinkedAccounts).toHaveBeenCalledWith(userId);
         });
 
-        it('should return only linkedBank status when bank is not connected', async () => {
+        it('should return default values when optional fields are missing', async () => {
             mockUserModel.findById.mockResolvedValue({
-                ...mockUserData,
-                linkedBank: false
+                id: userId,
+                name: 'Test User'
             });
 
             const result = await userService.getUserData(userId);
 
-            expect(result).toEqual({ linkedBank: false });
-            expect(mockUserModel.getLinkedAccounts).not.toHaveBeenCalled();
+            expect(result).toEqual({
+                linkedBank: false,
+                notificationsEnabled: false
+            });
         });
 
         it('should throw NotFoundError when user does not exist', async () => {
@@ -75,7 +78,6 @@ describe('UserService', () => {
             await expect(userService.getUserData(userId))
                 .rejects
                 .toThrow(NotFoundError);
-            expect(mockUserModel.getLinkedAccounts).not.toHaveBeenCalled();
         });
 
         it('should throw DatabaseError when database operation fails', async () => {
@@ -87,6 +89,124 @@ describe('UserService', () => {
         });
     });
 
+    describe('toggleNotifications', () => {
+        const userId = 'test-user-id';
+
+        it('should successfully toggle notifications on', async () => {
+            mockUserModel.update.mockResolvedValue({ notificationsEnabled: true });
+
+            const result = await userService.toggleNotifications(userId, true);
+
+            expect(result).toEqual({ notificationsEnabled: true });
+            expect(mockUserModel.update).toHaveBeenCalledWith(userId, { notificationsEnabled: true });
+        });
+
+        it('should successfully toggle notifications off', async () => {
+            mockUserModel.update.mockResolvedValue({ notificationsEnabled: false });
+
+            const result = await userService.toggleNotifications(userId, false);
+
+            expect(result).toEqual({ notificationsEnabled: false });
+            expect(mockUserModel.update).toHaveBeenCalledWith(userId, { notificationsEnabled: false });
+        });
+
+        it('should throw ValidationError when userId is missing', async () => {
+            await expect(userService.toggleNotifications(null, true))
+                .rejects
+                .toThrow(ValidationError);
+        });
+
+        it('should throw NotFoundError when user does not exist', async () => {
+            mockUserModel.update.mockResolvedValue(null);
+
+            await expect(userService.toggleNotifications(userId, true))
+                .rejects
+                .toThrow(NotFoundError);
+        });
+    });
+
+    describe('category management', () => {
+        const userId = 'test-user-id';
+        const category = 'New Category';
+
+        describe('addCategory', () => {
+            it('should successfully add a category', async () => {
+                mockUserModel.addCategory.mockResolvedValue(category);
+
+                const result = await userService.addCategory(userId, category);
+
+                expect(result).toBe(category);
+                expect(mockUserModel.addCategory).toHaveBeenCalledWith(userId, category);
+            });
+
+            it('should throw ValidationError when params are missing', async () => {
+                await expect(userService.addCategory(null, category))
+                    .rejects
+                    .toThrow(ValidationError);
+            });
+        });
+
+        describe('getCategories', () => {
+            it('should successfully retrieve categories', async () => {
+                const mockCategories = ['Category 1', 'Category 2'];
+                mockUserModel.getCategories.mockResolvedValue(mockCategories);
+
+                const result = await userService.getCategories(userId);
+
+                expect(result).toEqual(mockCategories);
+                expect(mockUserModel.getCategories).toHaveBeenCalledWith(userId);
+            });
+
+            it('should throw ValidationError when userId is missing', async () => {
+                await expect(userService.getCategories(null))
+                    .rejects
+                    .toThrow(ValidationError);
+            });
+        });
+
+        describe('deleteCategory', () => {
+            it('should successfully delete a category', async () => {
+                mockUserModel.deleteCategory.mockResolvedValue(true);
+
+                const result = await userService.deleteCategory(userId, category);
+
+                expect(result).toBe(true);
+                expect(mockUserModel.deleteCategory).toHaveBeenCalledWith(userId, category);
+            });
+
+            it('should throw ValidationError when params are missing', async () => {
+                await expect(userService.deleteCategory(null, category))
+                    .rejects
+                    .toThrow(ValidationError);
+            });
+        });
+    });
+
+    describe('getNotificationHistory', () => {
+        const userId = 'test-user-id';
+
+        it('should successfully retrieve notification history', async () => {
+            const mockHistory = [
+                { id: 1, message: 'Test notification' }
+            ];
+            mockUserModel.getNotificationHistory.mockResolvedValue(mockHistory);
+
+            const result = await userService.getNotificationHistory(userId);
+
+            expect(result).toEqual(mockHistory);
+            expect(mockUserModel.getNotificationHistory).toHaveBeenCalledWith(userId);
+        });
+
+        it('should throw DatabaseError when retrieval fails', async () => {
+            mockUserModel.getNotificationHistory.mockRejectedValue(new Error('Retrieval failed'));
+
+            await expect(userService.getNotificationHistory(userId))
+                .rejects
+                .toThrow(DatabaseError);
+        });
+    });
+
+    // Keep existing updateUser and deleteUser tests
     describe('updateUser', () => {
         const userId = 'test-user-id';
         const updates = {
