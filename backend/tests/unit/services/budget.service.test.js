@@ -10,6 +10,8 @@ describe('BudgetService', () => {
     let budgetService;
     let mockBudgetModel;
     let mockTransactionModel;
+    let mockBudgetNotificationService;
+    let mockUserModel;
 
     beforeEach(() => {
         mockBudgetModel = {
@@ -17,12 +19,25 @@ describe('BudgetService', () => {
             findByUserId: jest.fn(),
             findById: jest.fn(),
             update: jest.fn(),
-            delete: jest.fn()
+            delete: jest.fn(),
+            linkTransactionToBudget: jest.fn()
         };
         mockTransactionModel = {
-            findByUserId: jest.fn()
+            findByUserId: jest.fn(),
+            findById: jest.fn()  // Added this mock
         };
-        budgetService = new BudgetService(mockBudgetModel, mockTransactionModel);
+        mockBudgetNotificationService = {
+            checkAndNotifyBudgetLimit: jest.fn()
+        };
+        mockUserModel = {
+            findById: jest.fn()
+        };
+        budgetService = new BudgetService(
+            mockBudgetModel,
+            mockTransactionModel,
+            mockBudgetNotificationService,
+            mockUserModel
+        );
     });
 
     afterEach(() => {
@@ -40,8 +55,9 @@ describe('BudgetService', () => {
         };
 
         it('should successfully add a budget', async () => {
-            validateCategory.mockReturnValue(true);
+            validateCategory.mockResolvedValue(true);
             mockBudgetModel.create.mockResolvedValue({ id: 'budget-id', ...validBudgetData });
+            mockTransactionModel.findByUserId.mockResolvedValue([]);
 
             const result = await budgetService.addBudget(userId, validBudgetData);
 
@@ -52,6 +68,11 @@ describe('BudgetService', () => {
                 startDate: validBudgetData.startDate,
                 endDate: validBudgetData.endDate
             });
+            expect(validateCategory).toHaveBeenCalledWith(
+                validBudgetData.category,
+                mockUserModel,
+                userId
+            );
         });
 
         it('should throw ValidationError when required fields are missing', async () => {
@@ -64,15 +85,48 @@ describe('BudgetService', () => {
         });
 
         it('should throw ValidationError when category is invalid', async () => {
-            validateCategory.mockReturnValue(false);
+            validateCategory.mockResolvedValue(false);
 
             await expect(budgetService.addBudget(userId, validBudgetData))
                 .rejects
                 .toThrow(ValidationError);
         });
 
+        it('should successfully add budget and link existing transactions', async () => {
+            validateCategory.mockResolvedValue(true);
+            const mockBudget = { id: 'budget-id', ...validBudgetData };
+            mockBudgetModel.create.mockResolvedValue(mockBudget);
+
+            const mockTransactions = [
+                {
+                    id: 'tx1',
+                    category: 'Food',
+                    Amount: 100,
+                    date: '2024-01-15'
+                }
+            ];
+            mockTransactionModel.findByUserId.mockResolvedValue(mockTransactions);
+            mockBudgetModel.linkTransactionToBudget.mockResolvedValue(true);
+            mockBudgetModel.update.mockResolvedValue({ ...mockBudget, spent: 100 });
+
+            const result = await budgetService.addBudget(userId, validBudgetData);
+
+            expect(result).toEqual(expect.objectContaining(validBudgetData));
+            expect(mockBudgetModel.linkTransactionToBudget).toHaveBeenCalledWith(
+                userId,
+                'budget-id',
+                'tx1'
+            );
+            expect(mockBudgetNotificationService.checkAndNotifyBudgetLimit).toHaveBeenCalledWith(
+                userId,
+                validBudgetData.category,
+                100,
+                validBudgetData.amount
+            );
+        });
+
         it('should throw DatabaseError when creation fails', async () => {
-            validateCategory.mockReturnValue(true);
+            validateCategory.mockResolvedValue(true);
             mockBudgetModel.create.mockRejectedValue(new Error('Database error'));
 
             await expect(budgetService.addBudget(userId, validBudgetData))
@@ -195,17 +249,54 @@ describe('BudgetService', () => {
     describe('getBudgetSummary', () => {
         const userId = 'test-user-id';
         const mockBudgets = [
-            { id: 'budget-1', category: 'Food', amount: 500 },
-            { id: 'budget-2', category: 'Transport', amount: 300 }
+            {
+                id: 'budget-1',
+                category: 'Food',
+                amount: 500,
+                startDate: '2024-01-01',
+                endDate: '2024-01-31',
+                period: 'monthly',
+                trackedTransactions: ['tx1']  // Add tracked transactions
+            },
+            {
+                id: 'budget-2',
+                category: 'Transport',
+                amount: 300,
+                startDate: '2024-01-01',
+                endDate: '2024-01-31',
+                period: 'monthly',
+                trackedTransactions: ['tx2']  // Add tracked transactions
+            }
         ];
         const mockTransactions = [
-            { Amount: 100, category: 'Food' },
-            { Amount: 150, category: 'Transport' }
+            {
+                id: 'tx1',
+                Amount: 100,
+                category: 'Food',
+                date: '2024-01-15'
+            },
+            {
+                id: 'tx2',
+                Amount: 150,
+                category: 'Transport',
+                date: '2024-01-15'
+            }
         ];
 
         it('should successfully generate budget summary', async () => {
+            // Mock findByUserId to return the budgets
             mockBudgetModel.findByUserId.mockResolvedValue(mockBudgets);
-            mockTransactionModel.findByUserId.mockResolvedValue(mockTransactions);
+
+            // Mock findById to return each budget
+            mockBudgetModel.findById
+                .mockResolvedValueOnce(mockBudgets[0])
+                .mockResolvedValueOnce(mockBudgets[1]);
+
+            // Mock transaction retrieval
+            mockTransactionModel.findById
+                .mockImplementation(async (userId, transactionId) => {
+                    return mockTransactions.find(t => t.id === transactionId);
+                });
 
             const result = await budgetService.getBudgetSummary(userId);
 
@@ -215,17 +306,36 @@ describe('BudgetService', () => {
                 remaining: 550,
                 categoryBreakdown: expect.arrayContaining([
                     expect.objectContaining({
+                        budgetId: 'budget-1',
                         category: 'Food',
                         budgetAmount: 500,
-                        spent: 100
+                        spent: 100,
+                        remaining: 400,
+                        percentageUsed: "20.00",
+                        startDate: '2024-01-01',
+                        endDate: '2024-01-31',
+                        period: 'monthly'
                     }),
                     expect.objectContaining({
+                        budgetId: 'budget-2',
                         category: 'Transport',
                         budgetAmount: 300,
-                        spent: 150
+                        spent: 150,
+                        remaining: 150,
+                        percentageUsed: "50.00",
+                        startDate: '2024-01-01',
+                        endDate: '2024-01-31',
+                        period: 'monthly'
                     })
                 ])
             });
+
+            // Verify the correct methods were called
+            expect(mockBudgetModel.findByUserId).toHaveBeenCalledWith(userId);
+            expect(mockBudgetModel.findById).toHaveBeenCalledWith(userId, 'budget-1');
+            expect(mockBudgetModel.findById).toHaveBeenCalledWith(userId, 'budget-2');
+            expect(mockTransactionModel.findById).toHaveBeenCalledWith(userId, 'tx1');
+            expect(mockTransactionModel.findById).toHaveBeenCalledWith(userId, 'tx2');
         });
 
         it('should throw DatabaseError when retrieval fails', async () => {
