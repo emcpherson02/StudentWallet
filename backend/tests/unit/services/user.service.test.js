@@ -1,9 +1,9 @@
-const UserService = require('../../src/services/user.service');
-const { NotFoundError, DatabaseError } = require('../../src/utils/errors');
-const { MESSAGE_USER_NOT_FOUND } = require('../../src/utils/constants');
-const { admin } = require('../../src/config/firebase.config');
+const UserService = require('../../../src/services/user.service');
+const { NotFoundError, DatabaseError } = require('../../../src/utils/errors');
+const { MESSAGE_USER_NOT_FOUND } = require('../../../src/utils/constants');
+const { admin } = require('../../../src/config/firebase.config');
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     admin: {
         auth: jest.fn().mockReturnValue({
             deleteUser: jest.fn()

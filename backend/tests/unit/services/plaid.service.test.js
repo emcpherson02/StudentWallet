@@ -1,8 +1,8 @@
-const PlaidService = require('../../src/services/plaid.service');
-const { DatabaseError } = require('../../src/utils/errors');
-const { plaidClient } = require("../../src/config/plaid.config");
+const PlaidService = require('../../../src/services/plaid.service');
+const { DatabaseError } = require('../../../src/utils/errors');
+const { plaidClient } = require("../../../src/config/plaid.config");
 
-jest.mock('../../src/config/plaid.config', () => ({
+jest.mock('../../../src/config/plaid.config', () => ({
     plaidClient: {
         linkTokenCreate: jest.fn(),
         itemPublicTokenExchange: jest.fn(),

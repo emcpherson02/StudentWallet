@@ -1,8 +1,8 @@
-const BudgetService = require('../../src/services/budget.service');
-const { DatabaseError, ValidationError, NotFoundError } = require('../../src/utils/errors');
-const { validateCategory } = require('../../src/utils/constants');
+const BudgetService = require('../../../src/services/budget.service');
+const { DatabaseError, ValidationError, NotFoundError } = require('../../../src/utils/errors');
+const { validateCategory } = require('../../../src/utils/constants');
 
-jest.mock('../../src/utils/constants', () => ({
+jest.mock('../../../src/utils/constants', () => ({
     validateCategory: jest.fn()
 }));
 

@@ -1,5 +1,5 @@
-const TransactionService = require('../../src/services/transaction.service');
-const { DatabaseError, NotFoundError } = require('../../src/utils/errors');
+const TransactionService = require('../../../src/services/transaction.service');
+const { DatabaseError, NotFoundError } = require('../../../src/utils/errors');
 
 describe('TransactionService', () => {
     let transactionService;
