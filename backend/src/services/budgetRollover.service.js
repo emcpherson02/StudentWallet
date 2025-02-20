@@ -1,3 +1,5 @@
+const {NotFoundError, DatabaseError} = require("../utils/errors");
+
 class BudgetRolloverService {
     constructor(budgetModel, budgetHistoryModel, notificationService) {
         this.budgetModel = budgetModel;

@@ -1,13 +1,13 @@
-const AuthService = require('../../src/services/auth.service');
-const { AuthenticationError, DatabaseError } = require('../../src/utils/errors');
-const { admin } = require('../../src/config/firebase.config');
+const AuthService = require('../../../src/services/auth.service');
+const { AuthenticationError, DatabaseError } = require('../../../src/utils/errors');
+const { admin } = require('../../../src/config/firebase.config');
 const {
     MESSAGE_INVALID_CREDENTIALS,
     MESSAGE_USER_EXISTS,
     MESSAGE_ERROR_OCCURRED
-} = require('../../src/utils/constants');
+} = require('../../../src/utils/constants');
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     admin: {
         auth: jest.fn().mockReturnValue({
             createCustomToken: jest.fn(),
