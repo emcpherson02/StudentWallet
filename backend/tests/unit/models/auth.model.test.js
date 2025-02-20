@@ -1,6 +1,6 @@
-const AuthModel = require('../../src/models/auth.model');
+const AuthModel = require('../../../src/models/auth.model');
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     admin: {
         firestore: {
             FieldValue: {

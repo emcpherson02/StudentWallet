@@ -1,4 +1,4 @@
-const BudgetHistoryModel = require('../../src/models/budgetHistory.model');
+const BudgetHistoryModel = require('../../../src/models/budgetHistory.model');
 
 describe('BudgetHistoryModel', () => {
     let budgetHistoryModel;

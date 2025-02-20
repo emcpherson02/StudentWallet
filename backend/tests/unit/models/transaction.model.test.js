@@ -1,4 +1,4 @@
-jest.mock('../../src/utils/errors', () => ({
+jest.mock('../../../src/utils/errors', () => ({
     NotFoundError: class NotFoundError extends Error {
         constructor(message) {
             super(message);
@@ -7,8 +7,8 @@ jest.mock('../../src/utils/errors', () => ({
     }
 }));
 
-const { NotFoundError } = require('../../src/utils/errors');
-const TransactionModel = require('../../src/models/transaction.model');
+const { NotFoundError } = require('../../../src/utils/errors');
+const TransactionModel = require('../../../src/models/transaction.model');
 
 describe('TransactionModel', () => {
     let transactionModel;

@@ -1,4 +1,4 @@
-const PlaidModel = require('../../src/models/plaid.model');
+const PlaidModel = require('../../../src/models/plaid.model');
 
 describe('PlaidModel', () => {
     let plaidModel;

@@ -1,8 +1,8 @@
-jest.mock('../../src/models/index', () => ({
+jest.mock('../../../src/models', () => ({
     budgetModel: {}
 }));
 
-jest.mock('../../src/utils/errors', () => ({
+jest.mock('../../../src/utils/errors', () => ({
     NotFoundError: class NotFoundError extends Error {
         constructor(message) {
             super(message);
@@ -11,8 +11,8 @@ jest.mock('../../src/utils/errors', () => ({
     }
 }));
 
-const { NotFoundError } = require('../../src/utils/errors');
-const BudgetModel = require('../../src/models/budget.model');
+const { NotFoundError } = require('../../../src/utils/errors');
+const BudgetModel = require('../../../src/models/budget.model');
 
 describe('BudgetModel', () => {
     let budgetModel;

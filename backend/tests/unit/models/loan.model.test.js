@@ -1,6 +1,6 @@
-const { NotFoundError, ValidationError } = require('../../src/utils/errors');
+const { NotFoundError, ValidationError } = require('../../../src/utils/errors');
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     admin: {
         firestore: {
             FieldPath: {
@@ -10,7 +10,7 @@ jest.mock('../../src/config/firebase.config', () => ({
     }
 }));
 
-const LoanModel = require('../../src/models/loan.model');
+const LoanModel = require('../../../src/models/loan.model');
 
 describe('LoanModel', () => {
     let loanModel;

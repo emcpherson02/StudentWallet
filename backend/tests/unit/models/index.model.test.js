@@ -1,46 +1,46 @@
-jest.mock('../../src/models/user.model', () => {
+jest.mock('../../../src/models/user.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'UserModel'
     }));
 });
 
-jest.mock('../../src/models/transaction.model', () => {
+jest.mock('../../../src/models/transaction.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'TransactionModel'
     }));
 });
 
-jest.mock('../../src/models/budget.model', () => {
+jest.mock('../../../src/models/budget.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'BudgetModel'
     }));
 });
 
-jest.mock('../../src/models/plaid.model', () => {
+jest.mock('../../../src/models/plaid.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'PlaidModel'
     }));
 });
 
-jest.mock('../../src/models/auth.model', () => {
+jest.mock('../../../src/models/auth.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'AuthModel'
     }));
 });
 
-jest.mock('../../src/models/loan.model', () => {
+jest.mock('../../../src/models/loan.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'LoanModel'
     }));
 });
 
-jest.mock('../../src/models/budgetHistory.model', () => {
+jest.mock('../../../src/models/budgetHistory.model', () => {
     return jest.fn().mockImplementation(() => ({
         type: 'BudgetHistoryModel'
     }));
 });
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     db: {
         type: 'FirestoreDB'
     }
@@ -59,15 +59,15 @@ describe('Models Index', () => {
     beforeEach(() => {
         jest.clearAllMocks();
 
-        UserModel = require('../../src/models/user.model');
-        TransactionModel = require('../../src/models/transaction.model');
-        BudgetModel = require('../../src/models/budget.model');
-        PlaidModel = require('../../src/models/plaid.model');
-        AuthModel = require('../../src/models/auth.model');
-        LoanModel = require('../../src/models/loan.model');
-        BudgetHistoryModel = require('../../src/models/budgetHistory.model');
+        UserModel = require('../../../src/models/user.model');
+        TransactionModel = require('../../../src/models/transaction.model');
+        BudgetModel = require('../../../src/models/budget.model');
+        PlaidModel = require('../../../src/models/plaid.model');
+        AuthModel = require('../../../src/models/auth.model');
+        LoanModel = require('../../../src/models/loan.model');
+        BudgetHistoryModel = require('../../../src/models/budgetHistory.model');
 
-        models = require('../../src/models/index');
+        models = require('../../../src/models');
     });
 
     afterEach(() => {
@@ -141,7 +141,7 @@ describe('Models Index', () => {
     });
 
     it('should create only one instance of each model', () => {
-        const modelsSecondLoad = require('../../src/models/index');
+        const modelsSecondLoad = require('../../../src/models');
 
         expect(UserModel).toHaveBeenCalledTimes(1);
         expect(TransactionModel).toHaveBeenCalledTimes(1);
