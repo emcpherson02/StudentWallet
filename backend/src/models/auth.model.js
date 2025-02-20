@@ -1,6 +1,7 @@
 class AuthModel {
-    constructor(db) {
+    constructor(db, admin) {
         this.db = db;
+        this.admin = admin;
         this.collection = 'users';
     }
 
@@ -13,8 +14,8 @@ class AuthModel {
         await this.db.collection(this.collection).doc(email).set({
             ...userData,
             linkedBank: false,
-            notificationsEnabled: false, // Set notifications disabled by default
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            notificationsEnabled: false,
+            createdAt: this.admin.firestore.FieldValue.serverTimestamp()
         });
         return { id: email, ...userData };
     }
@@ -28,7 +29,7 @@ class AuthModel {
             photoURL: profile.photos[0].value,
             linkedBank: false,
             notificationsEnabled: false,
-            createdAt: admin.firestore.FieldValue.serverTimestamp()
+            createdAt: this.admin.firestore.FieldValue.serverTimestamp()  // Fixed this line
         };
 
         await userRef.set(userData, { merge: true });
