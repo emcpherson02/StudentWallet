@@ -1,70 +1,55 @@
-/* src/Home.module.css */
-.Home {
-    text-align: center;
-    background-color: #f5f5f5;
+.homePage {
     min-height: 100vh;
-    color: #333;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 20px;
+    background: #1a73e8;
+    position: relative;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
-.HomeHeader {
-    background-color: #282c34;
-    padding: 20px;
-    color: white;
-}
-
-.HomeButtons {
-    margin: 20px 0;
-}
-
-.HomeLink {
-    color: #61dafb;
-    text-decoration: none;
-    font-weight: bold;
-    margin: 0 10px;
-}
-
-.HomeLink:hover {
-    color: #21a1f1;
-}
-
-.HomeContent {
-    margin-top: 20px;
-    padding: 20px;
-    background: white;
-    border-radius: 8px;
-    box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
-    width: 80%;
-    max-width: 600px;
-}
-
-.HomeContent h2 {
-    color: #282c34;
-}
-
-.HomeContent ul {
-    list-style-type: none;
-    padding: 0;
-}
-
-.HomeContent ul li {
-    margin: 8px 0;
-}
-
-.HomeButtons .HomeLink {
-    margin: 0 10px;
-    padding: 10px 20px;
-    background-color: #61dafb;
-    color: white;
-    border-radius: 5px;
-    text-decoration: none;
-    font-weight: bold;
-}
-.logoContainer {
+.brandSection {
+    width: 100%;
+    text-align: center;
+    padding: 2rem 0;
     margin-bottom: 1rem;
+}
+
+.brandTitle {
+    font-size: 2.5rem;
+    font-weight: 600;
+    color: white;
+    margin: 0;
+    margin-bottom: 0.5rem;
+}
+
+.brandSubtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
+    margin: 0;
+}
+
+.contentContainer {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.contentCard {
+    background: white;
+    border-radius: 1rem;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
+}
+
+.logoSection {
+    text-align: center;
+    margin-bottom: 2rem;
 }
 
 .logo {
@@ -73,6 +58,93 @@
     margin: 0 auto;
     display: block;
     animation: float 3s ease-in-out infinite;
+}
+
+.contentHeader {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.contentHeader h2 {
+    font-size: 1.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin: 0 0 0.5rem 0;
+}
+
+.contentHeader p {
+    color: #6b7280;
+    font-size: 1rem;
+    margin: 0;
+}
+
+.featuresList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+.featureItem {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 0.75rem;
+    background: #f9fafb;
+    border-radius: 0.5rem;
+    transition: transform 0.2s ease;
+}
+
+.featureItem:hover {
+    transform: translateX(8px);
+    background: #f3f4f6;
+}
+
+.featureIcon {
+    font-size: 1.25rem;
+}
+
+.actionButtons {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    align-items: center;  /* Center the buttons horizontally */
+    width: 100%;
+    padding: 0 1rem;  /* Add some padding on the sides */
+}
+
+
+.loginButton, .registerButton {
+    width: 80%;  /* Reduce width to create center-aligned look */
+    max-width: 300px;  /* Maximum width for larger screens */
+    padding: 0.875rem;
+    border: none;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    font-size: 1rem;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background-color 0.2s ease;
+}
+
+.loginButton {
+    background-color: #1a73e8;
+    color: white;
+}
+
+.loginButton:hover {
+    background-color: #1557b0;
+}
+
+.registerButton {
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #e5e7eb;
+}
+
+.registerButton:hover {
+    background-color: #e5e7eb;
 }
 
 @keyframes float {
@@ -84,5 +156,26 @@
     }
     100% {
         transform: translateY(0px);
+    }
+}
+
+@media (max-width: 640px) {
+    .contentCard {
+        padding: 1.5rem;
+    }
+
+    .brandSection {
+        padding: 1.5rem 0;
+    }
+
+    .brandTitle {
+        font-size: 2rem;
+    }
+    .actionButtons {
+        padding: 0 0.5rem;  /* Slightly less padding on mobile */
+    }
+
+    .loginButton, .registerButton {
+        width: 90%;  /* Slightly wider on mobile */
     }
 }
