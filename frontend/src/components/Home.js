@@ -4,32 +4,60 @@ import styles from '../styles/Home.module.css';
 
 function Home() {
     return (
-        <div className={styles.Home}>
-            <header className={styles.HomeHeader}>
-                <div className={styles.logoContainer}>
-                    <img
-                        src="/LogoNew.webp"
-                        alt="StudentWallet Logo"
-                        className={styles.logo}
-                    />
+        <div className={styles.homePage}>
+            <div className={styles.brandSection}>
+                <h1 className={styles.brandTitle}>StudentWallet</h1>
+                <p className={styles.brandSubtitle}>Managing student finances made simple</p>
+            </div>
+
+            <div className={styles.contentContainer}>
+                <div className={styles.contentCard}>
+                    <div className={styles.logoSection}>
+                        <img
+                            src="/LogoNew.webp"
+                            alt="StudentWallet Logo"
+                            className={styles.logo}
+                        />
+                    </div>
+
+                    <div className={styles.contentHeader}>
+                        <h2>Welcome to StudentWallet</h2>
+                        <p>Your comprehensive financial management platform</p>
+                    </div>
+
+                    <div className={styles.featuresList}>
+                        <div className={styles.featureItem}>
+                            <span className={styles.featureIcon}>🔐</span>
+                            <span>Secure OAuth 2.0 Authentication</span>
+                        </div>
+                        <div className={styles.featureItem}>
+                            <span className={styles.featureIcon}>🏦</span>
+                            <span>Bank Account Integration</span>
+                        </div>
+                        <div className={styles.featureItem}>
+                            <span className={styles.featureIcon}>📊</span>
+                            <span>Budget Management & Analytics</span>
+                        </div>
+                        <div className={styles.featureItem}>
+                            <span className={styles.featureIcon}>🔔</span>
+                            <span>Smart Payment Notifications</span>
+                        </div>
+                        <div className={styles.featureItem}>
+                            <span className={styles.featureIcon}>💰</span>
+                            <span>Cash Transaction Tracking</span>
+                        </div>
+                    </div>
+
+                    <div className={styles.actionButtons}>
+                        <Link to="/login" className={styles.loginButton}>
+                            Sign In
+                        </Link>
+                        <Link to="/register" className={styles.registerButton}>
+                            Create Account
+                        </Link>
+                    </div>
                 </div>
-                <h1>Welcome to StudentWallet</h1>
-                <p>Your one-stop solution for managing finances efficiently as a student.</p>
-                <div className={styles.HomeButtons}>
-                    <Link to="/login" className={styles.HomeLink}>Login</Link>
-                    <Link to="/register" className={styles.HomeLink}>Register</Link>
-                </div>
-            </header>
-            <section className={styles.HomeContent}>
-                <h2>Features</h2>
-                <ul>
-                    <li>Secure login with OAuth 2.0</li>
-                    <li>Link and track bank accounts</li>
-                    <li>Create and categorize budgets</li>
-                    <li>Receive notifications for bill payments</li>
-                    <li>Manage cash transactions easily</li>
-                </ul>
-            </section>
+            </div>
         </div>
     );
 }

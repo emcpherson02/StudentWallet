@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from '../styles/PlaidLink.module.css';
+import styles from '../styles/LandingPage.module.css';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import TransactionForm from './TransactionForm';
@@ -12,7 +12,7 @@ import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
 
-function PlaidLink() {
+function LandingPage() {
   const {currentUser} = useAuth();
   const navigate = useNavigate();
   const appRef = useRef();
@@ -524,4 +524,4 @@ function PlaidLink() {
   );
 }
 
-export default React.memo(PlaidLink);
+export default React.memo(LandingPage);

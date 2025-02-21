@@ -25,7 +25,7 @@ const CountdownTimer = ({ nextInstallmentDate, amount }) => {
         }, 1000 * 60); // Update every minute
 
         return () => clearInterval(timer);
-    }, [nextInstallmentDate]);
+    }, [nextInstallmentDate, calculateTimeLeft()]);
 
     if (!timeLeft.days && !timeLeft.hours) {
         return null; // Don't show if installment date has passed

@@ -47,7 +47,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
         };
 
         fetchCategories();
-    }, [currentUser]);
+    }, [currentUser, defaultCategories]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
