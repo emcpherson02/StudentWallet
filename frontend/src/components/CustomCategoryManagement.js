@@ -17,7 +17,7 @@ const CategoryManagement = () => {
 
     useEffect(() => {
         fetchCategories();
-    }, [currentUser, fetchCategories]);
+    }, [currentUser]);
 
     const fetchCategories = async () => {
         try {
