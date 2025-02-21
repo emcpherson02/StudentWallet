@@ -10,30 +10,22 @@
     overflow-x: hidden;
 }
 
-.brandContainer {
-    position: absolute;
-    top: 2rem;
-    left: 0;
-    right: 0;
+.brandSection {
     text-align: center;
+    padding: 2rem 0;
+    margin-bottom: 1rem;
 }
 
 .brandTitle {
     font-size: 2.5rem;
     font-weight: 600;
     color: white;
-    font-size: 2.5rem;
-    font-weight: 600;
-    margin: 0;
-    text-align: center;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.5rem 0;
 }
 
 .brandSubtitle {
-    color: rgb(255, 255, 255, 0.8);
-    font-size: 1.125rem;
-    text-align: center;
     color: rgba(255, 255, 255, 0.9);
+    font-size: 1.125rem;
     margin: 0;
 }
 
@@ -147,9 +139,12 @@
     cursor: pointer;
     transition: background-color 0.2s ease;
     width: 100%;
-    margin-top: 1rem;
-    position: relative;
+}
 
+.divider {
+    position: relative;
+    text-align: center;
+    margin: 1.5rem 0;
 }
 
 .divider::before {
@@ -214,10 +209,6 @@
 @media (max-width: 640px) {
     .formCard {
         padding: 1.5rem;
-    }
-
-    .brandSection {
-        padding: 1.5rem 0;
     }
 
     .brandTitle {
