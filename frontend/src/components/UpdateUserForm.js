@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
-import styles from '../styles/PlaidLink.module.css';
+import styles from '../styles/LandingPage.module.css';
 
 const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClose }) => {
     const [formData, setFormData] = useState({
