@@ -1,6 +1,7 @@
 const { DatabaseError, NotFoundError, ValidationError } = require('../utils/errors');
 const { MESSAGE_USER_NOT_FOUND } = require('../utils/constants');
 const { validateCategory } = require('../utils/constants');
+const TransactionInsightsService = require("./transactionInsights.service");
 
 class TransactionService {
     constructor(transactionModel, budgetModel, budgetNotificationService) {
@@ -198,6 +199,11 @@ class TransactionService {
         } catch (error) {
             throw new DatabaseError('Failed to update transaction category');
         }
+    }
+
+    async getInsights(userId) {
+        const insightsService = new TransactionInsightsService(this.transactionModel);
+        return await insightsService.generateInsights(userId);
     }
 }
 
