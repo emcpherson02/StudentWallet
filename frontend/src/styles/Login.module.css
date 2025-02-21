@@ -5,22 +5,26 @@
 }
 
 .brandContainer {
-    position: fixed;
+    position: absolute;
     top: 2rem;
-    left: 2rem;
+    left: 0;
+    right: 0;
+    text-align: center;
 }
 
 .brandTitle {
     color: white;
-    font-size: 2rem;
+    font-size: 2.5rem;
     font-weight: 600;
     margin: 0;
+    text-align: center;
 }
 
 .brandSubtitle {
-    color: lightgray;
-    font-size: 1rem;
+    color: rgb(255, 255, 255, 0.8);
+    font-size: 1.125rem;
     margin-top: 0.5rem;
+    text-align: center;
 }
 
 .loginContainer {
