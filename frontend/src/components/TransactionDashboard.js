@@ -14,6 +14,7 @@ import {
 } from 'recharts';
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
+import TransactionInsights from './TransactionInsights';
 import {Trash2, Banknote, RefreshCw} from "lucide-react";
 
 const TransactionDashboard = () => {
@@ -21,6 +22,7 @@ const TransactionDashboard = () => {
     const [analytics, setAnalytics] = useState(null);
     const [transactions, setTransactions] = useState([]); // Add this state
     const [loading, setLoading] = useState(true);
+    const [insights, setInsights] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -57,6 +59,26 @@ const TransactionDashboard = () => {
         };
 
         fetchData();
+    }, [currentUser]);
+
+    useEffect(() => {
+        const fetchInsights = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    'http://localhost:3001/transactions/insights',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+                setInsights(response.data.data);
+            } catch (error) {
+                console.error('Error fetching insights:', error);
+            }
+        };
+
+        fetchInsights();
     }, [currentUser]);
 
     const handleDeleteTransaction = async (transactionId) => {
@@ -183,6 +205,10 @@ const TransactionDashboard = () => {
                             />
                         </div>
                     </div>
+                </section>
+
+                <section className={styles.transactionsSection}>
+                    {insights && <TransactionInsights insights={insights} />}
                 </section>
 
                 <section className={styles.transactionsSection}>
