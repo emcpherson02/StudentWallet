@@ -1,4 +1,4 @@
-const ValidationError = require('../middleware/error.middleware');
+const { ValidationError } = require('../utils/errors');
 
 class BudgetController {
     constructor(budgetService) {
