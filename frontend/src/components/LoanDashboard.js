@@ -8,6 +8,7 @@ import Layout from './Layout';
 import CountdownTimer from './CountdownTimer';
 import SpendingTrend from './SpendingTrend';
 import { ButtonGroup, AddLoanButton } from "./LoanButtonGroup";
+import {getApiUrl} from "../utils/api";
 
 const LoanDashboard = () => {
     const { currentUser } = useAuth();
@@ -42,7 +43,7 @@ const LoanDashboard = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/user-data',
+                    getApiUrl('/user/user-data'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -62,7 +63,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
@@ -86,7 +87,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/loan/get_loan',
+                getApiUrl('/loan/get_loan'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -108,7 +109,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/loan/delete_loan/${loanData.id}`,
+                getApiUrl(`/loan/delete_loan/${loanData.id}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -129,7 +130,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.post(
-                `http://localhost:3001/loan/link_all_transactions/${loanData.id}`,
+                getApiUrl(`/loan/link_all_transactions/${loanData.id}`),
                 { userId: currentUser.uid },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -148,7 +149,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.delete(
-                `http://localhost:3001/loan/unlink_all_transactions/${loanData.id}`,
+                getApiUrl(`/loan/unlink_all_transactions/${loanData.id}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
