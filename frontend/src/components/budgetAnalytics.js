@@ -6,6 +6,7 @@ import Layout from './Layout';
 import styles from '../styles/BudgetAnalytics.module.css';
 import {useEffect} from "react";
 import {TRANSACTION_CATEGORIES} from "../utils/constants";
+import {getApiUrl} from "../utils/api";
 
 const BudgetAnalytics = () => {
     const { currentUser } = useAuth();
@@ -25,7 +26,7 @@ const BudgetAnalytics = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/categories',
+                    getApiUrl('/user/categories'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -54,7 +55,7 @@ const BudgetAnalytics = () => {
             setLoading(true);
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/history/analytics',
+                getApiUrl('/history/analytics'),
                 {
                     params: {
                         userId: currentUser.uid,
