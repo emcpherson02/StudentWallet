@@ -114,11 +114,12 @@
     cursor: help;
     padding: 0.25rem;
     border-radius: 9999px;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .infoIcon:hover {
     color: #374151;
+    background-color: #f3f4f6;
 }
 
 .notificationDescription {
@@ -221,4 +222,12 @@
     .buttonGroup button {
         width: 100%;
     }
+}
+
+.unlinkButton {
+    background-color: #dc2626;
+}
+
+.unlinkButton:hover {
+    background-color: #b91c1c;
 }

@@ -19,7 +19,7 @@ function PreferencesPage() {
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
 
-    const fetchNotificationStatus = async () => {
+    const fetchUserPreferences = async () => {
         if (!currentUser) return;
         try {
             const token = await currentUser.getIdToken();
@@ -31,18 +31,11 @@ function PreferencesPage() {
                 }
             );
             setNotificationsEnabled(response.data.notificationsEnabled || false);
+            setLinkedBank(response.data.linkedBank || false);
         } catch (error) {
-            console.error('Error fetching notification status:', error);
+            console.error('Error fetching user preferences:', error);
         }
     };
-
-    useEffect(() => {
-        if (currentUser) {
-            fetchNotificationStatus();
-        } else {
-            navigate('/login');
-        }
-    }, [currentUser, navigate]);
 
     const fetchUserDetails = async () => {
         try {
@@ -86,6 +79,31 @@ function PreferencesPage() {
         }
     };
 
+    const handleUnlinkBank = async () => {
+        if (!window.confirm('Are you sure you want to unlink your bank account? This will remove all imported transactions.')) {
+            return;
+        }
+
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.delete(
+                `http://localhost:3001/plaid/unlink-bank/${currentUser.uid}`,
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Refresh the user data
+            await fetchUserPreferences();
+            await fetchUserDetails();
+            setAccounts([]);
+            setMessage('Bank account unlinked successfully');
+        } catch (error) {
+            console.error('Error unlinking bank:', error);
+            setMessage('Failed to unlink bank account');
+        }
+    };
+
     const handleLogout = async () => {
         try {
             await signOut(auth);
@@ -94,6 +112,15 @@ function PreferencesPage() {
             console.error('Error logging out:', error);
         }
     };
+
+    useEffect(() => {
+        if (currentUser) {
+            fetchUserPreferences();
+            fetchUserDetails();
+        } else {
+            navigate('/login');
+        }
+    }, [currentUser, navigate]);
 
     if (!currentUser) return null;
 
@@ -193,6 +220,34 @@ function PreferencesPage() {
                             Get timely updates about your budgets, loan instalments, and important account activities.
                         </p>
                     </section>
+
+                    {/* Bank Account Section */}
+                    <section className={styles.card}>
+                        <div className={styles.sectionHeader}>
+                            <div className={styles.headerWithInfo}>
+                                <h2>Bank Account</h2>
+                                <div className={styles.infoIcon} title="Connect or disconnect your bank account for automatic transaction tracking">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                        <circle cx="12" cy="12" r="10"></circle>
+                                        <line x1="12" y1="16" x2="12" y2="12"></line>
+                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                    </svg>
+                                </div>
+                            </div>
+                            <button
+                                onClick={linkedBank ? handleUnlinkBank : () => navigate('/plaid-link')}
+                                className={`${styles.primaryButton} ${linkedBank ? styles.unlinkButton : ''}`}
+                            >
+                                {linkedBank ? 'Unlink Bank Account' : 'Link Bank Account'}
+                            </button>
+                        </div>
+                        <p className={styles.notificationDescription}>
+                            {linkedBank
+                                ? 'Your bank account is currently connected. You can unlink it at any time.'
+                                : 'Connect your bank account to automatically track your transactions.'}
+                        </p>
+                    </section>
+
                     {/* Categories Management Section */}
                     <section className={styles.card}>
                         <CategoryManagement />
