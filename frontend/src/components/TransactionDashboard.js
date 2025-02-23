@@ -3,6 +3,8 @@ import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
+import {getApiUrl} from "../utils/api";
+
 import {
     BarChart,
     Bar,
@@ -33,7 +35,7 @@ const TransactionDashboard = () => {
 
                 // Fetch analytics
                 const analyticsResponse = await axios.get(
-                    'http://localhost:3001/transactions/analytics',
+                    getApiUrl('/transactions/analytics'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -42,7 +44,7 @@ const TransactionDashboard = () => {
 
                 // Fetch transactions
                 const transactionsResponse = await axios.get(
-                    'http://localhost:3001/transactions/user-transactions',
+                    getApiUrl('/transactions/user-transactions'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -66,7 +68,7 @@ const TransactionDashboard = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/transactions/insights',
+                    getApiUrl('/transactions/insights'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -85,7 +87,7 @@ const TransactionDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/transactions/delete_transaction/${transactionId}`,
+                getApiUrl(`/transactions/delete_transaction/${transactionId}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
