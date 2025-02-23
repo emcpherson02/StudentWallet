@@ -10,6 +10,8 @@ import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
 import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
+import {getApiUrl} from "../utils/api";
+
 function PreferencesPage() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -24,7 +26,7 @@ function PreferencesPage() {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/user/user-data',
+                getApiUrl('/user/user-data'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -47,7 +49,7 @@ function PreferencesPage() {
     const fetchUserDetails = async () => {
         try {
             const token = await currentUser.getIdToken();
-            const response = await axios.get(`http://localhost:3001/user/user-data`, {
+            const response = await axios.get(getApiUrl(`/user/user-data`), {
                 params: { userId: currentUser.uid },
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -69,7 +71,7 @@ function PreferencesPage() {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
