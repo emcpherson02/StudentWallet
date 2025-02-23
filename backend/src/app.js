@@ -25,6 +25,7 @@ const BudgetAnalyticsService = require('./services/budgetAnalytics.service');
 const LoanService = require('./services/loan.service');
 const BudgetRolloverSchedulerService = require('./services/budgetRolloverScheduler.service');
 const LoanNotificationService = require('./services/loan.notification.service');
+const DataExportService = require('./services/dataExport.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -34,6 +35,7 @@ const BudgetController = require('./controllers/budget.controller');
 const UserController = require('./controllers/user.controller');
 const BudgetHistoryController = require('./controllers/budgetHistory.controller');
 const LoanController = require('./controllers/loan.controller');
+const DataExportController = require('./controllers/dataExport.controller');
 
 // Import middleware
 const AuthMiddleware = require('./middleware/auth.middleware');
@@ -46,6 +48,7 @@ const setupTransactionRoutes = require('./routes/transaction.routes');
 const setupUserRoutes = require('./routes/user.routes');
 const setupBudgetHistoryRoutes = require('./routes/budgetHistory.routes');
 const setupLoanRoutes = require('./routes/loan.routes');
+const setupExportRoutes = require('./routes/export.routes');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -61,6 +64,8 @@ const budgetService = new BudgetService(budgetModel, transactionModel, budgetNot
 const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHistoryModel, budgetNotificationService);
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
 const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
+const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel);
+
 
 const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
 
@@ -72,6 +77,7 @@ const budgetController = new BudgetController(budgetService);
 const userController = new UserController(userService);
 const budgetHistoryController = new BudgetHistoryController(budgetRolloverService, budgetAnalyticsService);
 const loanController = new LoanController(loanService);
+const dataExportController = new DataExportController(dataExportService);
 
 // Initialize middleware
 const authMiddleware = new AuthMiddleware(authService);
@@ -100,6 +106,7 @@ app.use('/transactions', setupTransactionRoutes(express.Router(), transactionCon
 app.use('/user', setupUserRoutes(express.Router(), userController, authMiddleware));
 app.use('/history', setupBudgetHistoryRoutes(express.Router(), budgetHistoryController, authMiddleware));
 app.use('/loan', setupLoanRoutes(express.Router(), loanController, authMiddleware));
+app.get('/user/export-data', authMiddleware.verifyToken, dataExportController.exportUserData.bind(dataExportController));
 
 // OAuth routes
 app.get('/auth/google',
