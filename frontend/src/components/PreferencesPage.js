@@ -172,7 +172,9 @@ function PreferencesPage() {
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Date of Birth</span>
                                 <span className={styles.detailValue}>
-                                    {currentUser.dob ? new Date(currentUser.dob).toLocaleDateString('en-GB') : 'Not set'}
+                                    {currentUser.metadata?.dob
+                                        ? new Date(currentUser.metadata.dob).toLocaleDateString()
+                                        : 'Not set'}
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
