@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import styles from '../styles/LandingPage.module.css';
+import {getApiUrl} from "../utils/api";
 
 const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClose }) => {
     const [formData, setFormData] = useState({
@@ -16,7 +17,7 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClos
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.put(
-                `http://localhost:3001/user/update_user/${userId}`,
+                getApiUrl(`/user/update_user/${userId}`),
                 {
                     displayName: formData.name,
                     email: formData.email,
