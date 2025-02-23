@@ -7,7 +7,7 @@ export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3
 export const getApiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
 
 const api = axios.create({
-    baseURL: 'http://localhost:3002',
+    baseURL: 'http://localhost:3001',
     headers: {
         'Content-Type': 'application/json'
     }
