@@ -1,4 +1,4 @@
-const TransactionController = require('../../src/controllers/transaction.controller');
+const TransactionController = require('../../../src/controllers/transaction.controller');
 
 describe('TransactionController', () => {
     let transactionController;

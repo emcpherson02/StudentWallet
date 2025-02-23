@@ -1,8 +1,8 @@
 const express = require('express');
 const request = require('supertest');
-const setupLoanRoutes = require('../../src/routes/loan.routes');
+const setupLoanRoutes = require('../../../src/routes/loan.routes');
 
-jest.mock('../../src/middleware/auth.middleware');
+jest.mock('../../../src/middleware/auth.middleware');
 
 describe('Loan Routes', () => {
     let app;

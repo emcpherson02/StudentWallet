@@ -1,8 +1,8 @@
 const express = require('express');
 const request = require('supertest');
-const setupPlaidRoutes = require('../../src/routes/plaid.routes');
+const setupPlaidRoutes = require('../../../src/routes/plaid.routes');
 
-jest.mock('../../src/middleware/auth.middleware');
+jest.mock('../../../src/middleware/auth.middleware');
 
 describe('Plaid Routes', () => {
     let app;

@@ -1,4 +1,4 @@
-const LoanController = require('../../src/controllers/loan.controller');
+const LoanController = require('../../../src/controllers/loan.controller');
 
 describe('LoanController', () => {
     let loanController;

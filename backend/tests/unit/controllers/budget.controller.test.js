@@ -1,7 +1,7 @@
-const BudgetController = require('../../src/controllers/budget.controller');
-const { ValidationError, BaseError } = require('../../src/utils/errors');
+const BudgetController = require('../../../src/controllers/budget.controller');
+const { ValidationError, BaseError } = require('../../../src/utils/errors');
 
-jest.mock('../../src/utils/errors', () => {
+jest.mock('../../../src/utils/errors', () => {
     class BaseError extends Error {
         constructor(message, statusCode) {
             super(message);

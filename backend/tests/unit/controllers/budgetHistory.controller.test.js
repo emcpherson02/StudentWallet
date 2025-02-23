@@ -1,4 +1,4 @@
-const BudgetHistoryController = require('../../src/controllers/budgetHistory.controller');
+const BudgetHistoryController = require('../../../src/controllers/budgetHistory.controller');
 
 describe('BudgetHistoryController', () => {
     let budgetHistoryController;

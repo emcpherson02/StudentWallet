@@ -1,9 +1,9 @@
 const express = require('express');
 const request = require('supertest');
-const setupUserRoutes = require('../../src/routes/user.routes');
+const setupUserRoutes = require('../../../src/routes/user.routes');
 
-jest.mock('../../src/middleware/auth.middleware');
-jest.mock('../../src/middleware/validation.middleware', () => ({
+jest.mock('../../../src/middleware/auth.middleware');
+jest.mock('../../../src/middleware/validation.middleware', () => ({
     validateUserUpdate: jest.fn((req, res, next) => next())
 }));
 
@@ -34,7 +34,7 @@ describe('User Routes', () => {
             verifyToken: jest.fn((req, res, next) => next())
         };
 
-        mockValidationMiddleware = require('../../src/middleware/validation.middleware');
+        mockValidationMiddleware = require('../../../src/middleware/validation.middleware');
 
         const router = express.Router();
         app.use('/user', setupUserRoutes(router, mockUserController, mockAuthMiddleware));

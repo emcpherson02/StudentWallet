@@ -1,4 +1,4 @@
-const UserController = require('../../src/controllers/user.controller');
+const UserController = require('../../../src/controllers/user.controller');
 
 describe('UserController', () => {
     let userController;

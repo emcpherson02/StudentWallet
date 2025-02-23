@@ -1,5 +1,5 @@
-const AuthController = require('../../src/controllers/auth.controller');
-const { MESSAGE_LOGIN_SUCCESSFUL, MESSAGE_REGISTRATION_SUCCESSFUL } = require('../../src/utils/constants');
+const AuthController = require('../../../src/controllers/auth.controller');
+const { MESSAGE_LOGIN_SUCCESSFUL, MESSAGE_REGISTRATION_SUCCESSFUL } = require('../../../src/utils/constants');
 
 describe('AuthController', () => {
     let authController;

@@ -1,4 +1,4 @@
-const PlaidController = require('../../src/controllers/plaid.controller');
+const PlaidController = require('../../../src/controllers/plaid.controller');
 
 describe('PlaidController', () => {
     let plaidController;

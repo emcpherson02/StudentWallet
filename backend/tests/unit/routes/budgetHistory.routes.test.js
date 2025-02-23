@@ -1,8 +1,8 @@
 const express = require('express');
 const request = require('supertest');
-const setupBudgetHistoryRoutes = require('../../src/routes/budgetHistory.routes');
+const setupBudgetHistoryRoutes = require('../../../src/routes/budgetHistory.routes');
 
-jest.mock('../../src/middleware/auth.middleware');
+jest.mock('../../../src/middleware/auth.middleware');
 
 describe('Budget History Routes', () => {
     let app;
