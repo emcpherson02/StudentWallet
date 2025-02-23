@@ -17,6 +17,7 @@ import UncategorizedTransactions from './UncategorisedTransaction';
 import TransactionInsights from './TransactionInsights';
 import {Trash2, Banknote, RefreshCw, Plus} from "lucide-react";
 import TransactionForm from "./TransactionForm";
+import {getApiUrl} from "../utils/api";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
@@ -34,7 +35,7 @@ const TransactionDashboard = () => {
 
             // Fetch analytics
             const analyticsResponse = await axios.get(
-                'http://localhost:3001/transactions/analytics',
+                getApiUrl('/transactions/analytics'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -43,7 +44,7 @@ const TransactionDashboard = () => {
 
             // Fetch transactions
             const transactionsResponse = await axios.get(
-                'http://localhost:3001/transactions/user-transactions',
+                getApiUrl('/transactions/user-transactions'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -68,7 +69,7 @@ const TransactionDashboard = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/transactions/insights',
+                    getApiUrl('/transactions/insights'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -87,7 +88,7 @@ const TransactionDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/transactions/delete_transaction/${transactionId}`,
+                getApiUrl(`/transactions/delete_transaction/${transactionId}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
