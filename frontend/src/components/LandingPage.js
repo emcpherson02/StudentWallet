@@ -11,6 +11,7 @@ import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote } from 'lucide-react';
 import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
+import {getApiUrl} from "../utils/api";
 
 function LandingPage() {
   const {currentUser} = useAuth();
@@ -33,7 +34,7 @@ function LandingPage() {
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
+      const response = await axios.get(getApiUrl(`/budget/get_budgets`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
@@ -49,7 +50,7 @@ function LandingPage() {
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/transactions/user-transactions`, {
+      const response = await axios.get(getApiUrl(`/transactions/user-transactions`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
@@ -69,7 +70,7 @@ function LandingPage() {
 
       // Fetch accounts
       const accountsResponse = await axios.get(
-          `http://localhost:3001/plaid/accounts/${currentUser.uid}`,
+          getApiUrl(`/plaid/accounts/${currentUser.uid}`),
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -79,7 +80,7 @@ function LandingPage() {
 
       // Fetch transactions
       const transactionsResponse = await axios.get(
-          'http://localhost:3001/transactions/user-transactions',
+          getApiUrl('/transactions/user-transactions'),
           {
             params: { userId: currentUser.uid },
             headers: { Authorization: `Bearer ${token}` }
@@ -128,7 +129,7 @@ function LandingPage() {
     try {
       console.log('Fetching user details...');
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/user/user-data`, {
+      const response = await axios.get(getApiUrl(`/user/user-data`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
@@ -177,7 +178,7 @@ function LandingPage() {
   const startPlaidLink = async () => {
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.post('http://localhost:3001/plaid/create_link_token',
+      const response = await axios.post(getApiUrl('/plaid/create_link_token'),
           {
             userId: currentUser.uid,
           },
@@ -193,7 +194,7 @@ function LandingPage() {
         token: linkToken,
         onSuccess: async (publicToken) => {
           try {
-            const exchangeResponse = await axios.post('http://localhost:3001/plaid/exchange_public_token',
+            const exchangeResponse = await axios.post(getApiUrl('/plaid/exchange_public_token'),
                 {
                   publicToken,
                   userId: currentUser.uid,
@@ -214,7 +215,7 @@ function LandingPage() {
             const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
             await axios.get(
-                `http://localhost:3001/plaid/transactions/${currentUser.uid}`,
+                getApiUrl(`/plaid/transactions/${currentUser.uid}`),
                 {
                   params: { startDate, endDate },
                   headers: {
@@ -249,7 +250,7 @@ function LandingPage() {
   const checkBudgetRollovers = useCallback(async () => {
     try {
       const token = await currentUser.getIdToken();
-      const userBudgets = await axios.get('http://localhost:3001/budget/get_budgets', {
+      const userBudgets = await axios.get(getApiUrl('/budget/get_budgets'), {
         params: { userId: currentUser.uid },
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -261,7 +262,7 @@ function LandingPage() {
 
         if (endDate <= today) {
           console.log(`[Frontend] Processing rollover for budget ${budget.id}`);
-          await axios.post('http://localhost:3001/history/rollover', {
+          await axios.post(getApiUrl('/history/rollover'), {
             userId: currentUser.uid,
             budgetId: budget.id
           }, {
