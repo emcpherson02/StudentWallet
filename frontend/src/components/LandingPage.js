@@ -27,10 +27,14 @@ function LandingPage() {
   const [budgets, setBudgets] = useState([]);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+  const [loadingAccounts, setLoadingAccounts] = useState(true);
+  const [loadingTransactions, setLoadingTransactions] = useState(true);
+  const [loadingBudgets, setLoadingBudgets] = useState(true);
 
   // Define fetch functions first
   const fetchBudgets = useCallback(async () => {
     if (!currentUser) return;
+    setLoadingBudgets(true);
 
     try {
       const token = await currentUser.getIdToken();
@@ -42,11 +46,14 @@ function LandingPage() {
     } catch (error) {
       console.error('Error fetching budgets:', error);
       setMessage('Failed to fetch budgets.');
+    } finally {
+      setLoadingBudgets(false);
     }
   }, [currentUser]);
 
   const fetchTransactions = useCallback(async () => {
     if (!currentUser) return;
+    setLoadingTransactions(true);
 
     try {
       const token = await currentUser.getIdToken();
@@ -60,10 +67,13 @@ function LandingPage() {
     } catch (error) {
       console.error('Error fetching transactions:', error);
       setMessage('Failed to fetch transactions.');
+    } finally {
+      setLoadingTransactions(false);
     }
   }, [currentUser]);
 
   const fetchPlaidAccounts = useCallback(async () => {
+    setLoadingAccounts(true);
     try {
       console.log('Fetching Plaid accounts...');
       const token = await currentUser.getIdToken();
@@ -120,6 +130,8 @@ function LandingPage() {
       }
     } catch (error) {
       console.error('Error fetching Plaid accounts:', error);
+    } finally {
+      setLoadingAccounts(false);
     }
   }, [currentUser]);
 
@@ -275,6 +287,58 @@ function LandingPage() {
     }
   }, [currentUser]);
 
+  const AccountsLoadingPlaceholder = () => (
+      <div className={styles.loadingGrid}>
+        {[1, 2, 3].map((i) => (
+            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+              <div className={styles.accountPlaceholder}>
+                <div className={styles.accountIcon} />
+                <div className={styles.accountDetails}>
+                  <div className={`${styles.shimmerLine}`} />
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                </div>
+              </div>
+            </div>
+        ))}
+      </div>
+  );
+
+  const TransactionsLoadingPlaceholder = () => (
+      <div className={styles.loadingGrid}>
+        {[1, 2, 3, 4, 5].map((i) => (
+            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+              <div className={styles.transactionPlaceholder}>
+                <div className={styles.accountDetails}>
+                  <div className={`${styles.shimmerLine}`} />
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                </div>
+                <div className={`${styles.shimmerLine} ${styles.short}`} />
+              </div>
+            </div>
+        ))}
+      </div>
+  );
+
+  const BudgetsLoadingPlaceholder = () => (
+      <div className={styles.loadingGrid}>
+        {[1, 2, 3, 4].map((i) => (
+            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+              <div className={styles.budgetPlaceholder}>
+                <div className={styles.budgetHeader}>
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                </div>
+                <div className={styles.shimmerBar} />
+                <div className={styles.budgetHeader}>
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                  <div className={`${styles.shimmerLine} ${styles.short}`} />
+                </div>
+              </div>
+            </div>
+        ))}
+      </div>
+  );
+
 
   // Effects
   useEffect(() => {
@@ -347,7 +411,9 @@ function LandingPage() {
                 <h2>Accounts</h2>
               </div>
               <div className={`${styles.accountCard} accountsContainer`}>
-                {!linkedBank ? (
+                {loadingAccounts ? (
+                    <AccountsLoadingPlaceholder />
+                ) : !linkedBank ? (
                     <div className={styles.emptyStateCard}>
                       <CreditCard className="w-12 h-12 text-gray-400" />
                       <h3>Link Your Bank Account</h3>
@@ -401,7 +467,9 @@ function LandingPage() {
                 </button>
               </div>
               <div className={`${styles.transactionsContainer} transactionsContainer`}>
-                {transactions.length === 0 ? (
+                {loadingTransactions ? (
+                    <TransactionsLoadingPlaceholder />
+                ) : transactions.length === 0 ? (
                     <div className={styles.emptyStateCard}>
                       <Wallet className="w-12 h-12 text-gray-400"/>
                       <h3>No Transactions Yet</h3>
@@ -451,7 +519,9 @@ function LandingPage() {
                 </div>
               </div>
               <div className={`${styles.budgetsContainer} budgetsContainer`}>
-                {budgets.length === 0 ? (
+                {loadingBudgets ? (
+                    <BudgetsLoadingPlaceholder />
+                ) : budgets.length === 0 ? (
                     <div className={styles.emptyStateCard}>
                       <Wallet className="w-12 h-12 text-gray-400" />
                       <h3>No Budgets Set</h3>
