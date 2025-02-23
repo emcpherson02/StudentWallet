@@ -326,3 +326,20 @@
     color: #ef4444;
     background-color: #fee2e2;
 }
+
+.messageBanner {
+    animation: slideIn 0.3s ease-out;
+}
+
+.iconButton {
+    padding: 0.5rem;
+    border-radius: 0.5rem;
+    background: #f3f4f6;
+    border: none;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.iconButton:hover {
+    background: #e5e7eb;
+}

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/BudgetDashboard.module.css';
@@ -7,7 +7,8 @@ import PieChartComponent from './PieChartComponent';
 import {signOut} from "firebase/auth";
 import {auth} from "../utils/firebase";
 import { useNavigate, Link } from 'react-router-dom';
-import {Trash2} from 'lucide-react';
+import {Plus, Trash2} from 'lucide-react';
+import BudgetForm from './BudgetForm';
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
@@ -18,6 +19,9 @@ const BudgetDashboard = () => {
     const [transactions, setTransactions] = useState([]);
     const [expandedBudget, setExpandedBudget] = useState(null);
     const navigate = useNavigate();
+    const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+    const appRef = useRef();
+    const [message, setMessage] = useState('');
 
     useEffect(() => {
         const fetchData = async () => {
@@ -186,6 +190,31 @@ const BudgetDashboard = () => {
         }
     };
 
+    const handleBudgetAdded = useCallback(() => {
+        // Fetch budget data again to refresh the view
+        const fetchData = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const budgetResponse = await axios.get(
+                    'http://localhost:3001/budget/analytics/summary',
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                setBudgetData(budgetResponse.data.data);
+                setMessage('Budget added successfully!');
+                setIsBudgetModalOpen(false);
+                appRef.current?.classList.remove('modal-open');
+            } catch (err) {
+                console.error('Error fetching updated budget data:', err);
+                setMessage('Failed to refresh budget data');
+            }
+        };
+
+        fetchData();
+    }, [currentUser]);
 
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
@@ -203,7 +232,16 @@ const BudgetDashboard = () => {
             <div className={styles.dashboard}>
                 <div className={styles.dashboardHeader}>
                     <h1>Budget Overview</h1>
+                    {message && (
+                        <div className={styles.messageBanner}>{message}</div>
+                    )}
                     <div className={styles.headerActions}>
+                        <button
+                            onClick={() => setIsBudgetModalOpen(true)}
+                            className={styles.iconButton}
+                        >
+                            <Plus className="w-5 h-5"/>
+                        </button>
                         <button
                             onClick={toggleNotifications}
                             className={`${styles.notificationToggle} ${notificationsEnabled ? styles.enabled : ''}`}
@@ -338,6 +376,17 @@ const BudgetDashboard = () => {
                         ))}
                     </div>
                 </div>
+                {isBudgetModalOpen && (
+                    <BudgetForm
+                        userId={currentUser?.uid}
+                        onBudgetAdded={handleBudgetAdded}
+                        setMessage={setMessage}
+                        onClose={() => {
+                            setIsBudgetModalOpen(false);
+                            appRef.current?.classList.remove('modal-open');
+                        }}
+                    />
+                )}
             </div>
         </Layout>
     );
