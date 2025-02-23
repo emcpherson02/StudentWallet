@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
+import {getApiUrl} from "../utils/api";
 
 const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
     const { currentUser } = useAuth();
@@ -17,7 +18,7 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
         try {
             const token = await currentUser.getIdToken(true);
             const response = await axios.post(
-                'http://localhost:3001/loan/add_loan',
+                getApiUrl('/loan/add_loan'),
                 {
                     userId,
                     instalmentDates: formData.instalmentDates,

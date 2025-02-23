@@ -9,6 +9,7 @@ import {auth} from "../utils/firebase";
 import { useNavigate, Link } from 'react-router-dom';
 import {Plus, Trash2} from 'lucide-react';
 import BudgetForm from './BudgetForm';
+import {getApiUrl} from "../utils/api";
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
@@ -32,7 +33,7 @@ const BudgetDashboard = () => {
 
                 // Fetch user data first
                 const userResponse = await axios.get(
-                    'http://localhost:3001/user/user-data',
+                    getApiUrl('/user/user-data'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -46,7 +47,7 @@ const BudgetDashboard = () => {
 
                 // Fetch budget data
                 const budgetResponse = await axios.get(
-                    'http://localhost:3001/budget/analytics/summary',
+                    getApiUrl('/budget/analytics/summary'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -69,7 +70,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
@@ -99,7 +100,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/budget/transactions/',
+                getApiUrl('/budget/transactions/'),
                 {
                     params: {
                         userId: currentUser.uid,
@@ -174,7 +175,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/budget/delete_budget/${budgetId}`,
+                getApiUrl(`/budget/delete_budget/${budgetId}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -196,7 +197,7 @@ const BudgetDashboard = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const budgetResponse = await axios.get(
-                    'http://localhost:3001/budget/analytics/summary',
+                    getApiUrl('/budget/analytics/summary'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }

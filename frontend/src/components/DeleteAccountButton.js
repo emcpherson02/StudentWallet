@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
+import {getApiUrl} from "../utils/api";
 
 const DeleteAccountButton = ({ currentUser }) => {
   const [loading, setLoading] = useState(false);
@@ -18,7 +19,7 @@ const DeleteAccountButton = ({ currentUser }) => {
       const token = await currentUser.getIdToken(true);
       
       const response = await axios.delete(
-        `http://localhost:3001/user/delete_user/${currentUser.uid}`,
+        getApiUrl(`/user/delete_user/${currentUser.uid}`),
         {
           headers: {
             'Authorization': `Bearer ${token}`,

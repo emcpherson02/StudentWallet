@@ -4,6 +4,7 @@ import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
 import styles from '../styles/CategoryManagement.module.css';
+import {getApiUrl} from "../utils/api";
 
 const CategoryManagement = () => {
     const { currentUser } = useAuth();
@@ -23,7 +24,7 @@ const CategoryManagement = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/user/categories',
+                getApiUrl('/user/categories'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -44,7 +45,7 @@ const CategoryManagement = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/categories/add',
+                getApiUrl('/user/categories/add'),
                 {
                     userId: currentUser.uid,
                     category: newCategory.trim()
@@ -70,7 +71,7 @@ const CategoryManagement = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/user/categories/${category}`,
+                getApiUrl(`/user/categories/${category}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }

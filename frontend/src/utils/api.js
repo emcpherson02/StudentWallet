@@ -1,5 +1,11 @@
 import axios from 'axios';
 
+// Read base URL from environment variable with fallback
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+
+// Helper function to create full URLs - this makes it easy to change the base URL in one place
+export const getApiUrl = (endpoint) => `${API_BASE_URL}${endpoint}`;
+
 const api = axios.create({
     baseURL: 'http://localhost:3001',
     headers: {

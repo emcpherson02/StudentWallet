@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
 import { Bell } from 'lucide-react';
 import '../styles/NotificationHistory.css';
+import {getApiUrl} from "../utils/api";
 
 const NotificationHistory = () => {
     const { currentUser } = useAuth();
@@ -29,7 +30,7 @@ const NotificationHistory = () => {
             setLoading(true);
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/user/notification-history',
+                getApiUrl('/user/notification-history'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }

@@ -3,6 +3,7 @@ import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/TransactionModal.css';
+import {getApiUrl} from "../utils/api";
 
 const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentLinkedTransactions }) => {
     const { currentUser } = useAuth();
@@ -23,7 +24,7 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/transactions/user-transactions',
+                getApiUrl('/transactions/user-transactions'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -47,7 +48,7 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
             setIsSyncing(true);
             const token = await currentUser.getIdToken();
             await axios.post(
-                `http://localhost:3001/loan/link_all_transactions/${loanId}`,
+                getApiUrl(`/loan/link_all_transactions/${loanId}`),
                 { userId: currentUser.uid },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
@@ -72,7 +73,7 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
 
             for (const transactionId of selectedTransactions) {
                 await axios.post(
-                    `http://localhost:3001/loan/link_transaction/${loanId}`,
+                    getApiUrl(`/loan/link_transaction/${loanId}`),
                     {
                         userId: currentUser.uid,
                         transactionId
