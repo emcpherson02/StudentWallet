@@ -21,6 +21,8 @@ function PreferencesPage() {
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
+    const [userData, setUserData] = useState({});
+
 
     const fetchUserPreferences = async () => {
         if (!currentUser) return;
@@ -49,9 +51,10 @@ function PreferencesPage() {
                     Authorization: `Bearer ${token}`
                 }
             });
-            const { linkedBank, accounts } = response.data;
+            const { linkedBank, accounts, dob } = response.data;
             setLinkedBank(linkedBank);
             setAccounts(accounts || []);
+            setUserData(response.data); // Store all user data
             if (response.data.displayName && response.data.displayName !== currentUser.displayName) {
                 await currentUser.updateProfile({ displayName: response.data.displayName });
             }
@@ -172,8 +175,8 @@ function PreferencesPage() {
                             <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Date of Birth</span>
                                 <span className={styles.detailValue}>
-                                    {currentUser.metadata?.dob
-                                        ? new Date(currentUser.metadata.dob).toLocaleDateString()
+                                    {userData.dob
+                                        ? new Date(userData.dob).toLocaleDateString('en-GB')
                                         : 'Not set'}
                                 </span>
                             </div>
