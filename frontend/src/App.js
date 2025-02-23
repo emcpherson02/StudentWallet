@@ -12,7 +12,8 @@ import PreferencesPage from './components/PreferencesPage';
 import AboutUs from './components/AboutUs';
 import { ThemeProvider } from './contexts/ThemeContext';
 import './styles/darkMode.css';
-
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 
 function App() {
@@ -33,6 +34,7 @@ function App() {
               <Route path="/about-us" element={<AboutUs />} />
               {/* Add other routes here */}
           </Routes>
+          <ToastContainer position="top-center" autoClose={3000} />
       </div>
       </ThemeProvider>
   );

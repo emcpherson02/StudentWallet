@@ -10,6 +10,8 @@ import { useNavigate, Link } from 'react-router-dom';
 import {Plus, Trash2} from 'lucide-react';
 import BudgetForm from './BudgetForm';
 import {getApiUrl} from "../utils/api";
+import { toast } from 'react-toastify';
+
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
@@ -58,7 +60,7 @@ const BudgetDashboard = () => {
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching data:', err);
-                setError('Failed to load budget data');
+                toast('Failed to Fetch Budget Data', { type: 'error' });
                 setLoading(false);
             }
         };
@@ -83,7 +85,7 @@ const BudgetDashboard = () => {
             setNotificationsEnabled(!notificationsEnabled);
         } catch (err) {
             console.error('Error toggling notifications:', err);
-            setError('Failed to update notification settings');
+            toast('Failed to Toggle Notifications', { type: 'error' });
         }
     };
 
@@ -186,8 +188,10 @@ const BudgetDashboard = () => {
                 ...prev,
                 categoryBreakdown: prev.categoryBreakdown.filter(cat => cat.budgetId !== budgetId)
             }));
+            toast('Budget Deleted Successfully', { type: 'success' });
         } catch (error) {
             console.error('Error deleting budget:', error);
+            toast('Failed to Delete Budget', { type: 'error' });
         }
     };
 
@@ -205,12 +209,12 @@ const BudgetDashboard = () => {
                 );
 
                 setBudgetData(budgetResponse.data.data);
-                setMessage('Budget added successfully!');
+                toast('Budgets Updated Sucessfully', { type: 'success' });
                 setIsBudgetModalOpen(false);
                 appRef.current?.classList.remove('modal-open');
             } catch (err) {
                 console.error('Error fetching updated budget data:', err);
-                setMessage('Failed to refresh budget data');
+                toast('Failed to Fetch Budget Updates Try Again', { type: 'error' });
             }
         };
 
@@ -227,15 +231,11 @@ const BudgetDashboard = () => {
 
     if (!budgetData) return null;
 
-
     return (
         <Layout CurrentUser={currentUser} onLogout={handleLogout} showNav={true}>
             <div className={styles.dashboard}>
                 <div className={styles.dashboardHeader}>
                     <h1>Budget Overview</h1>
-                    {message && (
-                        <div className={styles.messageBanner}>{message}</div>
-                    )}
                     <div className={styles.headerActions}>
                         <button
                             onClick={() => setIsBudgetModalOpen(true)}
@@ -381,7 +381,6 @@ const BudgetDashboard = () => {
                     <BudgetForm
                         userId={currentUser?.uid}
                         onBudgetAdded={handleBudgetAdded}
-                        setMessage={setMessage}
                         onClose={() => {
                             setIsBudgetModalOpen(false);
                             appRef.current?.classList.remove('modal-open');
