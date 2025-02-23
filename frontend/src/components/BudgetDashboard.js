@@ -242,12 +242,6 @@ const BudgetDashboard = () => {
                         >
                             <Plus className="w-5 h-5"/>
                         </button>
-                        <button
-                            onClick={toggleNotifications}
-                            className={`${styles.notificationToggle} ${notificationsEnabled ? styles.enabled : ''}`}
-                        >
-                            {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
-                        </button>
                     </div>
                 </div>
 

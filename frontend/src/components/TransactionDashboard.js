@@ -15,49 +15,51 @@ import {
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
 import TransactionInsights from './TransactionInsights';
-import {Trash2, Banknote, RefreshCw} from "lucide-react";
+import {Trash2, Banknote, RefreshCw, Plus} from "lucide-react";
+import TransactionForm from "./TransactionForm";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
     const [analytics, setAnalytics] = useState(null);
-    const [transactions, setTransactions] = useState([]); // Add this state
+    const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [insights, setInsights] = useState(null);
+    const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+
+    const fetchData = async () => {
+        if (!currentUser) return;
+
+        try {
+            const token = await currentUser.getIdToken();
+
+            // Fetch analytics
+            const analyticsResponse = await axios.get(
+                'http://localhost:3001/transactions/analytics',
+                {
+                    params: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Fetch transactions
+            const transactionsResponse = await axios.get(
+                'http://localhost:3001/transactions/user-transactions',
+                {
+                    params: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setAnalytics(analyticsResponse.data.data);
+            setTransactions(transactionsResponse.data.Transaction || []);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!currentUser) return;
-
-            try {
-                const token = await currentUser.getIdToken();
-
-                // Fetch analytics
-                const analyticsResponse = await axios.get(
-                    'http://localhost:3001/transactions/analytics',
-                    {
-                        params: { userId: currentUser.uid },
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                // Fetch transactions
-                const transactionsResponse = await axios.get(
-                    'http://localhost:3001/transactions/user-transactions',
-                    {
-                        params: { userId: currentUser.uid },
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                setAnalytics(analyticsResponse.data.data);
-                setTransactions(transactionsResponse.data.Transaction || []); // Set transactions from response
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [currentUser]);
 
@@ -208,7 +210,7 @@ const TransactionDashboard = () => {
                 </section>
 
                 <section className={styles.transactionsSection}>
-                    {insights && <TransactionInsights insights={insights} />}
+                    {insights && <TransactionInsights insights={insights}/>}
                 </section>
 
                 <section className={styles.transactionsSection}>
@@ -218,6 +220,14 @@ const TransactionDashboard = () => {
                 <section className={styles.transactionsSection}>
                     <div className={styles.transactionsHeader}>
                         <h2 className={styles.transactionsTitle}>Transaction History</h2>
+                        <div className={styles.headerActions}>
+                            <button
+                                onClick={() => setIsTransactionModalOpen(true)}
+                                className={styles.iconButton}
+                            >
+                                <Plus className="w-5 h-5"/>
+                            </button>
+                        </div>
                     </div>
 
                     {transactions.length > 0 ? (
@@ -300,6 +310,18 @@ const TransactionDashboard = () => {
                         </div>
                     )}
                 </section>
+                {isTransactionModalOpen && (
+                    <TransactionForm
+                        userId={currentUser?.uid}
+                        onTransactionAdded={() => {
+                            fetchData();
+                            setIsTransactionModalOpen(false);
+                        }}
+                        setMessage={() => {
+                        }}
+                        onClose={() => setIsTransactionModalOpen(false)}
+                    />
+                )}
             </div>
         </Layout>
     );
