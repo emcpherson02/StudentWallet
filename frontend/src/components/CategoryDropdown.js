@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
+import {getApiUrl} from "../utils/api";
 
 const CategoryDropdown = ({ value, onChange, className }) => {
     const { currentUser } = useAuth();
@@ -24,7 +25,7 @@ const CategoryDropdown = ({ value, onChange, className }) => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/categories',
+                    getApiUrl('/user/categories'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -45,7 +46,7 @@ const CategoryDropdown = ({ value, onChange, className }) => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/categories/add',
+                getApiUrl('/user/categories/add'),
                 {
                     userId: currentUser.uid,
                     category: newCategory.trim()

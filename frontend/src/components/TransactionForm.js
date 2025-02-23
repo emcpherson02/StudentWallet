@@ -3,6 +3,7 @@ import axios from 'axios';
 import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
+import {getApiUrl} from "../utils/api";
 
 const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) => {
     const { currentUser } = useAuth();
@@ -25,7 +26,7 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/categories',
+                    getApiUrl('/user/categories'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -54,7 +55,7 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
         try {
             const token = await currentUser.getIdToken(true);
             const response = await axios.post(
-                'http://localhost:3001/transactions/add_transaction',
+                getApiUrl('/transactions/add_transaction'),
                 {
                     userId,
                     amount: parseFloat(formData.amount),
@@ -87,7 +88,7 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/categories/add',
+                getApiUrl('/user/categories/add'),
                 {
                     userId: currentUser.uid,
                     category: newCategory.trim()
