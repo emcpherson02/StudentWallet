@@ -64,6 +64,20 @@ class PlaidController {
             next(error);
         }
     }
+
+    async unlinkBank(req, res, next) {
+        try {
+            const { userId } = req.params;
+            await this.plaidService.unlinkBank(userId);
+            res.status(200).json({
+                status: 'success',
+                message: 'Bank account unlinked successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
 }
 
 module.exports = PlaidController;
