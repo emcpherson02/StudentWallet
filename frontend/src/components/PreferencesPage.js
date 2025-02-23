@@ -20,6 +20,7 @@ function PreferencesPage() {
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [showPasswordForm, setShowPasswordForm] = useState(false);
 
     const fetchUserPreferences = async () => {
         if (!currentUser) return;
@@ -169,6 +170,12 @@ function PreferencesPage() {
                                 </span>
                             </div>
                             <div className={styles.detailItem}>
+                                <span className={styles.detailLabel}>Date of Birth</span>
+                                <span className={styles.detailValue}>
+                                    {currentUser.dob ? new Date(currentUser.dob).toLocaleDateString('en-GB') : 'Not set'}
+                                </span>
+                            </div>
+                            <div className={styles.detailItem}>
                                 <span className={styles.detailLabel}>Account Created</span>
                                 <span className={styles.detailValue}>
                                     {currentUser.metadata?.creationTime
@@ -195,7 +202,41 @@ function PreferencesPage() {
 
                     {/* Password Section */}
                     <section className={styles.card}>
-                        <ChangePassword currentUser={currentUser} />
+                        <div className={styles.sectionHeader}>
+                            <div className={styles.headerWithInfo}>
+                                <h2>Password Settings</h2>
+                                <div className={styles.infoIcon} title="Manage your account password">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                         strokeLinejoin="round">
+                                        <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                                        <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                                    </svg>
+                                </div>
+                            </div>
+                            {!showPasswordForm && (
+                                <button
+                                    onClick={() => setShowPasswordForm(true)}
+                                    className={`${styles.primaryButton} ${styles.securityButton}`}
+                                >
+                                    Change Password
+                                </button>
+                            )}
+                        </div>
+
+                        {!showPasswordForm && (
+                            <p className={styles.securityDescription}>
+                                Regularly update your password to keep your account secure. Use a strong password with a
+                                mix of letters, numbers, and symbols.
+                            </p>
+                        )}
+
+                        {showPasswordForm && (
+                            <ChangePassword
+                                currentUser={currentUser}
+                                onComplete={() => setShowPasswordForm(false)}
+                            />
+                        )}
                     </section>
 
                     {/* Notifications Section */}
@@ -203,8 +244,11 @@ function PreferencesPage() {
                         <div className={styles.sectionHeader}>
                             <div className={styles.headerWithInfo}>
                                 <h2>Email Notifications</h2>
-                                <div className={styles.infoIcon} title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div className={styles.infoIcon}
+                                     title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                         strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <line x1="12" y1="16" x2="12" y2="12"></line>
                                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -228,8 +272,11 @@ function PreferencesPage() {
                         <div className={styles.sectionHeader}>
                             <div className={styles.headerWithInfo}>
                                 <h2>Bank Account</h2>
-                                <div className={styles.infoIcon} title="Connect or disconnect your bank account for automatic transaction tracking">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div className={styles.infoIcon}
+                                     title="Connect or disconnect your bank account for automatic transaction tracking">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                         strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <line x1="12" y1="16" x2="12" y2="12"></line>
                                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -252,11 +299,11 @@ function PreferencesPage() {
 
                     {/* Categories Management Section */}
                     <section className={styles.card}>
-                        <CategoryManagement />
+                        <CategoryManagement/>
                     </section>
                     {/* Account Deletion Section */}
                     <section className={styles.deleteSection}>
-                        <DeleteAccountButton currentUser={currentUser} />
+                        <DeleteAccountButton currentUser={currentUser}/>
                     </section>
                 </div>
             </div>
