@@ -25,3 +25,4 @@ backend/.env
 /backend/coverage/lcov-report/prettify.js
 /backend/coverage/lcov-report/sort-arrow-sprite.png
 /backend/coverage/lcov-report/sorter.js
+/backup_project.bat

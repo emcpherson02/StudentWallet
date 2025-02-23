@@ -1,0 +1,199 @@
+.insights-container {
+    background-color: white;
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+    padding: 32px;
+    margin-bottom: 32px;
+}
+
+.insights-title {
+    font-size: 24px;
+    font-weight: 700;
+    color: #1f2937;
+    margin: 0 0 32px 0;
+    letter-spacing: -0.02em;
+}
+
+.insights-section {
+    margin-bottom: 32px;
+}
+
+.insights-section:last-child {
+    margin-bottom: 0;
+}
+
+.section-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+}
+
+.section-header h3 {
+    font-size: 18px;
+    font-weight: 600;
+    margin: 0;
+    color: #1f2937;
+    letter-spacing: -0.01em;
+}
+
+.icon {
+    width: 24px;
+    height: 24px;
+}
+
+.icon.blue {
+    color: #2563eb;
+}
+
+.icon.yellow {
+    color: #f59e0b;
+}
+
+.icon.purple {
+    color: #8b5cf6;
+}
+
+.patterns-content {
+    background-color: #f8fafc;
+    border-radius: 12px;
+    padding: 20px;
+    border: 1px solid #e2e8f0;
+}
+
+.patterns-text {
+    font-size: 15px;
+    color: #4b5563;
+    margin: 0 0 12px 0;
+    line-height: 1.5;
+}
+
+.patterns-text:last-child {
+    margin-bottom: 0;
+}
+
+.category-amount {
+    margin-left: 6px;
+    font-weight: 500;
+}
+
+.trend-positive {
+    color: #059669;
+    font-weight: 600;
+}
+
+.trend-negative {
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.unusual-transactions {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.unusual-transaction-card {
+    background-color: #fef3c7;
+    border-radius: 12px;
+    padding: 16px;
+    border: 1px solid #fcd34d;
+}
+
+.transaction-title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #92400e;
+    margin: 0 0 6px 0;
+}
+
+.transaction-details {
+    font-size: 14px;
+    color: #b45309;
+    margin: 0;
+    opacity: 0.9;
+}
+
+.recommendations {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.recommendation-card {
+    border-radius: 12px;
+    padding: 16px;
+    transition: transform 0.2s ease;
+}
+
+.recommendation-card:hover {
+    transform: translateX(4px);
+}
+
+.recommendation-card.warning {
+    background-color: #fee2e2;
+    border: 1px solid #fecaca;
+}
+
+.recommendation-card.suggestion {
+    background-color: #e0e7ff;
+    border: 1px solid #c7d2fe;
+}
+
+.recommendation-content {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+}
+
+.recommendation-icon {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+}
+
+.warning .recommendation-content {
+    color: #991b1b;
+}
+
+.suggestion .recommendation-content {
+    color: #3730a3;
+}
+
+.recommendation-content p {
+    margin: 0;
+    font-size: 15px;
+    line-height: 1.5;
+    font-weight: 500;
+}
+
+@media (max-width: 640px) {
+    .insights-container {
+        padding: 24px;
+    }
+
+    .insights-title {
+        font-size: 22px;
+        margin-bottom: 24px;
+    }
+
+    .section-header h3 {
+        font-size: 16px;
+    }
+
+    .patterns-content,
+    .unusual-transaction-card,
+    .recommendation-card {
+        padding: 16px;
+    }
+
+    .patterns-text,
+    .transaction-title,
+    .recommendation-content p {
+        font-size: 14px;
+    }
+
+    .transaction-details {
+        font-size: 13px;
+    }
+}

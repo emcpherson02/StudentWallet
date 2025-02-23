@@ -215,3 +215,23 @@
         font-size: 2rem;
     }
 }
+
+.forgotPasswordContainer {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.forgotPasswordLink {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+}
+
+.forgotPasswordLink:hover {
+    text-decoration: underline;
+}

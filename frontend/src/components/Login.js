@@ -6,12 +6,14 @@ import { googleAuthProvider, auth, db } from '../utils/firebase';
 import { signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import {AlertCircle, Mail, Lock} from "lucide-react";
+import ForgottenPassword from "./ForgottenPassword";
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
+    const [showForgottenPassword, setShowForgottenPassword] = useState(false);
 
     const handleLogin = async (e) => {
         e.preventDefault();
@@ -83,7 +85,7 @@ function Login() {
                         <div className={styles.inputGroup}>
                             <label>Email address</label>
                             <div className={styles.inputWrapper}>
-                                <Mail className={styles.inputIcon} size={20} />
+                                <Mail className={styles.inputIcon} size={20}/>
                                 <input
                                     type="email"
                                     value={email}
@@ -97,7 +99,7 @@ function Login() {
                         <div className={styles.inputGroup}>
                             <label>Password</label>
                             <div className={styles.inputWrapper}>
-                                <Lock className={styles.inputIcon} size={20} />
+                                <Lock className={styles.inputIcon} size={20}/>
                                 <input
                                     type="password"
                                     value={password}
@@ -107,6 +109,17 @@ function Login() {
                                 />
                             </div>
                         </div>
+
+                        <div className={styles.forgotPasswordContainer}>
+                            <button
+                                type="button"
+                                onClick={() => setShowForgottenPassword(true)}
+                                className={styles.forgotPasswordLink}
+                            >
+                                Forgot password?
+                            </button>
+                        </div>
+
 
                         <button type="submit" className={styles.submitButton}>
                             Sign in
@@ -136,6 +149,10 @@ function Login() {
                     </div>
                 </div>
             </div>
+
+            {showForgottenPassword && (
+                <ForgottenPassword onClose={() => setShowForgottenPassword(false)} />
+            )}
         </div>
     );
 };

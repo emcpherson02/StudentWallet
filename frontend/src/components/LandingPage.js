@@ -345,7 +345,7 @@ function LandingPage() {
               <div className={styles.sectionHeader}>
                 <h2>Accounts</h2>
               </div>
-              <div className={`${styles.accountsContainer} accountsContainer`}>
+              <div className={`${styles.accountCard} accountsContainer`}>
                 {!linkedBank ? (
                     <div className={styles.emptyStateCard}>
                       <CreditCard className="w-12 h-12 text-gray-400" />
