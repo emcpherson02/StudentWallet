@@ -6,7 +6,7 @@ import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
 import {signOut} from "firebase/auth";
 import {auth} from "../utils/firebase";
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate} from 'react-router-dom';
 import {Plus, Trash2} from 'lucide-react';
 import BudgetForm from './BudgetForm';
 import {getApiUrl} from "../utils/api";
@@ -17,14 +17,13 @@ const BudgetDashboard = () => {
     const { currentUser } = useAuth();
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [transactions, setTransactions] = useState([]);
     const [expandedBudget, setExpandedBudget] = useState(null);
     const navigate = useNavigate();
     const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
     const appRef = useRef();
-    const [message, setMessage] = useState('');
+    const error = null;
 
     useEffect(() => {
         const fetchData = async () => {
