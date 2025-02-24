@@ -25,6 +25,7 @@ function Login() {
             setMessage("Login successful!");
             sessionStorage.setItem('user', email);
             sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userId', currentUser.uid);
             navigate('/plaid-link');
         } catch (error) {
             console.error("Error logging in:", error);
