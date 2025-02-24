@@ -11,7 +11,7 @@ import ChangePassword from './ChangePassword';
 import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
 import {getApiUrl} from "../utils/api";
-import DataExport from "./DataExportModal";
+import DataExport from "../components/DataExportComponent";
 
 function PreferencesPage() {
     const { currentUser } = useAuth();
