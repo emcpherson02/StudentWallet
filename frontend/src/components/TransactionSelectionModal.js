@@ -4,6 +4,7 @@ import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/TransactionModal.css';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentLinkedTransactions }) => {
     const { currentUser } = useAuth();
@@ -53,6 +54,7 @@ const TransactionSelectionModal = ({ isOpen, onClose, onSelect, loanId, currentL
                 { headers: { Authorization: `Bearer ${token}` } }
             );
             onSelect();
+            toast('All transactions synced successfully', { type: 'success' });
             onClose();
         } catch (error) {
             setError('Failed to sync all transactions');
