@@ -42,7 +42,7 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
             }
         } catch (error) {
             console.error('Error:', error.response || error);
-            setMessage(error.response?.data?.message || 'Failed to create loan');
+            toast('Failed to add loan', { type: 'error' });
         }
     };
 

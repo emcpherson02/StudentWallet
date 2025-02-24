@@ -5,6 +5,7 @@ import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
 import styles from '../styles/CategoryManagement.module.css';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const CategoryManagement = () => {
     const { currentUser } = useAuth();
@@ -34,7 +35,7 @@ const CategoryManagement = () => {
             setLoading(false);
         } catch (error) {
             console.error('Error fetching categories:', error);
-            setMessage({ type: 'error', content: 'Failed to load categories' });
+            toast('Failed to fetch categories', { type: 'error' });
             setLoading(false);
         }
     };
@@ -58,12 +59,12 @@ const CategoryManagement = () => {
             setCategories(prev => [...prev, newCategory.trim()]);
             setNewCategory('');
             setIsAdding(false);
-            setMessage({ type: 'success', content: 'Category added successfully' });
+            toast('Category added successfully', { type: 'success' });
 
             // Clear success message after 3 seconds
             setTimeout(() => setMessage({ type: '', content: '' }), 3000);
         } catch (error) {
-            setMessage({ type: 'error', content: 'Failed to add category' });
+            toast('Failed to add category', { type: 'error' });
         }
     };
 
@@ -79,12 +80,12 @@ const CategoryManagement = () => {
             );
 
             setCategories(prev => prev.filter(c => c !== category));
-            setMessage({ type: 'success', content: 'Category deleted successfully' });
+            toast('Category deleted successfully', { type: 'success' });
 
             // Clear success message after 3 seconds
             setTimeout(() => setMessage({ type: '', content: '' }), 3000);
         } catch (error) {
-            setMessage({ type: 'error', content: 'Failed to delete category' });
+            toast('Failed to delete category', { type: 'error' });
         }
     };
 

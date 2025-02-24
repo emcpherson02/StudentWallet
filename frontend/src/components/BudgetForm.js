@@ -6,7 +6,7 @@ import { TRANSACTION_CATEGORIES } from '../utils/constants';
 import {getApiUrl} from "../utils/api";
 import {toast} from "react-toastify";
 
-const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
+const BudgetForm = ({ userId, onBudgetAdded, onClose }) => {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
         category: '',
@@ -107,7 +107,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             setIsAddingCategory(false);
         } catch (error) {
             console.error('Error adding category:', error);
-            setMessage('Failed to add category');
+            toast('Failed to add category', { type: 'error' });
         }
     };
 

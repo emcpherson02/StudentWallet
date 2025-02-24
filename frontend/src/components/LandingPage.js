@@ -163,7 +163,6 @@ function LandingPage() {
 
   const handleBudgetAdded = useCallback(() => {
     fetchBudgets();
-    setMessage('Budget added successfully!');
     setIsBudgetModalOpen(false);
     toast('Budget added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
