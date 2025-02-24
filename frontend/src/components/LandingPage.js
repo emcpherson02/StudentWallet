@@ -12,6 +12,7 @@ import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
 import {getApiUrl} from "../utils/api";
+import {logoutUser} from "../utils/authService";
 
 function LandingPage() {
   const {currentUser} = useAuth();
@@ -166,14 +167,6 @@ function LandingPage() {
     appRef.current?.classList.remove('modal-open');
   }, [fetchBudgets]);
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  }, [navigate]);
 
   const startPlaidLink = async () => {
     try {
@@ -297,7 +290,10 @@ function LandingPage() {
 
   if (!currentUser) return null;
 
-
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login');
+  }
   return (
       <Layout currentUser={currentUser} onLogout={handleLogout}>
         <div className={styles.pageContainer}>

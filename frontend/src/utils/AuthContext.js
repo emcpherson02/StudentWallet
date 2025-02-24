@@ -13,23 +13,23 @@ export const AuthProvider = ({ children }) => {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // Listen for authentication state changes
     useEffect(() => {
         const unsubscribe = auth.onAuthStateChanged((user) => {
-            setCurrentUser(user);
-            setLoading(false); // Finish loading when user is fetched
+            if (user) {
+                setCurrentUser(user);
+            }
+            setLoading(false);
         });
-
-        // Cleanup the listener on unmount
-        return unsubscribe;
+        return () => unsubscribe();
     }, []);
 
-    // Context value with current user and loading status
-    const value = { currentUser, loading };
-
     return (
-        <AuthContext.Provider value={value}>
-            {!loading && children} {/* Render children only when not loading */}
+        <AuthContext.Provider value={{ currentUser, loading }}>
+            {!loading && children}
         </AuthContext.Provider>
     );
 };
+
+export default AuthContext;
+
+

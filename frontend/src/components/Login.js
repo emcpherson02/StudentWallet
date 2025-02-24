@@ -12,6 +12,7 @@ import {useAuth} from "../utils/AuthContext";
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMessages] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
     const [showForgottenPassword, setShowForgottenPassword] = useState(false);
@@ -20,23 +21,27 @@ function Login() {
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await loginUser(email, password);
-            const token = await currentUser.getIdToken();
-            setMessage("Login successful!");
+            const user = await loginUser(email, password);
+            const token = await user.getIdToken();
+
+            // Store session data
             sessionStorage.setItem('user', email);
             sessionStorage.setItem('token', token);
-            sessionStorage.setItem('userId', currentUser.uid);
+            sessionStorage.setItem('userId', user.uid);
+
+            console.log('Session storage after login:', {
+                user: sessionStorage.getItem('user'),
+                token: sessionStorage.getItem('token'),
+                userId: sessionStorage.getItem('userId')
+            });
+
             navigate('/plaid-link');
         } catch (error) {
-            console.error("Error logging in:", error);
-            const errorMessages = {
-                'auth/user-not-found': "No account found with this email.",
-                'auth/wrong-password': "Incorrect password. Please try again.",
-                'default': "An error occurred. Please try again."
-            };
+            console.error("Login error:", error);
             setMessage(errorMessages[error.code] || errorMessages.default);
         }
     };
+
 
     const handleGoogleLogin = async () => {
         try {

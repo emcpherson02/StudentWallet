@@ -38,6 +38,17 @@ export async function registerUser(email, password, name, dob) {
  */
 export async function loginUser(email, password) {
     const auth = getAuth();
-    const userCredential = await signInWithEmailAndPassword(auth, email, password);
-    return userCredential.user;
+    try {
+        const userCredential = await signInWithEmailAndPassword(auth, email, password);
+        return (userCredential.user);
+
+    } catch (error) {
+        throw error;
+    }
+}
+
+export async function logoutUser() {
+    const auth = getAuth();
+    await auth.signOut();
+    sessionStorage.clear(); // Clear all session storage
 }
