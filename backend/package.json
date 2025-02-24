@@ -18,6 +18,8 @@
     "express": "^4.21.1",
     "express-session": "^1.18.1",
     "firebase-admin": "^12.7.0",
+    "json2csv": "^6.0.0-alpha.2",
+    "jszip": "^3.10.1",
     "node-cron": "^3.0.3",
     "nodemailer": "^6.10.0",
     "nodemon": "^3.1.7",
@@ -25,7 +27,8 @@
     "passport-google-oauth20": "^2.0.0",
     "plaid": "^30.0.0",
     "swagger-jsdoc": "^6.2.8",
-    "swagger-ui-express": "^5.0.1"
+    "swagger-ui-express": "^5.0.1",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@babel/core": "^7.26.9",
