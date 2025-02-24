@@ -54,6 +54,9 @@ function Login() {
                     createdAt: new Date(),
                 });
             }
+            const token = await user.getIdToken();
+            sessionStorage.setItem('user', user.email);
+            sessionStorage.setItem('token', token);
             navigate('/plaid-link');
         } catch (error) {
             console.error('Google login failed:', error);
