@@ -1,5 +1,3 @@
-const { admin } = require('../config/firebase.config');
-
 class DataExportService {
     constructor(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel) {
         this.userModel = userModel;
@@ -9,43 +7,46 @@ class DataExportService {
         this.budgetHistoryModel = budgetHistoryModel;
     }
 
-    async generateExport(userId) {
+    async generateExport(decodedToken, filters) {
         try {
+            const userId = decodedToken.uid;
+
+            // Get filtered data based on date range
             const [
                 userData,
                 transactions,
-                budgets,
+                currentBudgets,
                 loanData,
-                budgetHistory,
-                categories,
-                notifications
+                filteredBudgetHistory
             ] = await Promise.all([
-                this.userModel.findById(userId),
+                this.userModel.db.collection('users').doc(userId).get(),
                 this.transactionModel.findByUserId(userId),
                 this.budgetModel.findByUserId(userId),
                 this.loanModel.findByUserId(userId),
-                this.getBudgetHistory(userId),
-                this.userModel.getCategories(userId),
-                this.getNotificationHistory(userId)
+                this.budgetHistoryModel.findByPeriod(userId, filters.startDate, filters.endDate)
             ]);
 
-            const exportData = {
-                exportDate: new Date().toISOString(),
-                userProfile: this.sanitizeUserData(userData),
-                transactions: this.formatTransactions(transactions),
-                budgets: this.formatBudgets(budgets),
-                loanInformation: loanData,
-                budgetHistory,
-                customCategories: categories,
-                notificationSettings: {
-                    enabled: userData.notificationsEnabled,
-                    history: notifications
-                }
-            };
+            // Get complete budget history for analytics only
+            const allBudgetHistory = await this.getAllBudgetHistory(userId);
+            const analytics = this.calculateAnalytics(allBudgetHistory);
 
             return {
-                json: exportData,
-                csv: this.generateCSVExports(exportData)
+                json: {
+                    exportDate: new Date().toISOString(),
+                    userProfile: userData.exists ? userData.data() : null,
+                    currentBudgetSummary: currentBudgets,
+                    historicalBudgetSummary: filteredBudgetHistory,
+                    budgetAnalytics: analytics,
+                    transactions: transactions,
+                    loanInformation: loanData
+                },
+                csv: this.generateCSVExports({
+                    transactions,
+                    currentBudgets,
+                    budgetHistory: filteredBudgetHistory,
+                    budgetAnalytics: analytics,
+                    loanData
+                })
             };
         } catch (error) {
             console.error('Error generating data export:', error);
@@ -53,84 +54,144 @@ class DataExportService {
         }
     }
 
-    sanitizeUserData(userData) {
-        const { password, ...safeData } = userData;
-        return safeData;
-    }
-
-    formatTransactions(transactions) {
-        return transactions.map(tx => ({
-            date: tx.date,
-            amount: tx.Amount,
-            category: tx.category,
-            description: tx.Description,
-            type: tx.type,
-            isPlaidTransaction: tx.isPlaidTransaction || false
-        }));
-    }
-
-    formatBudgets(budgets) {
-        return budgets.map(budget => ({
-            category: budget.category,
-            amount: budget.amount,
-            spent: budget.spent,
-            period: budget.period,
-            startDate: budget.startDate,
-            endDate: budget.endDate
-        }));
-    }
-
-    async getBudgetHistory(userId) {
-        const startDate = new Date();
-        startDate.setMonth(startDate.getMonth() - 12);
-        const endDate = new Date().toISOString().split('T')[0];
-
-        return await this.budgetHistoryModel.findByPeriod(
-            userId,
-            startDate.toISOString().split('T')[0],
-            endDate
-        );
-    }
-
-    async getNotificationHistory(userId) {
-        const userRef = this.userModel.db.collection('users').doc(userId);
-        const snapshot = await userRef
-            .collection('notifications')
-            .orderBy('timestamp', 'desc')
+    async getAllBudgetHistory(userId) {
+        const snapshot = await this.budgetHistoryModel.db
+            .collection('users')
+            .doc(userId)
+            .collection('BudgetHistory')
             .get();
 
-        return snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
+        let allHistory = [];
+        snapshot.forEach(doc => {
+            const data = doc.data();
+            if (data.records) {
+                Object.values(data.records).forEach(record => {
+                    allHistory.push({
+                        ...record,
+                        category: data.category
+                    });
+                });
+            }
+        });
+
+        return allHistory;
+    }
+
+    calculateAnalytics(budgetHistory) {
+        const analytics = {};
+
+        budgetHistory.forEach(record => {
+            if (!analytics[record.category]) {
+                analytics[record.category] = {
+                    category: record.category,
+                    totalSpent: 0,
+                    totalPlanned: 0,
+                    utilization: [],
+                    monthlyAverages: {},
+                    rollovers: 0,
+                    trends: {
+                        increasing: 0,
+                        decreasing: 0,
+                        stable: 0
+                    }
+                };
+            }
+
+            const categoryStats = analytics[record.category];
+            const month = new Date(record.startDate).getMonth();
+
+            categoryStats.totalSpent += record.actualSpent || 0;
+            categoryStats.totalPlanned += record.originalAmount || 0;
+
+            const utilizationRate = ((record.actualSpent || 0) / (record.originalAmount || 1)) * 100;
+            categoryStats.utilization.push(utilizationRate);
+
+            if (!categoryStats.monthlyAverages[month]) {
+                categoryStats.monthlyAverages[month] = [];
+            }
+            categoryStats.monthlyAverages[month].push(record.actualSpent || 0);
+
+            if (categoryStats.utilization.length > 1) {
+                const diff = utilizationRate - categoryStats.utilization[categoryStats.utilization.length - 2];
+                if (diff > 5) categoryStats.trends.increasing++;
+                else if (diff < -5) categoryStats.trends.decreasing++;
+                else categoryStats.trends.stable++;
+            }
+
+            if (record.rolloverAmount) {
+                categoryStats.rollovers += record.rolloverAmount;
+            }
+        });
+
+        return Object.values(analytics).map(stat => ({
+            category: stat.category,
+            averageUtilization: (stat.utilization.reduce((a, b) => a + b, 0) / stat.utilization.length).toFixed(2),
+            totalSpent: stat.totalSpent.toFixed(2),
+            totalPlanned: stat.totalPlanned.toFixed(2),
+            monthlyAverageSpend: Object.values(stat.monthlyAverages)
+                .map(month => month.reduce((a, b) => a + b, 0) / month.length)
+                .reduce((a, b) => a + b, 0) / Object.keys(stat.monthlyAverages).length,
+            spendingTrend: this.calculateTrend(stat.trends),
+            totalRollovers: stat.rollovers.toFixed(2),
+            consistencyScore: this.calculateConsistencyScore(stat.utilization)
         }));
+    }
+
+    calculateTrend(trends) {
+        if (trends.increasing > trends.decreasing && trends.increasing > trends.stable) return 'Increasing';
+        if (trends.decreasing > trends.increasing && trends.decreasing > trends.stable) return 'Decreasing';
+        return 'Stable';
+    }
+
+    calculateConsistencyScore(utilization) {
+        if (utilization.length < 2) return 100;
+        const variations = utilization.slice(1).map((val, i) =>
+            Math.abs(val - utilization[i])
+        );
+        const averageVariation = variations.reduce((a, b) => a + b, 0) / variations.length;
+        return Math.max(0, 100 - averageVariation).toFixed(2);
     }
 
     generateCSVExports(data) {
         return {
-            transactions: this.objectsToCSV(data.transactions, [
+            transactions: this.objectsToCSV(data.transactions || [], [
                 'date', 'amount', 'category', 'description', 'type'
             ]),
-            budgets: this.objectsToCSV(data.budgets, [
-                'category', 'amount', 'spent', 'period', 'startDate', 'endDate'
+            budgets: this.objectsToCSV(data.currentBudgets || [], [
+                'category', 'amount', 'spent', 'period'
+            ]),
+            budgetHistory: this.objectsToCSV(data.budgetHistory || [], [
+                'period', 'category', 'originalAmount', 'actualSpent', 'rolloverAmount'
+            ]),
+            budgetAnalytics: this.objectsToCSV(data.budgetAnalytics || [], [
+                'category',
+                'averageUtilization',
+                'totalSpent',
+                'totalPlanned',
+                'monthlyAverageSpend',
+                'spendingTrend',
+                'totalRollovers',
+                'consistencyScore'
+            ]),
+            loans: this.objectsToCSV(data.loanData || [], [
+                'type', 'amount', 'interestRate', 'remainingBalance'
             ])
         };
     }
 
     objectsToCSV(objects, headers) {
-        if (!objects.length) return '';
+        if (!objects || objects.length === 0) {
+            return headers.join(',') + '\n';
+        }
 
         const csvRows = [headers.join(',')];
-
         for (const object of objects) {
             const row = headers.map(header => {
                 const value = object[header] || '';
-                return typeof value === 'string'
-                    ? `"${value.replace(/"/g, '""')}"`
-                    : value;
+                return typeof value === 'string' ? `"${value.replace(/"/g, '""')}"` : value;
             });
             csvRows.push(row.join(','));
         }
-
         return csvRows.join('\n');
     }
 }

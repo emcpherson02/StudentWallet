@@ -5,25 +5,17 @@ class DataExportController {
 
     async exportUserData(req, res, next) {
         try {
-            const { userId, format = 'json' } = req.query;
             const filters = {
-                startDate: req.query.startDate,
-                endDate: req.query.endDate,
-                selectedCategories: req.query.categories ? req.query.categories.split(',') : [],
-                includeData: {
-                    transactions: req.query.includeTransactions !== 'false',
-                    budgets: req.query.includeBudgets !== 'false',
-                    loan: req.query.includeLoan !== 'false',
-                    notifications: req.query.includeNotifications !== 'false'
-                }
+                startDate: req.query.startDate || new Date(new Date().setMonth(new Date().getMonth() - 1)).toISOString(),
+                endDate: req.query.endDate || new Date().toISOString(),
+                format: req.query.format || 'json'
             };
 
-            const exportData = await this.dataExportService.generateExport(userId, filters);
+            const exportData = await this.dataExportService.generateExport(req.user, filters);
 
-            if (format === 'csv') {
+            if (filters.format === 'csv') {
                 res.setHeader('Content-Type', 'application/zip');
-                res.setHeader('Content-Disposition', 'attachment; filename=user-data-export.zip');
-
+                res.setHeader('Content-Disposition', 'attachment; filename=financial-data-export.zip');
                 const JSZip = require('jszip');
                 const zip = new JSZip();
 
@@ -32,13 +24,13 @@ class DataExportController {
                 });
 
                 const zipContent = await zip.generateAsync({ type: 'nodebuffer' });
-                res.send(zipContent);
-            } else {
-                res.json({
-                    status: 'success',
-                    data: exportData.json
-                });
+                return res.send(zipContent);
             }
+
+            res.json({
+                status: 'success',
+                data: exportData.json
+            });
         } catch (error) {
             next(error);
         }

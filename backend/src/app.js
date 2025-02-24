@@ -64,7 +64,7 @@ const budgetService = new BudgetService(budgetModel, transactionModel, budgetNot
 const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHistoryModel, budgetNotificationService);
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
 const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
-const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel);
+const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel, budgetAnalyticsService);
 
 
 const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
@@ -106,7 +106,7 @@ app.use('/transactions', setupTransactionRoutes(express.Router(), transactionCon
 app.use('/user', setupUserRoutes(express.Router(), userController, authMiddleware));
 app.use('/history', setupBudgetHistoryRoutes(express.Router(), budgetHistoryController, authMiddleware));
 app.use('/loan', setupLoanRoutes(express.Router(), loanController, authMiddleware));
-app.get('/user/export-data', authMiddleware.verifyToken, dataExportController.exportUserData.bind(dataExportController));
+app.get('/exports/financial-data', authMiddleware.verifyToken, dataExportController.exportUserData.bind(dataExportController));
 
 // OAuth routes
 app.get('/auth/google',
