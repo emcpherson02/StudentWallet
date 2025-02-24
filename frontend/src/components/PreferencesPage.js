@@ -11,6 +11,7 @@ import ChangePassword from './ChangePassword';
 import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 function PreferencesPage() {
     const { currentUser } = useAuth();
@@ -63,7 +64,7 @@ function PreferencesPage() {
             }
         } catch (error) {
             console.error('Error fetching user details:', error);
-            setMessage('Failed to fetch user details.');
+            toast('Failed to fetch user details. Please try again later.', { type: 'error' });
         }
     };
 
@@ -82,7 +83,7 @@ function PreferencesPage() {
             );
 
             setNotificationsEnabled(!notificationsEnabled);
-            setMessage(`Notifications ${!notificationsEnabled ? 'enabled' : 'disabled'} successfully`);
+            toast(notificationsEnabled ? 'Notifications disabled' : 'Notifications enabled', { type: 'success' });
         } catch (error) {
             console.error('Error toggling notifications:', error);
         }
@@ -158,9 +159,8 @@ function PreferencesPage() {
                                 onUserUpdated={() => {
                                     fetchUserDetails();
                                     setShowUpdateForm(false);
-                                    setMessage('User details updated successfully!');
+                                    toast('User details updated successfully', { type: 'success' });
                                 }}
-                                setMessage={setMessage}
                                 onClose={() => setShowUpdateForm(false)}
                             />
                         )}
