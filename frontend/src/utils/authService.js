@@ -1,6 +1,47 @@
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, updateProfile } from 'firebase/auth';
 import { doc, setDoc, getFirestore } from 'firebase/firestore';
 
+// Token refresh function
+export const refreshToken = async () => {
+    const auth = getAuth();
+    const currentUser = auth.currentUser;
+
+    if (currentUser) {
+        try {
+            const newToken = await currentUser.getIdToken(true);
+            sessionStorage.setItem('token', newToken);
+
+            // Set token expiration (1 hour from now)
+            const expirationTime = Date.now() + 3600 * 1000;
+            sessionStorage.setItem('tokenExpiration', expirationTime.toString());
+        } catch (error) {
+            console.error('Error refreshing token:', error);
+            // Handle logout if refresh fails
+            await logoutUser();
+        }
+    }
+};
+
+// Check token expiration
+export const checkTokenExpiration = () => {
+    const tokenExp = sessionStorage.getItem('tokenExpiration');
+    if (tokenExp && Date.now() >= parseInt(tokenExp)) {
+        logoutUser();
+    }
+};
+
+// Logout function
+export const logoutUser = async () => {
+    const auth = getAuth();
+    try {
+        await auth.signOut();
+    } catch (error) {
+        console.error('Error signing out:', error);
+    } finally {
+        sessionStorage.removeItem('token');
+        sessionStorage.removeItem('tokenExpiration');
+    }
+};
 
 /**
  * Registers a new user with the given email, password, name, and date of birth.
@@ -47,8 +88,3 @@ export async function loginUser(email, password) {
     }
 }
 
-export async function logoutUser() {
-    const auth = getAuth();
-    await auth.signOut();
-    sessionStorage.clear(); // Clear all session storage
-}
