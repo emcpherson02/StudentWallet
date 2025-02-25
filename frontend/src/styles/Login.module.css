@@ -1,163 +1,237 @@
-.Login {
+.loginPage {
     min-height: 100vh;
     display: flex;
+    flex-direction: column;
+    align-items: center;
     background: #1a73e8;
+    position: relative;
+    padding: 0 1rem;
+    box-sizing: border-box;
+    overflow-x: hidden;
 }
 
-.brandContainer {
-    position: absolute;
-    top: 2rem;
-    left: 0;
-    right: 0;
+.brandSection {
     text-align: center;
+    padding: 2rem 0;
+    margin-bottom: 1rem;
 }
 
 .brandTitle {
-    color: white;
     font-size: 2.5rem;
     font-weight: 600;
-    margin: 0;
-    text-align: center;
+    color: white;
+    margin: 0 0 0.5rem 0;
 }
 
 .brandSubtitle {
-    color: rgb(255, 255, 255, 0.8);
+    color: rgba(255, 255, 255, 0.9);
     font-size: 1.125rem;
-    margin-top: 0.5rem;
-    text-align: center;
+    margin: 0;
 }
 
-.loginContainer {
+.formContainer {
+    width: 100%;
+    max-width: 440px;
+    margin: 0 auto;
+}
+
+.formCard {
     background: white;
     border-radius: 1rem;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
     padding: 2.5rem;
-    width: 100%;
-    max-width: 400px;
-    margin: auto;
+    margin: 0 auto;
+    position: relative;
+    overflow: hidden;
 }
 
-.Header {
-    margin-bottom: 2rem;
+.formHeader {
     text-align: center;
+    margin-bottom: 2rem;
 }
 
-.Header h1 {
+.formHeader h2 {
     font-size: 1.875rem;
     font-weight: 600;
     color: #1f2937;
-    margin-bottom: 0.5rem;
+    margin: 0 0 0.5rem 0;
 }
 
-.Header p {
+.formHeader p {
     color: #6b7280;
     font-size: 1rem;
+    margin: 0;
 }
 
-.inputGroup {
+.message {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1rem;
+    border-radius: 0.5rem;
     margin-bottom: 1.5rem;
 }
 
-.inputGroup label {
-    display: block;
-    color: #374151;
-    font-size: 0.875rem;
-    font-weight: 500;
-    margin-bottom: 0.5rem;
+.successMessage {
+    background-color: #ecfdf5;
+    color: #047857;
 }
 
-.inputGroup input {
+.errorMessage {
+    background-color: #fef2f2;
+    color: #dc2626;
+}
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.inputGroup {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.inputGroup label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #374151;
+}
+
+.inputWrapper {
+    position: relative;
+}
+
+.inputIcon {
+    position: absolute;
+    left: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #9ca3af;
+}
+
+.inputWrapper input {
     width: 100%;
-    padding: 0.75rem 1rem;
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
     border: 1px solid #e5e7eb;
     border-radius: 0.5rem;
     font-size: 1rem;
     transition: all 0.2s ease;
+    box-sizing: border-box;
 }
 
-.inputGroup input:focus {
+.inputWrapper input:focus {
     outline: none;
-    border-color: #282c34;
-    box-shadow: 0 0 0 3px rgba(40, 44, 52, 0.1);
+    border-color: #1a73e8;
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.1);
 }
 
-.gradientButton {
-    width: 100%;
-    padding: 0.875rem;
-    background: #282c34;
+.submitButton {
+    background-color: #1a73e8;
     color: white;
+    padding: 0.875rem;
     border: none;
     border-radius: 0.5rem;
     font-weight: 500;
     font-size: 1rem;
     cursor: pointer;
     transition: background-color 0.2s ease;
-}
-
-.gradientButton:hover {
-    background: #364195;
-}
-
-.login-with-google-btn {
     width: 100%;
-    padding: 0.875rem 1rem 0.875rem 2.5rem;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    background-color: white;
-    color: #374151;
-    font-weight: 500;
-    margin-top: 1rem;
+}
+
+.divider {
     position: relative;
-    transition: all 0.2s ease;
+    text-align: center;
+    margin: 1.5rem 0;
 }
 
-.login-with-google-btn::before {
-    content: "";
+.divider::before {
+    content: '';
     position: absolute;
-    left: 1rem;
+    left: 0;
     top: 50%;
-    transform: translateY(-50%);
-    width: 18px;
-    height: 18px;
-    background-image: url(data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTgiIGhlaWdodD0iMTgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGcgZmlsbD0ibm9uZSIgZmlsbC1ydWxlPSJldmVub2RkIj48cGF0aCBkPSJNMTcuNiA5LjJsLS4xLTEuOEg5djMuNGg0LjhDMTMuNiAxMiAxMyAxMyAxMiAxMy42djIuMmgzYTguOCA4LjggMCAwIDAgMi42LTYuNnoiIGZpbGw9IiM0Mjg1RjQiIGZpbGwtcnVsZT0ibm9uemVybyIvPjxwYXRoIGQ9Ik05IDE4YzIuNCAwIDQuNS0uOCA2LTIuMmwtMy0yLjJhNS40IDUuNCAwIDAgMS04LTIuOUgxVjEzYTkgOSAwIDAgMCA4IDV6IiBmaWxsPSIjMzRBODUzIiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNNCAxMC43YTUuNCA1LjQgMCAwIDEgMC0zLjRWNUgxYTkgOSAwIDAgMCAwIDhsMy0yLjN6IiBmaWxsPSIjRkJCQzA1IiBmaWxsLXJ1bGU9Im5vbnplcm8iLz48cGF0aCBkPSJNOSAzLjZjMS4zIDAgMi41LjQgMy40IDEuM0wxNSAyLjNBOSA5IDAgMCAwIDEgNWwzIDIuNGE1LjQgNS40IDAgMCAxIDUtMy43eiIgZmlsbD0iI0VBNDMzNSIgZmlsbC1ydWxlPSJub256ZXJvIi8+PHBhdGggZD0iTTAgMGgxOHYxOEgweiIvPjwvZz48L3N2Zz4=);
-    background-repeat: no-repeat;
-}
-
-.login-with-google-btn:hover {
-    background-color: #f9fafb;
-    border-color: #d1d5db;
-}
-
-.linkButton {
     width: 100%;
-    padding: 0.875rem;
-    background: #f3f4f6;
-    color: #374151;
-    border: none;
-    border-radius: 0.5rem;
-    font-weight: 500;
-    margin-top: 1rem;
-    transition: background-color 0.2s ease;
-}
-
-.linkButton:hover {
+    height: 1px;
     background: #e5e7eb;
 }
 
-.message {
-    margin-top: 1rem;
-    padding: 0.75rem;
-    border-radius: 0.5rem;
+.divider span {
+    position: relative;
+    background: white;
+    padding: 0 0.75rem;
+    color: #6b7280;
     font-size: 0.875rem;
+}
+
+.googleButton {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.75rem;
+    width: 100%;
+    padding: 0.875rem;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    font-weight: 500;
+    color: #374151;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+}
+
+.googleButton:hover {
+    background-color: #f9fafb;
+}
+
+.googleIcon {
+    width: 1.25rem;
+    height: 1.25rem;
+}
+
+.registerLink {
+    margin-top: 1.5rem;
     text-align: center;
 }
 
-.message.success {
-    background: #f0fdf4;
-    color: #166534;
+.registerLink a {
+    color: #1a73e8;
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s ease;
 }
 
-.message.error {
-    background: #fef2f2;
-    color: #dc2626;
+.registerLink a:hover {
+    color: #1557b0;
+}
+
+@media (max-width: 640px) {
+    .formCard {
+        padding: 1.5rem;
+    }
+
+    .brandTitle {
+        font-size: 2rem;
+    }
+}
+
+.forgotPasswordContainer {
+    text-align: right;
+    margin-top: -0.5rem;
+    margin-bottom: 1rem;
+}
+
+.forgotPasswordLink {
+    background: none;
+    border: none;
+    color: #1a73e8;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0;
+}
+
+.forgotPasswordLink:hover {
+    text-decoration: underline;
 }

@@ -8,6 +8,8 @@ import Layout from './Layout';
 import CountdownTimer from './CountdownTimer';
 import SpendingTrend from './SpendingTrend';
 import { ButtonGroup, AddLoanButton } from "./LoanButtonGroup";
+import {getApiUrl} from "../utils/api";
+import {toast } from 'react-toastify';
 
 const LoanDashboard = () => {
     const { currentUser } = useAuth();
@@ -42,7 +44,7 @@ const LoanDashboard = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/user-data',
+                    getApiUrl('/user/user-data'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -62,7 +64,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
@@ -73,7 +75,7 @@ const LoanDashboard = () => {
             );
 
             setNotificationsEnabled(!notificationsEnabled);
-            setMessage(`Notifications ${!notificationsEnabled ? 'enabled' : 'disabled'} successfully`);
+            toast(notificationsEnabled ? 'Notifications disabled' : 'Notifications enabled');
         } catch (error) {
             console.error('Error toggling notifications:', error);
             setError('Failed to update notification settings');
@@ -86,7 +88,7 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/loan/get_loan',
+                getApiUrl('/loan/get_loan'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -108,14 +110,14 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/loan/delete_loan/${loanData.id}`,
+                getApiUrl(`/loan/delete_loan/${loanData.id}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
                 }
             );
 
-            setMessage('Loan deleted successfully');
+            toast('Loan deleted successfully' , { type: 'success' });
             setLoanData(null);
         } catch (error) {
             console.error('Error deleting loan:', error);
@@ -129,12 +131,12 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.post(
-                `http://localhost:3001/loan/link_all_transactions/${loanData.id}`,
+                getApiUrl(`/loan/link_all_transactions/${loanData.id}`),
                 { userId: currentUser.uid },
                 { headers: { Authorization: `Bearer ${token}` } }
             );
 
-            setMessage('Transactions linked successfully');
+            toast('Transactions linked successfully', { type: 'success' });
             fetchLoanData();
         } catch (error) {
             console.error('Error linking transactions:', error);
@@ -148,14 +150,14 @@ const LoanDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.delete(
-                `http://localhost:3001/loan/unlink_all_transactions/${loanData.id}`,
+                getApiUrl(`/loan/unlink_all_transactions/${loanData.id}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
                 }
             );
 
-            setMessage('Transactions unlinked successfully');
+            toast('Transactions unlinked successfully', { type: 'success' });
             fetchLoanData();
         } catch (error) {
             console.error('Error unlinking transactions:', error);
@@ -347,7 +349,6 @@ const LoanDashboard = () => {
                             fetchLoanData();
                             setIsLoanFormOpen(false);
                         }}
-                        setMessage={setMessage}
                         onClose={() => setIsLoanFormOpen(false)}
                     />
                 )}
@@ -357,7 +358,6 @@ const LoanDashboard = () => {
                 onClose={() => setIsTransactionModalOpen(false)}
                 onSelect={() => {
                     fetchLoanData();
-                    setMessage('Transaction linked successfully');
                 }}
                 loanId={loanData?.id}
                 currentLinkedTransactions={loanData?.trackedTransactions}

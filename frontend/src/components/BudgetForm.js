@@ -3,8 +3,10 @@ import axios from 'axios';
 import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
+import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
-const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
+const BudgetForm = ({ userId, onBudgetAdded, onClose }) => {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
         category: '',
@@ -25,7 +27,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/categories',
+                    getApiUrl('/user/categories'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -54,7 +56,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
         try {
             const token = await currentUser.getIdToken(true);
             const response = await axios.post(
-                'http://localhost:3001/budget/add_budget',
+                getApiUrl('/budget/add_budget'),
                 {
                     userId,
                     category: formData.category,
@@ -73,13 +75,13 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             );
 
             if (response.status === 201) {
-                setMessage('Budget added successfully!');
+                toast('Budget created successfully', { type: 'success' });
                 onBudgetAdded();
                 onClose();
             }
         } catch (error) {
             console.error('Error:', error.response || error);
-            setMessage(error.response?.data?.message || 'Failed to create budget');
+            toast('Failed to create budget', { type: 'error' });
         }
     };
 
@@ -89,7 +91,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/categories/add',
+                getApiUrl('/user/categories/add'),
                 {
                     userId: currentUser.uid,
                     category: newCategory.trim()
@@ -105,7 +107,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             setIsAddingCategory(false);
         } catch (error) {
             console.error('Error adding category:', error);
-            setMessage('Failed to add category');
+            toast('Failed to add category', { type: 'error' });
         }
     };
 

@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useEffect, useCallback, useRef} from 'react';
 import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import styles from '../styles/BudgetDashboard.module.css';
@@ -6,18 +6,24 @@ import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
 import {signOut} from "firebase/auth";
 import {auth} from "../utils/firebase";
-import { useNavigate, Link } from 'react-router-dom';
-import {Trash2} from 'lucide-react';
+import { useNavigate} from 'react-router-dom';
+import {Plus, Trash2} from 'lucide-react';
+import BudgetForm from './BudgetForm';
+import {getApiUrl} from "../utils/api";
+import { toast } from 'react-toastify';
+
 
 const BudgetDashboard = () => {
     const { currentUser } = useAuth();
     const [budgetData, setBudgetData] = useState(null);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [transactions, setTransactions] = useState([]);
     const [expandedBudget, setExpandedBudget] = useState(null);
     const navigate = useNavigate();
+    const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
+    const appRef = useRef();
+    const error = null;
 
     useEffect(() => {
         const fetchData = async () => {
@@ -28,7 +34,7 @@ const BudgetDashboard = () => {
 
                 // Fetch user data first
                 const userResponse = await axios.get(
-                    'http://localhost:3001/user/user-data',
+                    getApiUrl('/user/user-data'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -42,7 +48,7 @@ const BudgetDashboard = () => {
 
                 // Fetch budget data
                 const budgetResponse = await axios.get(
-                    'http://localhost:3001/budget/analytics/summary',
+                    getApiUrl('/budget/analytics/summary'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -53,7 +59,7 @@ const BudgetDashboard = () => {
                 setLoading(false);
             } catch (err) {
                 console.error('Error fetching data:', err);
-                setError('Failed to load budget data');
+                toast('Failed to Fetch Budget Data', { type: 'error' });
                 setLoading(false);
             }
         };
@@ -65,7 +71,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
@@ -78,7 +84,7 @@ const BudgetDashboard = () => {
             setNotificationsEnabled(!notificationsEnabled);
         } catch (err) {
             console.error('Error toggling notifications:', err);
-            setError('Failed to update notification settings');
+            toast('Failed to Toggle Notifications', { type: 'error' });
         }
     };
 
@@ -95,7 +101,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/budget/transactions/',
+                getApiUrl('/budget/transactions/'),
                 {
                     params: {
                         userId: currentUser.uid,
@@ -170,7 +176,7 @@ const BudgetDashboard = () => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/budget/delete_budget/${budgetId}`,
+                getApiUrl(`/budget/delete_budget/${budgetId}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -181,11 +187,38 @@ const BudgetDashboard = () => {
                 ...prev,
                 categoryBreakdown: prev.categoryBreakdown.filter(cat => cat.budgetId !== budgetId)
             }));
+            toast('Budget Deleted Successfully', { type: 'success' });
         } catch (error) {
             console.error('Error deleting budget:', error);
+            toast('Failed to Delete Budget', { type: 'error' });
         }
     };
 
+    const handleBudgetAdded = useCallback(() => {
+        // Fetch budget data again to refresh the view
+        const fetchData = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const budgetResponse = await axios.get(
+                    getApiUrl('/budget/analytics/summary'),
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+
+                setBudgetData(budgetResponse.data.data);
+                toast('Budgets Updated Sucessfully', { type: 'success' });
+                setIsBudgetModalOpen(false);
+                appRef.current?.classList.remove('modal-open');
+            } catch (err) {
+                console.error('Error fetching updated budget data:', err);
+                toast('Failed to Fetch Budget Updates Try Again', { type: 'error' });
+            }
+        };
+
+        fetchData();
+    }, [currentUser]);
 
     if (loading) {
         return <div className={styles.loading}>Loading budget data...</div>;
@@ -197,13 +230,18 @@ const BudgetDashboard = () => {
 
     if (!budgetData) return null;
 
-
     return (
         <Layout CurrentUser={currentUser} onLogout={handleLogout} showNav={true}>
             <div className={styles.dashboard}>
                 <div className={styles.dashboardHeader}>
                     <h1>Budget Overview</h1>
                     <div className={styles.headerActions}>
+                        <button
+                            onClick={() => setIsBudgetModalOpen(true)}
+                            className={styles.iconButton}
+                        >
+                            <Plus className="w-5 h-5"/>
+                        </button>
                         <button
                             onClick={toggleNotifications}
                             className={`${styles.notificationToggle} ${notificationsEnabled ? styles.enabled : ''}`}
@@ -338,6 +376,16 @@ const BudgetDashboard = () => {
                         ))}
                     </div>
                 </div>
+                {isBudgetModalOpen && (
+                    <BudgetForm
+                        userId={currentUser?.uid}
+                        onBudgetAdded={handleBudgetAdded}
+                        onClose={() => {
+                            setIsBudgetModalOpen(false);
+                            appRef.current?.classList.remove('modal-open');
+                        }}
+                    />
+                )}
             </div>
         </Layout>
     );

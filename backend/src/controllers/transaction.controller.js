@@ -87,6 +87,19 @@ class TransactionController {
             next(error);
         }
     }
+
+    async getInsights(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const insights = await this.transactionService.getInsights(userId);
+            res.status(200).json({
+                status: 'success',
+                data: insights
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = TransactionController;

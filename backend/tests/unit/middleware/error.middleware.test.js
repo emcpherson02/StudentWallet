@@ -1,8 +1,8 @@
-const { BaseError } = require('../../src/utils/errors');
-const { MESSAGE_ERROR_OCCURRED } = require('../../src/utils/constants');
-const errorHandler = require('../../src/middleware/error.middleware');
+const { BaseError } = require('../../../src/utils/errors');
+const { MESSAGE_ERROR_OCCURRED } = require('../../../src/utils/constants');
+const errorHandler = require('../../../src/middleware/error.middleware');
 
-jest.mock('../../src/utils/errors', () => ({
+jest.mock('../../../src/utils/errors', () => ({
     BaseError: class BaseError extends Error {
         constructor(message, statusCode) {
             super(message);
@@ -14,7 +14,7 @@ jest.mock('../../src/utils/errors', () => ({
     }
 }));
 
-jest.mock('../../src/utils/constants', () => ({
+jest.mock('../../../src/utils/constants', () => ({
     MESSAGE_ERROR_OCCURRED: 'An error occurred'
 }));
 

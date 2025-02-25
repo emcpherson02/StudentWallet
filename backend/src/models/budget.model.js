@@ -25,9 +25,17 @@ class BudgetModel {
             .collection('Budgets')
             .get();
 
-        return snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    }
+        return snapshot.docs.map(doc => {
+            const data = doc.data();
 
+            // Format spent to 2 decimal places if it exists
+            if (data.spent !== undefined) {
+                data.spent = Number(data.spent.toFixed(2));
+            }
+
+            return { id: doc.id, ...data };
+        });
+    }
     async findById(userId, budgetId) {
         const doc = await this.db
             .collection('users')
@@ -40,7 +48,14 @@ class BudgetModel {
             return null;
         }
 
-        return { id: doc.id, ...doc.data() };
+        const data = doc.data();
+
+        // Format spent to 2 decimal places if it exists
+        if (data.spent !== undefined) {
+            data.spent = Number(data.spent.toFixed(2));
+        }
+
+        return { id: doc.id, ...data };
     }
 
     async findByCategory(userId, category) {

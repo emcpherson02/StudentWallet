@@ -1,7 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import Modal from './Modal';
-import styles from '../styles/PlaidLink.module.css';
+import styles from '../styles/LandingPage.module.css';
+import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClose }) => {
     const [formData, setFormData] = useState({
@@ -16,7 +18,7 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClos
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.put(
-                `http://localhost:3001/user/update_user/${userId}`,
+                getApiUrl(`/user/update_user/${userId}`),
                 {
                     displayName: formData.name,
                     email: formData.email,
@@ -30,13 +32,12 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClos
             );
 
             if (response.status === 200) {
-                setMessage('User details updated successfully!');
                 onUserUpdated();
                 onClose();
             }
         } catch (error) {
             console.error('Error updating user details:', error);
-            setMessage(error.response?.data?.message || 'Failed to update user details.');
+            toast('Error updating user details. Please try again later.', { type: 'error' });
         }
     };
 

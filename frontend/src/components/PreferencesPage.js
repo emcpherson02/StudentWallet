@@ -10,6 +10,10 @@ import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
 import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
+import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
+import DataExport from "../components/DataExportComponent";
+
 function PreferencesPage() {
     const { currentUser } = useAuth();
     const navigate = useNavigate();
@@ -24,7 +28,7 @@ function PreferencesPage() {
         try {
             const token = await currentUser.getIdToken();
             const response = await axios.get(
-                'http://localhost:3001/user/user-data',
+                getApiUrl('/user/user-data'),
                 {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -47,7 +51,7 @@ function PreferencesPage() {
     const fetchUserDetails = async () => {
         try {
             const token = await currentUser.getIdToken();
-            const response = await axios.get(`http://localhost:3001/user/user-data`, {
+            const response = await axios.get(getApiUrl(`/user/user-data`), {
                 params: { userId: currentUser.uid },
                 headers: {
                     Authorization: `Bearer ${token}`
@@ -61,7 +65,7 @@ function PreferencesPage() {
             }
         } catch (error) {
             console.error('Error fetching user details:', error);
-            setMessage('Failed to fetch user details.');
+            toast('Failed to fetch user details. Please try again later.', { type: 'error' });
         }
     };
 
@@ -69,7 +73,7 @@ function PreferencesPage() {
         try {
             const token = await currentUser.getIdToken();
             await axios.post(
-                'http://localhost:3001/user/toggle-notifications',
+                getApiUrl('/user/toggle-notifications'),
                 {
                     userId: currentUser.uid,
                     enabled: !notificationsEnabled
@@ -80,7 +84,7 @@ function PreferencesPage() {
             );
 
             setNotificationsEnabled(!notificationsEnabled);
-            setMessage(`Notifications ${!notificationsEnabled ? 'enabled' : 'disabled'} successfully`);
+            toast(notificationsEnabled ? 'Notifications disabled' : 'Notifications enabled', { type: 'success' });
         } catch (error) {
             console.error('Error toggling notifications:', error);
         }
@@ -156,9 +160,8 @@ function PreferencesPage() {
                                 onUserUpdated={() => {
                                     fetchUserDetails();
                                     setShowUpdateForm(false);
-                                    setMessage('User details updated successfully!');
+                                    toast('User details updated successfully', { type: 'success' });
                                 }}
-                                setMessage={setMessage}
                                 onClose={() => setShowUpdateForm(false)}
                             />
                         )}
@@ -166,7 +169,7 @@ function PreferencesPage() {
 
                     {/* Password Section */}
                     <section className={styles.card}>
-                        <ChangePassword currentUser={currentUser} />
+                        <ChangePassword currentUser={currentUser}/>
                     </section>
 
                     {/* Notifications Section */}
@@ -174,8 +177,11 @@ function PreferencesPage() {
                         <div className={styles.sectionHeader}>
                             <div className={styles.headerWithInfo}>
                                 <h2>Email Notifications</h2>
-                                <div className={styles.infoIcon} title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <div className={styles.infoIcon}
+                                     title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                         strokeLinejoin="round">
                                         <circle cx="12" cy="12" r="10"></circle>
                                         <line x1="12" y1="16" x2="12" y2="12"></line>
                                         <line x1="12" y1="8" x2="12.01" y2="8"></line>
@@ -195,11 +201,22 @@ function PreferencesPage() {
                     </section>
                     {/* Categories Management Section */}
                     <section className={styles.card}>
-                        <CategoryManagement />
+                        <CategoryManagement/>
+                    </section>
+
+                    {/* Data Export Section */}
+                    <section className={styles.card}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Data Export</h2>
+                        </div>
+                        <p className={styles.notificationDescription}>
+                            Download all your StudentWallet data in Excel format.
+                        </p>
+                        <DataExport/>
                     </section>
                     {/* Account Deletion Section */}
                     <section className={styles.deleteSection}>
-                        <DeleteAccountButton currentUser={currentUser} />
+                        <DeleteAccountButton currentUser={currentUser}/>
                     </section>
                 </div>
             </div>

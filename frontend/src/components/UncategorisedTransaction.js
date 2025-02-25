@@ -6,6 +6,7 @@ import { Calendar, DollarSign } from 'lucide-react';
 import 'react-datepicker/dist/react-datepicker.css';
 import '../styles/UncategorisedTransaction.css';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
+import {getApiUrl} from "../utils/api";
 
 const UncategorizedTransaction = () => {
     const { currentUser } = useAuth();
@@ -28,7 +29,7 @@ const UncategorizedTransaction = () => {
             try {
                 const token = await currentUser.getIdToken();
                 const response = await axios.get(
-                    'http://localhost:3001/user/categories',
+                    getApiUrl('/user/categories'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -56,11 +57,11 @@ const UncategorizedTransaction = () => {
         try {
             const token = await currentUser.getIdToken();
             const [transactionsResponse, budgetsResponse] = await Promise.all([
-                axios.get('http://localhost:3001/transactions/user-transactions', {
+                axios.get(getApiUrl('/transactions/user-transactions'), {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
                 }),
-                axios.get('http://localhost:3001/budget/get_budgets', {
+                axios.get(getApiUrl('/budget/get_budgets'), {
                     params: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
                 })
@@ -95,7 +96,7 @@ const UncategorizedTransaction = () => {
             });
 
             await axios.post(
-                'http://localhost:3001/transactions/update-category',
+                getApiUrl('/transactions/update-category'),
                 {
                     userId: currentUser.uid,
                     transactionId,

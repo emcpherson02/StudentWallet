@@ -1,15 +1,23 @@
 import React, { useState, memo } from 'react';
-import { Link } from 'react-router-dom';
+import {Link, useNavigate} from 'react-router-dom';
 import { Bell, Home, Users, LineChart, Wallet, PiggyBank, Library, BarChart2 } from 'lucide-react';
 import styles from '../styles/Layout.module.css';
 import NotificationHistory from "./NotificationHistory";
+import {logoutUser} from "../utils/authService";
 
 const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
+    const navigate = useNavigate();
 
     const userInitials = currentUser?.displayName
         ? currentUser.displayName.split(' ').map(n => n[0]).join('')
         : 'SW';
+
+    const handleLogout = () => {
+        logoutUser();
+        navigate('/login');
+
+    }
 
     return (
         <div className={styles.layout}>
@@ -74,7 +82,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                                         <Link to="/preferences" className={styles.userMenuItem}>
                                             Settings
                                         </Link>
-                                        <button onClick={onLogout} className={styles.userMenuItem}>
+                                        <button onClick={handleLogout} className={styles.userMenuItem}>
                                             Logout
                                         </button>
                                     </div>

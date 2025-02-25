@@ -2,7 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useAuth } from '../utils/AuthContext';
 import { useNavigate, Link } from 'react-router-dom';
-import styles from '../styles/PlaidLink.module.css';
+import styles from '../styles/LandingPage.module.css';
 import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import TransactionForm from './TransactionForm';
@@ -11,8 +11,11 @@ import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote } from 'lucide-react';
 import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
+import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
+import {logoutUser} from "../utils/authService";
 
-function PlaidLink() {
+function LandingPage() {
   const {currentUser} = useAuth();
   const navigate = useNavigate();
   const appRef = useRef();
@@ -33,14 +36,14 @@ function PlaidLink() {
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/budget/get_budgets`, {
+      const response = await axios.get(getApiUrl(`/budget/get_budgets`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
       setBudgets(response.data.budgets || []);
     } catch (error) {
       console.error('Error fetching budgets:', error);
-      setMessage('Failed to fetch budgets.');
+      toast('Failed to fetch budgets.', {type: 'error'});
     }
   }, [currentUser]);
 
@@ -49,7 +52,7 @@ function PlaidLink() {
 
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/transactions/user-transactions`, {
+      const response = await axios.get(getApiUrl(`/transactions/user-transactions`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
@@ -58,7 +61,7 @@ function PlaidLink() {
       setTransactions(Transaction || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      setMessage('Failed to fetch transactions.');
+      toast('Failed to fetch transactions.', {type: 'error'});
     }
   }, [currentUser]);
 
@@ -69,7 +72,7 @@ function PlaidLink() {
 
       // Fetch accounts
       const accountsResponse = await axios.get(
-          `http://localhost:3001/plaid/accounts/${currentUser.uid}`,
+          getApiUrl(`/plaid/accounts/${currentUser.uid}`),
           {
             headers: {
               Authorization: `Bearer ${token}`
@@ -79,7 +82,7 @@ function PlaidLink() {
 
       // Fetch transactions
       const transactionsResponse = await axios.get(
-          'http://localhost:3001/transactions/user-transactions',
+          getApiUrl('/transactions/user-transactions'),
           {
             params: { userId: currentUser.uid },
             headers: { Authorization: `Bearer ${token}` }
@@ -128,7 +131,7 @@ function PlaidLink() {
     try {
       console.log('Fetching user details...');
       const token = await currentUser.getIdToken();
-      const response = await axios.get(`http://localhost:3001/user/user-data`, {
+      const response = await axios.get(getApiUrl(`/user/user-data`), {
         params: {userId: currentUser.uid},
         headers: {Authorization: `Bearer ${token}`}
       });
@@ -145,7 +148,7 @@ function PlaidLink() {
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
-      setMessage('Failed to fetch user details.');
+      toast('Failed to fetch user details.', {type: 'error'});
     }
   }, [currentUser, fetchPlaidAccounts]);
 
@@ -155,29 +158,22 @@ function PlaidLink() {
     fetchBudgets();
     setTransactionMessage('Transaction added successfully!');
     setIsTransactionModalOpen(false);
+    toast('Transaction added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
   }, [fetchTransactions, fetchBudgets]);
 
   const handleBudgetAdded = useCallback(() => {
     fetchBudgets();
-    setMessage('Budget added successfully!');
     setIsBudgetModalOpen(false);
+    toast('Budget added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
   }, [fetchBudgets]);
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  }, [navigate]);
 
   const startPlaidLink = async () => {
     try {
       const token = await currentUser.getIdToken();
-      const response = await axios.post('http://localhost:3001/plaid/create_link_token',
+      const response = await axios.post(getApiUrl('/plaid/create_link_token'),
           {
             userId: currentUser.uid,
           },
@@ -193,7 +189,7 @@ function PlaidLink() {
         token: linkToken,
         onSuccess: async (publicToken) => {
           try {
-            const exchangeResponse = await axios.post('http://localhost:3001/plaid/exchange_public_token',
+            const exchangeResponse = await axios.post(getApiUrl('/plaid/exchange_public_token'),
                 {
                   publicToken,
                   userId: currentUser.uid,
@@ -205,7 +201,7 @@ function PlaidLink() {
                 }
             );
 
-            setMessage('Bank account linked successfully! Fetching your transactions...');
+            toast('Bank account linked successfully!', {type: 'success'});
             setLinkedBank(true);
             setAccounts(exchangeResponse.data.accounts || []);
 
@@ -214,7 +210,7 @@ function PlaidLink() {
             const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
 
             await axios.get(
-                `http://localhost:3001/plaid/transactions/${currentUser.uid}`,
+                getApiUrl(`/plaid/transactions/${currentUser.uid}`),
                 {
                   params: { startDate, endDate },
                   headers: {
@@ -225,16 +221,16 @@ function PlaidLink() {
 
             // Then fetch all transactions from our DB
             await fetchTransactions();
-            setMessage('Bank account linked and transactions imported successfully!');
+            toast('Transactions imported successfully!', {type: 'success'});
           } catch (error) {
             console.error('Error exchanging public token:', error);
-            setMessage('Failed to link account.');
+            toast('Failed to link bank account.', {type: 'error'});
           }
         },
         onExit: (err, metadata) => {
           if (err) {
             console.error('Error during Plaid Link:', err);
-            setMessage('Error connecting to bank.');
+            toast('Failed to link bank account.', {type: 'error'});
           }
         },
       });
@@ -242,14 +238,14 @@ function PlaidLink() {
       handler.open();
     } catch (error) {
       console.error('Error fetching link token:', error);
-      setMessage('Failed to start bank connection process.');
+      toast('Failed to start bank account linking.', {type: 'error'});
     }
   };
 
   const checkBudgetRollovers = useCallback(async () => {
     try {
       const token = await currentUser.getIdToken();
-      const userBudgets = await axios.get('http://localhost:3001/budget/get_budgets', {
+      const userBudgets = await axios.get(getApiUrl('/budget/get_budgets'), {
         params: { userId: currentUser.uid },
         headers: { Authorization: `Bearer ${token}` }
       });
@@ -261,7 +257,7 @@ function PlaidLink() {
 
         if (endDate <= today) {
           console.log(`[Frontend] Processing rollover for budget ${budget.id}`);
-          await axios.post('http://localhost:3001/history/rollover', {
+          await axios.post(getApiUrl('/history/rollover'), {
             userId: currentUser.uid,
             budgetId: budget.id
           }, {
@@ -296,7 +292,10 @@ function PlaidLink() {
 
   if (!currentUser) return null;
 
-
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login');
+  }
   return (
       <Layout currentUser={currentUser} onLogout={handleLogout}>
         <div className={styles.pageContainer}>
@@ -345,7 +344,7 @@ function PlaidLink() {
               <div className={styles.sectionHeader}>
                 <h2>Accounts</h2>
               </div>
-              <div className={`${styles.accountsContainer} accountsContainer`}>
+              <div className={`${styles.accountCard} accountsContainer`}>
                 {!linkedBank ? (
                     <div className={styles.emptyStateCard}>
                       <CreditCard className="w-12 h-12 text-gray-400" />
@@ -497,7 +496,6 @@ function PlaidLink() {
               <TransactionForm
                   userId={currentUser?.uid}
                   onTransactionAdded={handleTransactionAdded}
-                  setMessage={setTransactionMessage}
                   onClose={() => {
                     setIsTransactionModalOpen(false);
                     appRef.current?.classList.remove('modal-open');
@@ -509,7 +507,6 @@ function PlaidLink() {
               <BudgetForm
                   userId={currentUser?.uid}
                   onBudgetAdded={handleBudgetAdded}
-                  setMessage={setMessage}
                   onClose={() => {
                     setIsBudgetModalOpen(false);
                     appRef.current?.classList.remove('modal-open');
@@ -524,4 +521,4 @@ function PlaidLink() {
   );
 }
 
-export default React.memo(PlaidLink);
+export default React.memo(LandingPage);

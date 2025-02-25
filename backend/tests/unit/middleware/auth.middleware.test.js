@@ -1,16 +1,16 @@
-const { AuthenticationError } = require('../../src/utils/errors');
-const { MESSAGE_UNAUTHORIZED } = require('../../src/utils/constants');
-const AuthMiddleware = require('../../src/middleware/auth.middleware');
+const { AuthenticationError } = require('../../../src/utils/errors');
+const { MESSAGE_UNAUTHORIZED } = require('../../../src/utils/constants');
+const AuthMiddleware = require('../../../src/middleware/auth.middleware');
 
-jest.mock('../../src/utils/errors', () => ({
+jest.mock('../../../src/utils/errors', () => ({
     AuthenticationError: jest.fn()
 }));
 
-jest.mock('../../src/utils/constants', () => ({
+jest.mock('../../../src/utils/constants', () => ({
     MESSAGE_UNAUTHORIZED: 'Unauthorized access'
 }));
 
-jest.mock('../../src/config/firebase.config', () => ({
+jest.mock('../../../src/config/firebase.config', () => ({
     admin: {
         auth: jest.fn().mockReturnValue({
             verifyIdToken: jest.fn()

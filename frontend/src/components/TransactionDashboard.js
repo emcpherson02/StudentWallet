@@ -3,6 +3,9 @@ import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
+import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
+
 import {
     BarChart,
     Bar,
@@ -14,6 +17,7 @@ import {
 } from 'recharts';
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
+import TransactionInsights from './TransactionInsights';
 import {Trash2, Banknote, RefreshCw} from "lucide-react";
 
 const TransactionDashboard = () => {
@@ -21,6 +25,7 @@ const TransactionDashboard = () => {
     const [analytics, setAnalytics] = useState(null);
     const [transactions, setTransactions] = useState([]); // Add this state
     const [loading, setLoading] = useState(true);
+    const [insights, setInsights] = useState(null);
 
     useEffect(() => {
         const fetchData = async () => {
@@ -31,7 +36,7 @@ const TransactionDashboard = () => {
 
                 // Fetch analytics
                 const analyticsResponse = await axios.get(
-                    'http://localhost:3001/transactions/analytics',
+                    getApiUrl('/transactions/analytics'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -40,7 +45,7 @@ const TransactionDashboard = () => {
 
                 // Fetch transactions
                 const transactionsResponse = await axios.get(
-                    'http://localhost:3001/transactions/user-transactions',
+                    getApiUrl('/transactions/user-transactions'),
                     {
                         params: { userId: currentUser.uid },
                         headers: { Authorization: `Bearer ${token}` }
@@ -59,11 +64,31 @@ const TransactionDashboard = () => {
         fetchData();
     }, [currentUser]);
 
+    useEffect(() => {
+        const fetchInsights = async () => {
+            try {
+                const token = await currentUser.getIdToken();
+                const response = await axios.get(
+                    getApiUrl('/transactions/insights'),
+                    {
+                        params: { userId: currentUser.uid },
+                        headers: { Authorization: `Bearer ${token}` }
+                    }
+                );
+                setInsights(response.data.data);
+            } catch (error) {
+                console.error('Error fetching insights:', error);
+            }
+        };
+
+        fetchInsights();
+    }, [currentUser]);
+
     const handleDeleteTransaction = async (transactionId) => {
         try {
             const token = await currentUser.getIdToken();
             await axios.delete(
-                `http://localhost:3001/transactions/delete_transaction/${transactionId}`,
+                getApiUrl(`/transactions/delete_transaction/${transactionId}`),
                 {
                     data: { userId: currentUser.uid },
                     headers: { Authorization: `Bearer ${token}` }
@@ -183,6 +208,10 @@ const TransactionDashboard = () => {
                             />
                         </div>
                     </div>
+                </section>
+
+                <section className={styles.transactionsSection}>
+                    {insights && <TransactionInsights insights={insights} />}
                 </section>
 
                 <section className={styles.transactionsSection}>
