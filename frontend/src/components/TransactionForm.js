@@ -4,6 +4,7 @@ import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) => {
     const { currentUser } = useAuth();
@@ -72,13 +73,12 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
             );
 
             if (response.status === 200) {
-                setMessage('Transaction added successfully!');
                 onTransactionAdded();
                 onClose();
             }
         } catch (error) {
             console.error('Error:', error.response || error);
-            setMessage(error.response?.data?.message || 'Failed to create transaction');
+            toast('Failed to add transaction', { type: 'error' });
         }
     };
 
@@ -104,7 +104,7 @@ const TransactionForm = ({ userId, onTransactionAdded, setMessage, onClose }) =>
             setIsAddingCategory(false);
         } catch (error) {
             console.error('Error adding category:', error);
-            setMessage('Failed to add category');
+            toast('Failed to add category', { type: 'error' });
         }
     };
 

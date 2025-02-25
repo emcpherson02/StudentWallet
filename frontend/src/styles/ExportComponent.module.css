@@ -1,0 +1,219 @@
+.container {
+    display: flex;
+    min-height: auto; /* Remove full-height constraint */
+    background-color: #f5f5f5;
+}
+
+.content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 1rem; /* Reduced padding */
+}
+
+.header {
+    text-align: center;
+    margin-bottom: 1rem; /* Reduced margin */
+}
+
+.header h2 {
+    font-size: 1.5rem; /* Smaller font size */
+    font-weight: 600;
+    color: #333;
+}
+
+.card {
+    background: white;
+    padding: 1.5rem; /* Reduced padding */
+    border-radius: 8px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    max-width: 400px; /* Smaller max-width */
+    margin: 0 auto;
+    width: 100%;
+}
+
+.formGroup {
+    margin-bottom: 1rem; /* Reduced margin */
+}
+
+.formGroup label {
+    display: block;
+    margin-bottom: 0.25rem; /* Reduced margin */
+    font-weight: 500;
+    color: #333;
+    font-size: 0.875rem; /* Smaller font size */
+}
+
+.dateInputs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem; /* Reduced gap */
+}
+
+.datePicker {
+    width: 100%;
+    padding: 0.375rem; /* Reduced padding */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.875rem; /* Smaller font size */
+}
+
+.formatOptions {
+    display: flex;
+    gap: 0.75rem; /* Reduced gap */
+}
+
+.formatButton {
+    flex: 1;
+    padding: 0.375rem; /* Reduced padding */
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    background-color: white;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.875rem; /* Smaller font size */
+}
+
+.formatButton.active {
+    background-color: #3b82f6;
+    color: white;
+    border-color: #3b82f6;
+}
+
+.error {
+    display: flex;
+    padding: 0.75rem; /* Reduced padding */
+    background-color: #fee2e2;
+    border-radius: 4px;
+    margin-bottom: 0.75rem; /* Reduced margin */
+}
+
+.error svg {
+    color: #dc2626;
+    margin-right: 0.5rem; /* Reduced margin */
+    flex-shrink: 0;
+}
+
+.errorMessage h3 {
+    color: #991b1b;
+    font-size: 0.75rem; /* Smaller font size */
+    font-weight: 500;
+    margin: 0;
+}
+
+.errorMessage p {
+    color: #b91c1c;
+    font-size: 0.75rem; /* Smaller font size */
+    margin: 0.25rem 0 0;
+}
+
+.success {
+    display: flex;
+    padding: 0.75rem; /* Reduced padding */
+    background-color: #dcfce7;
+    border-radius: 4px;
+    margin-bottom: 0.75rem; /* Reduced margin */
+}
+
+.success svg {
+    color: #16a34a;
+    margin-right: 0.5rem; /* Reduced margin */
+    flex-shrink: 0;
+}
+
+.successMessage h3 {
+    color: #166534;
+    font-size: 0.75rem; /* Smaller font size */
+    font-weight: 500;
+    margin: 0;
+}
+
+.successMessage p {
+    color: #15803d;
+    font-size: 0.75rem; /* Smaller font size */
+    margin: 0.25rem 0 0;
+}
+
+.exportButton {
+    width: 100%;
+    padding: 0.5rem; /* Reduced padding */
+    background-color: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s;
+    font-size: 0.875rem; /* Smaller font size */
+}
+
+.exportButton:hover:not(:disabled) {
+    background-color: #2563eb;
+}
+
+.exportButton:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+}
+
+.loadingWrapper,
+.buttonContent {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem; /* Reduced gap */
+}
+
+.spinner {
+    width: 1rem; /* Smaller spinner */
+    height: 1rem; /* Smaller spinner */
+    border: 2px solid white;
+    border-top-color: transparent;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+.exportInfo {
+    margin-top: 1rem; /* Reduced margin */
+    padding-top: 1rem; /* Reduced padding */
+    border-top: 1px solid #eee;
+}
+
+.exportInfo h3 {
+    font-size: 0.75rem; /* Smaller font size */
+    font-weight: 500;
+    color: #666;
+    margin-bottom: 0.25rem; /* Reduced margin */
+}
+
+.exportInfo ul {
+    list-style-type: disc;
+    padding-left: 1rem; /* Reduced padding */
+    color: #666;
+    font-size: 0.75rem; /* Smaller font size */
+}
+
+.exportInfo li {
+    margin-bottom: 0.125rem; /* Reduced margin */
+}
+
+@media (max-width: 640px) {
+    .content {
+        padding: 0.75rem; /* Reduced padding */
+    }
+
+    .card {
+        padding: 1rem; /* Reduced padding */
+    }
+
+    .dateInputs {
+        grid-template-columns: 1fr;
+    }
+}

@@ -7,30 +7,41 @@ import { signInWithPopup } from 'firebase/auth';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
 import {AlertCircle, Mail, Lock} from "lucide-react";
 import ForgottenPassword from "./ForgottenPassword";
+import {useAuth} from "../utils/AuthContext";
 
 function Login() {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [errorMessages] = useState('');
     const [message, setMessage] = useState('');
     const navigate = useNavigate();
     const [showForgottenPassword, setShowForgottenPassword] = useState(false);
+    const { currentUser } = useAuth();
 
     const handleLogin = async (e) => {
         e.preventDefault();
         try {
-            await loginUser(email, password);
-            setMessage("Login successful!");
+            const user = await loginUser(email, password);
+            const token = await user.getIdToken();
+
+            // Store session data
+            sessionStorage.setItem('user', email);
+            sessionStorage.setItem('token', token);
+            sessionStorage.setItem('userId', user.uid);
+
+            console.log('Session storage after login:', {
+                user: sessionStorage.getItem('user'),
+                token: sessionStorage.getItem('token'),
+                userId: sessionStorage.getItem('userId')
+            });
+
             navigate('/plaid-link');
         } catch (error) {
-            console.error("Error logging in:", error);
-            const errorMessages = {
-                'auth/user-not-found': "No account found with this email.",
-                'auth/wrong-password': "Incorrect password. Please try again.",
-                'default': "An error occurred. Please try again."
-            };
+            console.error("Login error:", error);
             setMessage(errorMessages[error.code] || errorMessages.default);
         }
     };
+
 
     const handleGoogleLogin = async () => {
         try {
@@ -49,6 +60,9 @@ function Login() {
                     createdAt: new Date(),
                 });
             }
+            const token = await user.getIdToken();
+            sessionStorage.setItem('user', user.email);
+            sessionStorage.setItem('token', token);
             navigate('/plaid-link');
         } catch (error) {
             console.error('Google login failed:', error);

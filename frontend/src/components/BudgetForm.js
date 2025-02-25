@@ -4,8 +4,9 @@ import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import { TRANSACTION_CATEGORIES } from '../utils/constants';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
-const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
+const BudgetForm = ({ userId, onBudgetAdded, onClose }) => {
     const { currentUser } = useAuth();
     const [formData, setFormData] = useState({
         category: '',
@@ -74,13 +75,13 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             );
 
             if (response.status === 201) {
-                setMessage('Budget added successfully!');
+                toast('Budget created successfully', { type: 'success' });
                 onBudgetAdded();
                 onClose();
             }
         } catch (error) {
             console.error('Error:', error.response || error);
-            setMessage(error.response?.data?.message || 'Failed to create budget');
+            toast('Failed to create budget', { type: 'error' });
         }
     };
 
@@ -106,7 +107,7 @@ const BudgetForm = ({ userId, onBudgetAdded, setMessage, onClose }) => {
             setIsAddingCategory(false);
         } catch (error) {
             console.error('Error adding category:', error);
-            setMessage('Failed to add category');
+            toast('Failed to add category', { type: 'error' });
         }
     };
 

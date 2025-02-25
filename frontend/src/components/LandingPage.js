@@ -12,6 +12,8 @@ import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
+import {logoutUser} from "../utils/authService";
 
 function LandingPage() {
   const {currentUser} = useAuth();
@@ -41,7 +43,7 @@ function LandingPage() {
       setBudgets(response.data.budgets || []);
     } catch (error) {
       console.error('Error fetching budgets:', error);
-      setMessage('Failed to fetch budgets.');
+      toast('Failed to fetch budgets.', {type: 'error'});
     }
   }, [currentUser]);
 
@@ -59,7 +61,7 @@ function LandingPage() {
       setTransactions(Transaction || []);
     } catch (error) {
       console.error('Error fetching transactions:', error);
-      setMessage('Failed to fetch transactions.');
+      toast('Failed to fetch transactions.', {type: 'error'});
     }
   }, [currentUser]);
 
@@ -146,7 +148,7 @@ function LandingPage() {
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
-      setMessage('Failed to fetch user details.');
+      toast('Failed to fetch user details.', {type: 'error'});
     }
   }, [currentUser, fetchPlaidAccounts]);
 
@@ -156,24 +158,17 @@ function LandingPage() {
     fetchBudgets();
     setTransactionMessage('Transaction added successfully!');
     setIsTransactionModalOpen(false);
+    toast('Transaction added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
   }, [fetchTransactions, fetchBudgets]);
 
   const handleBudgetAdded = useCallback(() => {
     fetchBudgets();
-    setMessage('Budget added successfully!');
     setIsBudgetModalOpen(false);
+    toast('Budget added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
   }, [fetchBudgets]);
 
-  const handleLogout = useCallback(async () => {
-    try {
-      await signOut(auth);
-      navigate('/login');
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
-  }, [navigate]);
 
   const startPlaidLink = async () => {
     try {
@@ -206,7 +201,7 @@ function LandingPage() {
                 }
             );
 
-            setMessage('Bank account linked successfully! Fetching your transactions...');
+            toast('Bank account linked successfully!', {type: 'success'});
             setLinkedBank(true);
             setAccounts(exchangeResponse.data.accounts || []);
 
@@ -226,16 +221,16 @@ function LandingPage() {
 
             // Then fetch all transactions from our DB
             await fetchTransactions();
-            setMessage('Bank account linked and transactions imported successfully!');
+            toast('Transactions imported successfully!', {type: 'success'});
           } catch (error) {
             console.error('Error exchanging public token:', error);
-            setMessage('Failed to link account.');
+            toast('Failed to link bank account.', {type: 'error'});
           }
         },
         onExit: (err, metadata) => {
           if (err) {
             console.error('Error during Plaid Link:', err);
-            setMessage('Error connecting to bank.');
+            toast('Failed to link bank account.', {type: 'error'});
           }
         },
       });
@@ -243,7 +238,7 @@ function LandingPage() {
       handler.open();
     } catch (error) {
       console.error('Error fetching link token:', error);
-      setMessage('Failed to start bank connection process.');
+      toast('Failed to start bank account linking.', {type: 'error'});
     }
   };
 
@@ -297,7 +292,10 @@ function LandingPage() {
 
   if (!currentUser) return null;
 
-
+  const handleLogout = async () => {
+    await logoutUser();
+    navigate('/login');
+  }
   return (
       <Layout currentUser={currentUser} onLogout={handleLogout}>
         <div className={styles.pageContainer}>
@@ -498,7 +496,6 @@ function LandingPage() {
               <TransactionForm
                   userId={currentUser?.uid}
                   onTransactionAdded={handleTransactionAdded}
-                  setMessage={setTransactionMessage}
                   onClose={() => {
                     setIsTransactionModalOpen(false);
                     appRef.current?.classList.remove('modal-open');
@@ -510,7 +507,6 @@ function LandingPage() {
               <BudgetForm
                   userId={currentUser?.uid}
                   onBudgetAdded={handleBudgetAdded}
-                  setMessage={setMessage}
                   onClose={() => {
                     setIsBudgetModalOpen(false);
                     appRef.current?.classList.remove('modal-open');
