@@ -3,6 +3,7 @@ import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
+import {getApiUrl} from "../utils/api";
 import {toast} from "react-toastify";
 
 import {
@@ -19,7 +20,6 @@ import UncategorizedTransactions from './UncategorisedTransaction';
 import TransactionInsights from './TransactionInsights';
 import {Trash2, Banknote, RefreshCw, Plus} from "lucide-react";
 import TransactionForm from "./TransactionForm";
-import {getApiUrl} from "../utils/api";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
@@ -65,6 +65,7 @@ const TransactionDashboard = () => {
     useEffect(() => {
         fetchData();
     }, [currentUser]);
+
 
     useEffect(() => {
         const fetchInsights = async () => {
@@ -233,86 +234,87 @@ const TransactionDashboard = () => {
                         </div>
                     </div>
 
+
                     {transactions.length > 0 ? (
                         <div className={styles.transactionsList}>
                             {Object.entries(
                                 transactions.reduce((groups, transaction) => {
                                     const date = new Date(transaction.date);
                                     const monthYear = date.toLocaleDateString('en-GB', {
-                                        year: 'numeric',
-                                        month: 'long'
-                                    });
-                                    if (!groups[monthYear]) groups[monthYear] = [];
-                                    groups[monthYear].push(transaction);
-                                    return groups;
-                                }, {})
-                            )
-                                .sort(([dateA], [dateB]) => {
-                                    const [monthA, yearA] = dateA.split(' ').reverse();
-                                    const [monthB, yearB] = dateB.split(' ').reverse();
-                                    return yearB - yearA || new Date(dateB).getMonth() - new Date(dateA).getMonth();
-                                })
-                                .map(([monthYear, groupTransactions]) => (
-                                    <div key={monthYear} className={styles.transactionGroup}>
-                                        <div className={styles.dateHeader}>
-                                            <span>{monthYear}</span>
-                                        </div>
-                                        {groupTransactions
-                                            .sort((a, b) => new Date(b.date) - new Date(a.date))
-                                            .map((transaction) => (
-                                                <div
-                                                    key={transaction.id || `${transaction.type}-${transaction.date}-${transaction.amount}`}
-                                                    className={styles.transactionCard}>
-                                                    <div className={styles.transactionInfo}>
-                                                        <div className={styles.transactionMain}>
-                                                            <div className={styles.transactionIcon}>
-                                                                {transaction.isPlaidTransaction ?
-                                                                    <RefreshCw size={16}
-                                                                               className={styles.plaidIcon}/> :
-                                                                    <Banknote size={16} className={styles.manualIcon}/>
-                                                                }
-                                                            </div>
-                                                            <div className={styles.typeAndDate}>
+                                year: 'numeric',
+                                month: 'long'
+                            });
+                            if (!groups[monthYear]) groups[monthYear] = [];
+                            groups[monthYear].push(transaction);
+                            return groups;
+                        }, {})
+                    )
+                        .sort(([dateA], [dateB]) => {
+                            const [monthA, yearA] = dateA.split(' ').reverse();
+                            const [monthB, yearB] = dateB.split(' ').reverse();
+                            return yearB - yearA || new Date(dateB).getMonth() - new Date(dateA).getMonth();
+                        })
+                        .map(([monthYear, groupTransactions]) => (
+                            <div key={monthYear} className={styles.transactionGroup}>
+                                <div className={styles.dateHeader}>
+                                    <span>{monthYear}</span>
+                                </div>
+                                {groupTransactions
+                                    .sort((a, b) => new Date(b.date) - new Date(a.date))
+                                    .map((transaction) => (
+                                        <div
+                                            key={transaction.id || `${transaction.type}-${transaction.date}-${transaction.amount}`}
+                                            className={styles.transactionCard}>
+                                            <div className={styles.transactionInfo}>
+                                                <div className={styles.transactionMain}>
+                                                    <div className={styles.transactionIcon}>
+                                                        {transaction.isPlaidTransaction ?
+                                                            <RefreshCw size={16}
+                                                                       className={styles.plaidIcon}/> :
+                                                            <Banknote size={16} className={styles.manualIcon}/>
+                                                        }
+                                                    </div>
+                                                    <div className={styles.typeAndDate}>
                                                                 <span className={styles.transactionType}>
                                                                     {transaction.type}
                                                                 </span>
-                                                                <span className={styles.transactionDate}>
+                                                        <span className={styles.transactionDate}>
                                                                     {new Date(transaction.date).toLocaleDateString('en-GB', {
                                                                         day: 'numeric'
                                                                     })} {new Date(transaction.date).toLocaleDateString('en-GB', {
-                                                                    month: 'short'
-                                                                })}
+                                                            month: 'short'
+                                                        })}
                                                                 </span>
-                                                            </div>
-                                                            <span className={styles.transactionCategory}>
+                                                    </div>
+                                                    <span className={styles.transactionCategory}>
                                                                 {transaction.category}
                                                             </span>
-                                                        </div>
-                                                    </div>
-                                                    <div className={styles.transactionActions}>
+                                                </div>
+                                            </div>
+                                            <div className={styles.transactionActions}>
                                                <span
                                                    className={Number(transaction.amount) < 0 ? styles.negative : styles.positive}>
                                                    £{Math.abs(Number(transaction.amount)).toFixed(2)}
                                                </span>
-                                                        <button
-                                                            onClick={() => handleDeleteTransaction(transaction.id)}
-                                                            className={styles.deleteButton}
-                                                            aria-label="Delete transaction"
-                                                        >
-                                                            <Trash2 size={20}/>
-                                                        </button>
-                                                    </div>
-                                                </div>
-                                            ))}
-                                    </div>
-                                ))}
-                        </div>
-                    ) : (
-                        <div className={styles.emptyState}>
-                            <p>No transactions found</p>
-                        </div>
-                    )}
-                </section>
+                                                <button
+                                                    onClick={() => handleDeleteTransaction(transaction.id)}
+                                                    className={styles.deleteButton}
+                                                    aria-label="Delete transaction"
+                                                >
+                                                    <Trash2 size={20}/>
+                                                </button>
+                                            </div>
+                                        </div>
+                                    ))}
+                            </div>
+                        ))}
+                </div>
+            ) : (
+                <div className={styles.emptyState}>
+                    <p>No transactions found</p>
+                </div>
+            )}
+        </section>
                 {isTransactionModalOpen && (
                     <TransactionForm
                         userId={currentUser?.uid}
@@ -325,8 +327,9 @@ const TransactionDashboard = () => {
                         onClose={() => setIsTransactionModalOpen(false)}
                     />
                 )}
+
             </div>
-        </Layout>
+</Layout>
     );
 };
 
