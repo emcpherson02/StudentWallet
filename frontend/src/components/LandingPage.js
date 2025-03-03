@@ -533,17 +533,17 @@ function LandingPage() {
                                   <Banknote className="w-5 h-5"/>
                                 </div>
                                 <div className={styles.accountInfo}>
-                                  <h4>{account.institutionName}</h4>
+                                  <h4>{account.institutionName || 'Account'}</h4>
                                   <p className={styles.accountType}>
-                                    {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type}
+                                    {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type || 'Account'}
                                   </p>
                                   <div className={styles.accountBalanceContainer}>
                                     <p className={styles.accountBalance}>
-                                      £{account.calculatedBalance.toFixed(2)}
+                                      £{(account.calculatedBalance || 0).toFixed(2)}
                                     </p>
                                     <span className={styles.transactionCount}>
-                              {account.transactionCount} transactions
-                            </span>
+            {account.transactionCount || 0} transactions
+          </span>
                                   </div>
                                 </div>
                               </div>
