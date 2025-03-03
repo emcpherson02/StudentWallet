@@ -7,49 +7,60 @@ import { signOut } from 'firebase/auth';
 import { auth } from '../utils/firebase';
 import TransactionForm from './TransactionForm';
 import BudgetForm from './BudgetForm';
-import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote, RefreshCw } from 'lucide-react';
+import { Plus, Wallet, CreditCard, ArrowUpRight, Banknote, RefreshCw, PoundSterling } from 'lucide-react';
 import Layout from './Layout';
 import ProductTour from './ProductTour';
 import '../styles/ProductTour.css';
-import {getApiUrl} from "../utils/api";
-import {toast} from "react-toastify";
-import {logoutUser} from "../utils/authService";
-import NumberCounter from "./NumberCounter";
+import { getApiUrl } from "../utils/api";
+import { toast } from "react-toastify";
+import { logoutUser } from "../utils/authService";
 
 function LandingPage() {
-  const {currentUser} = useAuth();
+  const { currentUser } = useAuth();
   const navigate = useNavigate();
   const appRef = useRef();
 
   // State declarations
   const [message, setMessage] = useState('');
-  const [transactionMessage, setTransactionMessage] = useState('');
   const [linkedBank, setLinkedBank] = useState(false);
   const [accounts, setAccounts] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [budgets, setBudgets] = useState([]);
   const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
   const [isBudgetModalOpen, setIsBudgetModalOpen] = useState(false);
-  const [loadingAccounts, setLoadingAccounts] = useState(true);
-  const [loadingTransactions, setLoadingTransactions] = useState(true);
-  const [loadingBudgets, setLoadingBudgets] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isLoaded, setIsLoaded] = useState(false);
+
+  // Loading states - combined into a single state to manage transitions gracefully
+  const [loading, setLoading] = useState({
+    accounts: true,
+    transactions: true,
+    budgets: true,
+    initialLoadComplete: false
+  });
 
   // Define fetch functions first
   const handleRefresh = async () => {
     setIsRefreshing(true);
+
+    // Set individual loading states without triggering a full loading screen
+    setLoading(prev => ({
+      ...prev,
+      accounts: true,
+      transactions: true,
+      budgets: true
+    }));
+
     await Promise.all([
       fetchUserDetails(),
       fetchTransactions(),
       fetchBudgets()
     ]);
+
     setIsRefreshing(false);
   };
 
   const fetchBudgets = useCallback(async () => {
     if (!currentUser) return;
-    setLoadingBudgets(true);
 
     try {
       const token = await currentUser.getIdToken();
@@ -62,13 +73,15 @@ function LandingPage() {
       console.error('Error fetching budgets:', error);
       toast('Failed to fetch budgets.', {type: 'error'});
     } finally {
-      setLoadingBudgets(false);
+      setLoading(prev => ({
+        ...prev,
+        budgets: false
+      }));
     }
   }, [currentUser]);
 
   const fetchTransactions = useCallback(async () => {
     if (!currentUser) return;
-    setLoadingTransactions(true);
 
     try {
       const token = await currentUser.getIdToken();
@@ -83,34 +96,28 @@ function LandingPage() {
       console.error('Error fetching transactions:', error);
       toast('Failed to fetch transactions.', {type: 'error'});
     } finally {
-      setLoadingTransactions(false);
+      setLoading(prev => ({
+        ...prev,
+        transactions: false
+      }));
     }
   }, [currentUser]);
 
   const fetchPlaidAccounts = useCallback(async () => {
-    setLoadingAccounts(true);
     try {
       console.log('Fetching Plaid accounts...');
       const token = await currentUser.getIdToken();
 
-      // Fetch accounts
-      const accountsResponse = await axios.get(
-          getApiUrl(`/plaid/accounts/${currentUser.uid}`),
-          {
-            headers: {
-              Authorization: `Bearer ${token}`
-            }
-          }
-      );
-
-      // Fetch transactions
-      const transactionsResponse = await axios.get(
-          getApiUrl('/transactions/user-transactions'),
-          {
-            params: { userId: currentUser.uid },
-            headers: { Authorization: `Bearer ${token}` }
-          }
-      );
+      // Fetch accounts and transactions in parallel
+      const [accountsResponse, transactionsResponse] = await Promise.all([
+        axios.get(getApiUrl(`/plaid/accounts/${currentUser.uid}`), {
+          headers: { Authorization: `Bearer ${token}` }
+        }),
+        axios.get(getApiUrl('/transactions/user-transactions'), {
+          params: { userId: currentUser.uid },
+          headers: { Authorization: `Bearer ${token}` }
+        })
+      ]);
 
       if (accountsResponse.data.accounts) {
         const allTransactions = transactionsResponse.data.Transaction || [];
@@ -146,7 +153,10 @@ function LandingPage() {
     } catch (error) {
       console.error('Error fetching Plaid accounts:', error);
     } finally {
-      setLoadingAccounts(false);
+      setLoading(prev => ({
+        ...prev,
+        accounts: false
+      }));
     }
   }, [currentUser]);
 
@@ -167,13 +177,23 @@ function LandingPage() {
 
       if (linkedBank) {
         await fetchPlaidAccounts();
+        return true;
       } else {
         console.log('No bank linked, clearing accounts');
         setAccounts([]);
+        setLoading(prev => ({
+          ...prev,
+          accounts: false
+        }));
       }
     } catch (error) {
       console.error('Error fetching user details:', error);
       toast('Failed to fetch user details.', {type: 'error'});
+      setLoading(prev => ({
+        ...prev,
+        accounts: false
+      }));
+      return false;
     }
   }, [currentUser, fetchPlaidAccounts]);
 
@@ -181,7 +201,6 @@ function LandingPage() {
   const handleTransactionAdded = useCallback(() => {
     fetchTransactions();
     fetchBudgets();
-    setTransactionMessage('Transaction added successfully!');
     setIsTransactionModalOpen(false);
     toast('Transaction added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
@@ -193,7 +212,6 @@ function LandingPage() {
     toast('Budget added successfully!', {type: 'success'});
     appRef.current?.classList.remove('modal-open');
   }, [fetchBudgets]);
-
 
   const startPlaidLink = async () => {
     try {
@@ -295,14 +313,15 @@ function LandingPage() {
     }
   }, [currentUser]);
 
+  // Loading placeholder components
   const AccountsLoadingPlaceholder = () => (
       <div className={styles.loadingGrid}>
         {[1, 2, 3].map((i) => (
-            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+            <div key={i} className={styles.loadingCard}>
               <div className={styles.accountPlaceholder}>
                 <div className={styles.accountIcon} />
                 <div className={styles.accountDetails}>
-                  <div className={`${styles.shimmerLine}`} />
+                  <div className={styles.shimmerLine} />
                   <div className={`${styles.shimmerLine} ${styles.short}`} />
                 </div>
               </div>
@@ -314,10 +333,10 @@ function LandingPage() {
   const TransactionsLoadingPlaceholder = () => (
       <div className={styles.loadingGrid}>
         {[1, 2, 3, 4, 5].map((i) => (
-            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+            <div key={i} className={styles.loadingCard}>
               <div className={styles.transactionPlaceholder}>
                 <div className={styles.accountDetails}>
-                  <div className={`${styles.shimmerLine}`} />
+                  <div className={styles.shimmerLine} />
                   <div className={`${styles.shimmerLine} ${styles.short}`} />
                 </div>
                 <div className={`${styles.shimmerLine} ${styles.short}`} />
@@ -330,7 +349,7 @@ function LandingPage() {
   const BudgetsLoadingPlaceholder = () => (
       <div className={styles.loadingGrid}>
         {[1, 2, 3, 4].map((i) => (
-            <div key={i} className={`${styles.loadingCard} ${styles.loadingShimmer}`}>
+            <div key={i} className={styles.loadingCard}>
               <div className={styles.budgetPlaceholder}>
                 <div className={styles.budgetHeader}>
                   <div className={`${styles.shimmerLine} ${styles.short}`} />
@@ -347,286 +366,337 @@ function LandingPage() {
       </div>
   );
 
+  // Loading Animation Component
+  const LoadingAnimation = () => (
+      <div className={styles.initialLoadingContainer}>
+        <div className={styles.loadingLogo}>
+          <PoundSterling size={40} className={styles.loadingIcon} />
+        </div>
+        <h2 className={styles.loadingTitle}>Student Wallet</h2>
+        <p className={styles.loadingSubtitle}>Loading your financial dashboard...</p>
+        <div className={styles.loadingSpinner}>
+          <div className={styles.spinnerDot}></div>
+          <div className={styles.spinnerDot}></div>
+          <div className={styles.spinnerDot}></div>
+        </div>
+      </div>
+  );
+
+  // Message timeout effect
   useEffect(() => {
     if (message) {
       const timer = setTimeout(() => {
         setMessage('');
       }, 5000); // Messages will disappear after 5 seconds
-
       return () => clearTimeout(timer);
     }
   }, [message]);
 
-  useEffect(() => {
-    setIsLoaded(true);
-  }, []);
-
-  // Effects
+  // Authentication effect
   useEffect(() => {
     if (!currentUser) {
       navigate('/login');
     }
   }, [currentUser, navigate]);
 
+  // Main data fetching effect
   useEffect(() => {
-    if (currentUser) {
-      const init = async () => {
+    let isMounted = true;
+
+    const init = async () => {
+      if (!currentUser || !isMounted) return;
+
+      try {
         await checkBudgetRollovers();
-        await fetchUserDetails();
-        await fetchTransactions();
-        await fetchBudgets();
-      };
-      init();
-    }
-  }, [currentUser, checkBudgetRollovers, fetchUserDetails, fetchTransactions, fetchBudgets]);
+
+        // Fetch all data in parallel
+        await Promise.all([
+          fetchUserDetails(),
+          fetchTransactions(),
+          fetchBudgets()
+        ]);
+
+        // Only mark initial load as complete after all data is loaded
+        if (isMounted) {
+          // Add a small delay for a smoother transition
+          setTimeout(() => {
+            setLoading(prev => ({
+              ...prev,
+              initialLoadComplete: true
+            }));
+          }, 500);
+        }
+      } catch (error) {
+        console.error('Error initializing data:', error);
+        // Make sure we mark loading as complete even if there are errors
+        if (isMounted) {
+          setLoading({
+            accounts: false,
+            transactions: false,
+            budgets: false,
+            initialLoadComplete: true
+          });
+        }
+      }
+    };
+
+    init();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [currentUser, fetchUserDetails, fetchTransactions, fetchBudgets, checkBudgetRollovers]);
 
   if (!currentUser) return null;
 
   const handleLogout = async () => {
     await logoutUser();
     navigate('/login');
-  }
+  };
+
+  // Check if we're still in the initial loading phase
+  const isInitialLoading = !loading.initialLoadComplete;
+
   return (
       <Layout currentUser={currentUser} onLogout={handleLogout}>
-        <div className={`${styles.pageContainer} ${isLoaded ? styles.pageLoaded : ''}`}>
-          {/* Welcome Section */}
-          <section className={styles.welcomeSection}>
-            <div className={styles.welcomeContent}>
-              <h1>Welcome back, {currentUser.displayName}</h1>
-              <p>Manage your finances and track your spending all in one place</p>
-            </div>
-            {message && (
-                <div className={`${styles.messageBanner} ${styles.fadeOut}`}>
-                  {message}
+        {isInitialLoading ? (
+            <LoadingAnimation />
+        ) : (
+            <div className={styles.pageContainer}>
+              {/* Welcome Section */}
+              <section className={styles.welcomeSection}>
+                <div className={styles.welcomeContent}>
+                  <h1>Welcome back, {currentUser.displayName}</h1>
+                  <p>Manage your finances and track your spending all in one place</p>
                 </div>
-            )}
-          </section>
+                {message && (
+                    <div className={styles.messageBanner}>
+                      {message}
+                    </div>
+                )}
+              </section>
 
-          {/* Quick Actions Grid */}
-          <section className={`${styles.quickActions} quickActions`}>
-            <button
-                onClick={() => setIsTransactionModalOpen(true)}
-                className={styles.actionCard}
-            >
-              <Plus className="w-6 h-6" />
-              <span>Add Transaction</span>
-            </button>
-            <button
-                onClick={() => setIsBudgetModalOpen(true)}
-                className={styles.actionCard}
-            >
-              <Wallet className="w-6 h-6" />
-              <span>Create Budget</span>
-            </button>
-            {!linkedBank && (
+              {/* Quick Actions Grid */}
+              <section className={`${styles.quickActions} quickActions`}>
                 <button
-                    onClick={startPlaidLink}
+                    onClick={() => setIsTransactionModalOpen(true)}
                     className={styles.actionCard}
                 >
-                  <CreditCard className="w-6 h-6" />
-                  <span>Link Bank</span>
+                  <Plus className="w-6 h-6" />
+                  <span>Add Transaction</span>
                 </button>
-            )}
-          </section>
-
-          {/* Main Content Grid */}
-          <div className={styles.mainGrid}>
-            {/* Accounts Overview */}
-            <section className={styles.gridSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Accounts</h2>
-              </div>
-              <div
-                  key={accounts.id || `${accounts.name}-${accounts.type}`}
-                  className={`${styles.accountCard} ${styles.hoverEffect} accountsContainer`}>
-                {loadingAccounts ? (
-                    <AccountsLoadingPlaceholder />
-                ) : !linkedBank ? (
-                    <div className={styles.emptyStateCard}>
-                      <CreditCard className="w-12 h-12 text-gray-400" />
-                      <h3>Link Your Bank Account</h3>
-                      <p>Connect your bank to automatically track expenses</p>
-                      <button
-                          onClick={startPlaidLink}
-                          className={styles.primaryButton}
-                      >
-                        Connect Now
-                      </button>
-                    </div>
-                ) : (
-                    <div className={styles.accountsGrid}>
-                      {accounts.map((account) => (
-                          // Using account.id as the key, and if that's not available,
-                          // create a unique key using both id and name
-                          <div key={account.id || `${account.name}-${account.type}`} className={styles.accountCard}>
-                            <div className={styles.accountIcon}>
-                              <Banknote className="w-5 h-5"/>
-                            </div>
-                            <div className={styles.accountInfo}>
-                              <h4>{account.institutionName}</h4>
-                              <p className={styles.accountType}>
-                                {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type}
-                              </p>
-                              <div className={styles.accountBalanceContainer}>
-                                <p className={styles.accountBalance}>
-                                  £{(account.calculatedBalance || 0).toFixed(2)}
-                                </p>
-                                <span className={styles.transactionCount}>
-                        {account.transactionCount} transactions
-                                </span>
-                              </div>
-                            </div>
-                          </div>
-                      ))}
-                    </div>
+                <button
+                    onClick={() => setIsBudgetModalOpen(true)}
+                    className={styles.actionCard}
+                >
+                  <Wallet className="w-6 h-6" />
+                  <span>Create Budget</span>
+                </button>
+                {!linkedBank && (
+                    <button
+                        onClick={startPlaidLink}
+                        className={styles.actionCard}
+                    >
+                      <CreditCard className="w-6 h-6" />
+                      <span>Link Bank</span>
+                    </button>
                 )}
-              </div>
-            </section>
+              </section>
 
-            {/* Recent Transactions */}
-            <section className={styles.gridSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Recent Transactions</h2>
-                <div className={styles.headerActions}>
-                  <button
-                      onClick={handleRefresh}
-                      className={`${styles.iconButton} ${isRefreshing ? styles.spinning : ''}`}
-                      disabled={isRefreshing}
-                  >
-                    <RefreshCw className="w-5 h-5"/>
-                  </button>
-                  <button
-                      onClick={() => setIsTransactionModalOpen(true)}
-                      className={styles.iconButton}
-                  >
-                    <Plus className="w-5 h-5"/>
-                  </button>
-                </div>
-              </div>
-              <div className={`${styles.transactionsContainer} transactionsContainer`}>
-                {loadingTransactions ? (
-                    <TransactionsLoadingPlaceholder/>
-                ) : transactions.length === 0 ? (
-                    <div className={styles.emptyStateCard}>
-                      <Wallet className="w-12 h-12 text-gray-400"/>
-                      <h3>No Transactions Yet</h3>
-                      <p>Add your first transaction to get started</p>
+              {/* Main Content Grid */}
+              <div className={styles.mainGrid}>
+                {/* Accounts Overview */}
+                <section className={styles.gridSection}>
+                  <div className={styles.sectionHeader}>
+                    <h2>Accounts</h2>
+                  </div>
+                  <div className={`${styles.accountsContainer} accountsContainer`}>
+                    {loading.accounts ? (
+                        <AccountsLoadingPlaceholder />
+                    ) : !linkedBank ? (
+                        <div className={styles.emptyStateCard}>
+                          <CreditCard className="w-12 h-12 text-gray-400" />
+                          <h3>Link Your Bank Account</h3>
+                          <p>Connect your bank to automatically track expenses</p>
+                          <button
+                              onClick={startPlaidLink}
+                              className={styles.primaryButton}
+                          >
+                            Connect Now
+                          </button>
+                        </div>
+                    ) : (
+                        <div className={styles.accountsGrid}>
+                          {accounts.map((account) => (
+                              <div key={account.id || `${account.name}-${account.type}`} className={styles.accountCard}>
+                                <div className={styles.accountIcon}>
+                                  <Banknote className="w-5 h-5"/>
+                                </div>
+                                <div className={styles.accountInfo}>
+                                  <h4>{account.institutionName}</h4>
+                                  <p className={styles.accountType}>
+                                    {account.subtype ? account.subtype.charAt(0).toUpperCase() + account.subtype.slice(1) : account.type}
+                                  </p>
+                                  <div className={styles.accountBalanceContainer}>
+                                    <p className={styles.accountBalance}>
+                                      £{account.calculatedBalance.toFixed(2)}
+                                    </p>
+                                    <span className={styles.transactionCount}>
+                              {account.transactionCount} transactions
+                            </span>
+                                  </div>
+                                </div>
+                              </div>
+                          ))}
+                        </div>
+                    )}
+                  </div>
+                </section>
+
+                {/* Recent Transactions */}
+                <section className={styles.gridSection}>
+                  <div className={styles.sectionHeader}>
+                    <h2>Recent Transactions</h2>
+                    <div className={styles.headerActions}>
+                      <button
+                          onClick={handleRefresh}
+                          className={`${styles.iconButton} ${isRefreshing ? styles.spinning : ''}`}
+                          disabled={isRefreshing}
+                      >
+                        <RefreshCw className={`w-5 h-5 ${isRefreshing ? styles.refreshIcon : ''}`}/>
+                      </button>
                       <button
                           onClick={() => setIsTransactionModalOpen(true)}
-                          className={`${styles.actionCard} ${styles.pulseEffect}`}
+                          className={styles.iconButton}
                       >
-                        <Plus className="w-6 h-6"/>
-                        <span>Add Transaction</span>
+                        <Plus className="w-5 h-5"/>
                       </button>
                     </div>
-                ) : (
-                    <div className={styles.transactionsList}>
-                      {transactions.slice(0, 5).map((transaction, index) => (
-                          <div key={index} className={`${styles.transactionItem} ${styles.hoverEffect}`}>
-                            <div className={styles.transactionInfo}>
-                              <h4>{transaction.type}</h4>
-                              <p>{new Date(transaction.date).toLocaleDateString()}</p>
-                            </div>
-                            <span className={styles.transactionAmount}>
-    <NumberCounter value={Math.abs(transaction.amount)}/>
-</span>
-                          </div>
-                      ))}
-                    </div>
-                )}
-              </div>
-            </section>
+                  </div>
+                  <div className={`${styles.transactionsContainer} transactionsContainer`}>
+                    {loading.transactions ? (
+                        <TransactionsLoadingPlaceholder/>
+                    ) : transactions.length === 0 ? (
+                        <div className={styles.emptyStateCard}>
+                          <Wallet className="w-12 h-12 text-gray-400"/>
+                          <h3>No Transactions Yet</h3>
+                          <p>Add your first transaction to get started</p>
+                          <button
+                              onClick={() => setIsTransactionModalOpen(true)}
+                              className={styles.primaryButton}
+                          >
+                            Add Transaction
+                          </button>
+                        </div>
+                    ) : (
+                        <div className={styles.transactionsList}>
+                          {transactions.slice(0, 5).map((transaction, index) => (
+                              <div key={transaction.id || `transaction-${index}`} className={styles.transactionItem}>
+                                <div className={styles.transactionInfo}>
+                                  <h4>{transaction.type}</h4>
+                                  <p>{new Date(transaction.date).toLocaleDateString()}</p>
+                                </div>
+                                <span className={styles.transactionAmount}>
+                          £{Math.abs(transaction.amount).toFixed(2)}
+                        </span>
+                              </div>
+                          ))}
+                        </div>
+                    )}
+                  </div>
+                </section>
 
-            {/* Active Budgets */}
-            <section className={styles.gridSection}>
-              <div className={styles.sectionHeader}>
-                <h2>Active Budgets</h2>
-                <div className={styles.headerActions}>
-                  <button
-                      onClick={() => setIsBudgetModalOpen(true)}
-                      className={styles.iconButton}
-                  >
-                    <Plus className="w-5 h-5"/>
-                  </button>
-                  <button
-                      onClick={() => navigate('/budget-dashboard')}
-                      className={styles.viewAllButton}
-                  >
-                    View All <ArrowUpRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-              <div className={`${styles.budgetsContainer} budgetsContainer`}>
-                {loadingBudgets ? (
-                    <BudgetsLoadingPlaceholder />
-                ) : budgets.length === 0 ? (
-                    <div className={styles.emptyStateCard}>
-                      <Wallet className="w-12 h-12 text-gray-400" />
-                      <h3>No Budgets Set</h3>
-                      <p>Create your first budget to track spending</p>
+                {/* Active Budgets */}
+                <section className={styles.gridSection}>
+                  <div className={styles.sectionHeader}>
+                    <h2>Active Budgets</h2>
+                    <div className={styles.headerActions}>
                       <button
                           onClick={() => setIsBudgetModalOpen(true)}
-                          className={styles.primaryButton}
+                          className={styles.iconButton}
                       >
-                        Create Budget
+                        <Plus className="w-5 h-5"/>
+                      </button>
+                      <button
+                          onClick={() => navigate('/budget-dashboard')}
+                          className={styles.viewAllButton}
+                      >
+                        View All <ArrowUpRight className="w-4 h-4" />
                       </button>
                     </div>
-                ) : (
-                    <div className={styles.budgetsGrid}>
-                      {budgets.slice(0, 4).map((budget, index) => (
-                          <div key={index} className={`${styles.budgetCard} ${styles.hoverEffect}`}>
-                            <div className={styles.budgetHeader}>
-                              <h4>{budget.category}</h4>
-                              <span className={styles.budgetPeriod}>{budget.period}</span>
-                            </div>
-                            <div className={styles.budgetProgress}>
-                              <div className={styles.progressBar}>
-                                <div
-                                    className={styles.progressFill}
-                                    style={{
-                                      width: `${Math.min((budget.spent / budget.amount) * 100, 100)}%`
-                                    }}
-                                />
+                  </div>
+                  <div className={`${styles.budgetsContainer} budgetsContainer`}>
+                    {loading.budgets ? (
+                        <BudgetsLoadingPlaceholder />
+                    ) : budgets.length === 0 ? (
+                        <div className={styles.emptyStateCard}>
+                          <Wallet className="w-12 h-12 text-gray-400" />
+                          <h3>No Budgets Set</h3>
+                          <p>Create your first budget to track spending</p>
+                          <button
+                              onClick={() => setIsBudgetModalOpen(true)}
+                              className={styles.primaryButton}
+                          >
+                            Create Budget
+                          </button>
+                        </div>
+                    ) : (
+                        <div className={styles.budgetsGrid}>
+                          {budgets.slice(0, 4).map((budget, index) => (
+                              <div key={`budget-${index}`} className={styles.budgetCard}>
+                                <div className={styles.budgetHeader}>
+                                  <h4>{budget.category}</h4>
+                                  <span className={styles.budgetPeriod}>{budget.period}</span>
+                                </div>
+                                <div className={styles.budgetProgress}>
+                                  <div className={styles.progressBar}>
+                                    <div
+                                        className={styles.progressFill}
+                                        style={{
+                                          width: `${Math.min((budget.spent / budget.amount) * 100, 100)}%`
+                                        }}
+                                    />
+                                  </div>
+                                  <div className={styles.budgetStats}>
+                                    <span>£{budget.spent?.toFixed(2) || "0.00"} spent</span>
+                                    <span>of £{budget.amount?.toFixed(2)}</span>
+                                  </div>
+                                </div>
                               </div>
-                              <div className={styles.budgetStats}>
-                                <span>£{budget.spent || 0} spent</span>
-                                <span>of £{budget.amount}</span>
-                              </div>
-                            </div>
-                          </div>
-                      ))}
-                    </div>
-                )}
+                          ))}
+                        </div>
+                    )}
+                  </div>
+                </section>
               </div>
-            </section>
-          </div>
 
-          {/* Modals */}
-          {isTransactionModalOpen && (
-              <TransactionForm
-                  userId={currentUser?.uid}
-                  onTransactionAdded={handleTransactionAdded}
-                  onClose={() => {
-                    setIsTransactionModalOpen(false);
-                    appRef.current?.classList.remove('modal-open');
-                  }}
-              />
-          )}
+              {/* Modals */}
+              {isTransactionModalOpen && (
+                  <TransactionForm
+                      userId={currentUser?.uid}
+                      onTransactionAdded={handleTransactionAdded}
+                      onClose={() => {
+                        setIsTransactionModalOpen(false);
+                        appRef.current?.classList.remove('modal-open');
+                      }}
+                  />
+              )}
 
-          {isBudgetModalOpen && (
-              <BudgetForm
-                  userId={currentUser?.uid}
-                  onBudgetAdded={handleBudgetAdded}
-                  onClose={() => {
-                    setIsBudgetModalOpen(false);
-                    appRef.current?.classList.remove('modal-open');
-                  }}
+              {isBudgetModalOpen && (
+                  <BudgetForm
+                      userId={currentUser?.uid}
+                      onBudgetAdded={handleBudgetAdded}
+                      onClose={() => {
+                        setIsBudgetModalOpen(false);
+                        appRef.current?.classList.remove('modal-open');
+                      }}
+                  />
+              )}
+              <ProductTour
+                  onComplete={() => console.log('Tour completed!')}
               />
-          )}
-          <ProductTour
-              onComplete={() => console.log('Tour completed!')}
-          />
-        </div>
+            </div>
+        )}
       </Layout>
   );
 }

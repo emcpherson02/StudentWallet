@@ -3,7 +3,6 @@ import { useAuth } from '../utils/AuthContext';
 import axios from 'axios';
 import Layout from './Layout';
 import PieChartComponent from './PieChartComponent';
-import {getApiUrl} from "../utils/api";
 import {toast} from "react-toastify";
 
 import {
