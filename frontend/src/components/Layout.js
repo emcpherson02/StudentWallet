@@ -3,8 +3,7 @@ import {Link, useNavigate} from 'react-router-dom';
 import { Bell, Home, Users, LineChart, Wallet, PiggyBank, Library, BarChart2 } from 'lucide-react';
 import styles from '../styles/Layout.module.css';
 import NotificationHistory from "./NotificationHistory";
-import {signOut} from "firebase/auth";
-import {auth} from "../utils/firebase";
+import {logoutUser} from "../utils/authService";
 
 const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
     const [showUserMenu, setShowUserMenu] = useState(false);
@@ -14,14 +13,11 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
         ? currentUser.displayName.split(' ').map(n => n[0]).join('')
         : 'SW';
 
-    const handleLogout = async () => {
-        try {
-            await signOut(auth);
-            navigate('/login');
-        } catch (error) {
-            console.error('Error logging out:', error);
-        }
-    };
+    const handleLogout = () => {
+        logoutUser();
+        navigate('/login');
+
+    }
 
     return (
         <div className={styles.layout}>
@@ -86,10 +82,7 @@ const Layout = ({ currentUser, onLogout, children, showNav = true }) => {
                                         <Link to="/preferences" className={styles.userMenuItem}>
                                             Settings
                                         </Link>
-                                        <button
-                                            onClick={handleLogout}
-                                            className={styles.userMenuItem}
-                                        >
+                                        <button onClick={handleLogout} className={styles.userMenuItem}>
                                             Logout
                                         </button>
                                     </div>

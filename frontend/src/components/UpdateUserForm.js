@@ -3,6 +3,7 @@ import axios from 'axios';
 import Modal from './Modal';
 import styles from '../styles/LandingPage.module.css';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClose }) => {
     const [formData, setFormData] = useState({
@@ -31,13 +32,12 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, setMessage, onClos
             );
 
             if (response.status === 200) {
-                setMessage('User details updated successfully!');
                 onUserUpdated();
                 onClose();
             }
         } catch (error) {
             console.error('Error updating user details:', error);
-            setMessage(error.response?.data?.message || 'Failed to update user details.');
+            toast('Error updating user details. Please try again later.', { type: 'error' });
         }
     };
 

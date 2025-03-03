@@ -3,6 +3,7 @@ import axios from 'axios';
 import Modal from './Modal';
 import { useAuth } from '../utils/AuthContext';
 import {getApiUrl} from "../utils/api";
+import {toast} from "react-toastify";
 
 const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
     const { currentUser } = useAuth();
@@ -35,13 +36,13 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
             );
 
             if (response.status === 201) {
-                setMessage('Loan added successfully!');
                 onLoanAdded();
+                toast('Loan added successfully', { type: 'success' });
                 onClose();
             }
         } catch (error) {
             console.error('Error:', error.response || error);
-            setMessage(error.response?.data?.message || 'Failed to create loan');
+            toast('Failed to add loan', { type: 'error' });
         }
     };
 
