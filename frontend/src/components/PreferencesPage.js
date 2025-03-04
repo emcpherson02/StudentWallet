@@ -10,8 +10,8 @@ import DeleteAccountButton from './DeleteAccountButton';
 import ChangePassword from './ChangePassword';
 import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
-import {getApiUrl} from "../utils/api";
-import {toast} from "react-toastify";
+import { getApiUrl } from "../utils/api";
+import { toast } from "react-toastify";
 import DataExport from "../components/DataExportComponent";
 
 function PreferencesPage() {
@@ -22,6 +22,8 @@ function PreferencesPage() {
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    
+    const [activeTab, setActiveTab] = useState('account');
 
     const fetchNotificationStatus = async () => {
         if (!currentUser) return;
@@ -98,6 +100,111 @@ function PreferencesPage() {
             console.error('Error logging out:', error);
         }
     };
+    
+    // Tab rendering functions
+    const renderAccountTab = () => (
+        <>
+            <section className={styles.card}>
+                <div className={styles.sectionHeader}>
+                    <h2>User Details</h2>
+                    <button
+                        className={styles.primaryButton}
+                        onClick={() => setShowUpdateForm(true)}
+                    >
+                        Update Details
+                    </button>
+                </div>
+
+                <div className={styles.userDetails}>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Name</span>
+                        <span className={styles.detailValue}>
+                            {currentUser.displayName || 'Not set'}
+                        </span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Email</span>
+                        <span className={styles.detailValue}>
+                            {currentUser.email}
+                        </span>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <span className={styles.detailLabel}>Account Created</span>
+                        <span className={styles.detailValue}>
+                            {currentUser.metadata?.creationTime
+                                ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
+                                : 'Not available'}
+                        </span>
+                    </div>
+                </div>
+            </section>
+            
+            <div className={styles.sectionGap}></div>
+            
+            <section className={styles.card}>
+                <ChangePassword currentUser={currentUser}/>
+            </section>
+            
+            <div className={styles.sectionGap}></div>
+            
+            <section className={styles.deleteSection}>
+                <DeleteAccountButton currentUser={currentUser}/>
+            </section>
+        </>
+    );
+    
+    const renderNotificationsTab = () => (
+        <>
+            <section className={styles.card}>
+                <div className={styles.sectionHeader}>
+                    <div className={styles.headerWithInfo}>
+                        <h2>Email Notifications</h2>
+                        <div className={styles.infoIcon}
+                                title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
+                                    fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
+                                    strokeLinejoin="round">
+                                <circle cx="12" cy="12" r="10"></circle>
+                                <line x1="12" y1="16" x2="12" y2="12"></line>
+                                <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                            </svg>
+                        </div>
+                    </div>
+                    <button
+                        onClick={toggleNotifications}
+                        className={`${styles.primaryButton} ${notificationsEnabled ? styles.enabled : ''}`}
+                    >
+                        {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
+                    </button>
+                </div>
+                <p className={styles.notificationDescription}>
+                    Get timely updates about your budgets, loan instalments, and important account activities.
+                </p>
+            </section>
+        </>
+    );
+    
+    const renderCategoriesTab = () => (
+        <>
+            <section className={styles.card}>
+                <CategoryManagement/>
+            </section>
+        </>
+    );
+    
+    const renderDataTab = () => (
+        <>
+            <section className={styles.card}>
+                <div className={styles.sectionHeader}>
+                    <h2>Data Export</h2>
+                </div>
+                <p className={styles.notificationDescription}>
+                    Download all your StudentWallet data in Excel format.
+                </p>
+                <DataExport/>
+            </section>
+        </>
+    );
 
     if (!currentUser) return null;
 
@@ -117,108 +224,54 @@ function PreferencesPage() {
                     </div>
                 )}
 
-                <div className={styles.contentGrid}>
-                    {/* User Details Section */}
-                    <section className={styles.card}>
-                        <div className={styles.sectionHeader}>
-                            <h2>User Details</h2>
-                            <button
-                                className={styles.primaryButton}
-                                onClick={() => setShowUpdateForm(true)}
-                            >
-                                Update Details
-                            </button>
-                        </div>
+                <div className={styles.tabsContainer}>
+                    <div className={styles.tabNav}>
+                        <button 
+                            className={`${styles.tabButton} ${activeTab === 'account' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('account')}
+                        >
+                            Account
+                        </button>
+                        <button 
+                            className={`${styles.tabButton} ${activeTab === 'notifications' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('notifications')}
+                        >
+                            Notifications
+                        </button>
+                        <button 
+                            className={`${styles.tabButton} ${activeTab === 'categories' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('categories')}
+                        >
+                            Categories
+                        </button>
+                        <button 
+                            className={`${styles.tabButton} ${activeTab === 'data' ? styles.active : ''}`}
+                            onClick={() => setActiveTab('data')}
+                        >
+                            Data Management
+                        </button>
+                    </div>
 
-                        <div className={styles.userDetails}>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>Name</span>
-                                <span className={styles.detailValue}>
-                                    {currentUser.displayName || 'Not set'}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>Email</span>
-                                <span className={styles.detailValue}>
-                                    {currentUser.email}
-                                </span>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <span className={styles.detailLabel}>Account Created</span>
-                                <span className={styles.detailValue}>
-                                    {currentUser.metadata?.creationTime
-                                        ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
-                                        : 'Not available'}
-                                </span>
-                            </div>
-                        </div>
-
-                        {showUpdateForm && (
-                            <UpdateUserForm
-                                userId={currentUser.uid}
-                                currentUser={currentUser}
-                                onUserUpdated={() => {
-                                    fetchUserDetails();
-                                    setShowUpdateForm(false);
-                                    toast('User details updated successfully', { type: 'success' });
-                                }}
-                                onClose={() => setShowUpdateForm(false)}
-                            />
-                        )}
-                    </section>
-
-                    {/* Password Section */}
-                    <section className={styles.card}>
-                        <ChangePassword currentUser={currentUser}/>
-                    </section>
-
-                    {/* Notifications Section */}
-                    <section className={styles.card}>
-                        <div className={styles.sectionHeader}>
-                            <div className={styles.headerWithInfo}>
-                                <h2>Email Notifications</h2>
-                                <div className={styles.infoIcon}
-                                     title="Receive email notifications for budget alerts, upcoming loan instalments, and important account updates">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24"
-                                         fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"
-                                         strokeLinejoin="round">
-                                        <circle cx="12" cy="12" r="10"></circle>
-                                        <line x1="12" y1="16" x2="12" y2="12"></line>
-                                        <line x1="12" y1="8" x2="12.01" y2="8"></line>
-                                    </svg>
-                                </div>
-                            </div>
-                            <button
-                                onClick={toggleNotifications}
-                                className={`${styles.primaryButton} ${notificationsEnabled ? styles.enabled : ''}`}
-                            >
-                                {notificationsEnabled ? 'Disable' : 'Enable'} Notifications
-                            </button>
-                        </div>
-                        <p className={styles.notificationDescription}>
-                            Get timely updates about your budgets, loan instalments, and important account activities.
-                        </p>
-                    </section>
-                    {/* Categories Management Section */}
-                    <section className={styles.card}>
-                        <CategoryManagement/>
-                    </section>
-
-                    {/* Data Export Section */}
-                    <section className={styles.card}>
-                        <div className={styles.sectionHeader}>
-                            <h2>Data Export</h2>
-                        </div>
-                        <p className={styles.notificationDescription}>
-                            Download all your StudentWallet data in Excel format.
-                        </p>
-                        <DataExport/>
-                    </section>
-                    {/* Account Deletion Section */}
-                    <section className={styles.deleteSection}>
-                        <DeleteAccountButton currentUser={currentUser}/>
-                    </section>
+                    <div className={styles.tabContent}>
+                        {activeTab === 'account' && renderAccountTab()}
+                        {activeTab === 'notifications' && renderNotificationsTab()}
+                        {activeTab === 'categories' && renderCategoriesTab()}
+                        {activeTab === 'data' && renderDataTab()}
+                    </div>
                 </div>
+
+                {showUpdateForm && (
+                    <UpdateUserForm
+                        userId={currentUser.uid}
+                        currentUser={currentUser}
+                        onUserUpdated={() => {
+                            fetchUserDetails();
+                            setShowUpdateForm(false);
+                            toast('User details updated successfully', { type: 'success' });
+                        }}
+                        onClose={() => setShowUpdateForm(false)}
+                    />
+                )}
             </div>
         </Layout>
     );
