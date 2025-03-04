@@ -10,8 +10,8 @@ const { swaggerUi, swaggerSpec } = require('./config/swagger.config');
 const initializePassport = require('./config/passport.config');
 
 // Import models
-const { authModel, userModel, transactionModel, budgetModel, plaidModel,budgetHistoryModel, loanModel } = require('./models');
-
+const { authModel, userModel, transactionModel, budgetModel, plaidModel,
+    budgetHistoryModel, loanModel, mfaModel } = require('./models');
 
 // Import services
 const AuthService = require('./services/auth.service');
@@ -26,6 +26,7 @@ const LoanService = require('./services/loan.service');
 const BudgetRolloverSchedulerService = require('./services/budgetRolloverScheduler.service');
 const LoanNotificationService = require('./services/loan.notification.service');
 const DataExportService = require('./services/dataExport.service');
+const MfaService = require('./services/mfa.service');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -36,6 +37,7 @@ const UserController = require('./controllers/user.controller');
 const BudgetHistoryController = require('./controllers/budgetHistory.controller');
 const LoanController = require('./controllers/loan.controller');
 const DataExportController = require('./controllers/dataExport.controller');
+const MfaController = require('./controllers/mfa.controller');
 
 // Import middleware
 const AuthMiddleware = require('./middleware/auth.middleware');
@@ -49,6 +51,8 @@ const setupUserRoutes = require('./routes/user.routes');
 const setupBudgetHistoryRoutes = require('./routes/budgetHistory.routes');
 const setupLoanRoutes = require('./routes/loan.routes');
 const setupExportRoutes = require('./routes/export.routes');
+const setupMfaRoutes = require('./routes/mfa.routes');
+const setupAuthRoutes = require('./routes/auth.routes');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -56,7 +60,8 @@ const port = process.env.PORT || 3001;
 // Initialize services with models
 const budgetNotificationService = new BudgetNotificationService(userModel);
 const loanNotificationService = new LoanNotificationService(userModel, loanModel);
-const authService = new AuthService(authModel);
+const mfaService = new MfaService(mfaModel, userModel);
+const authService = new AuthService(authModel, mfaModel);
 const userService = new UserService(userModel, budgetModel, budgetNotificationService);
 const plaidService = new PlaidService(plaidModel, budgetModel, budgetNotificationService);
 const transactionService = new TransactionService(transactionModel, budgetModel, budgetNotificationService);
@@ -65,12 +70,10 @@ const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHisto
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
 const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
 const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel, budgetAnalyticsService);
-
-
 const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
 
 // Initialize controllers
-const authController = new AuthController(authService);
+const authController = new AuthController(authService, mfaService);
 const plaidController = new PlaidController(plaidService);
 const transactionController = new TransactionController(transactionService);
 const budgetController = new BudgetController(budgetService);
@@ -78,6 +81,7 @@ const userController = new UserController(userService);
 const budgetHistoryController = new BudgetHistoryController(budgetRolloverService, budgetAnalyticsService);
 const loanController = new LoanController(loanService);
 const dataExportController = new DataExportController(dataExportService);
+const mfaController = new MfaController(mfaService);
 
 // Initialize middleware
 const authMiddleware = new AuthMiddleware(authService);
@@ -100,12 +104,14 @@ app.use(passport.session());
 app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 
 // Setup routes
+app.use('/auth', setupAuthRoutes(express.Router(), authController));
 app.use('/budget', setupBudgetRoutes(express.Router(), budgetController, authMiddleware));
 app.use('/plaid', setupPlaidRoutes(express.Router(), plaidController, authMiddleware));
 app.use('/transactions', setupTransactionRoutes(express.Router(), transactionController, authMiddleware));
 app.use('/user', setupUserRoutes(express.Router(), userController, authMiddleware));
 app.use('/history', setupBudgetHistoryRoutes(express.Router(), budgetHistoryController, authMiddleware));
 app.use('/loan', setupLoanRoutes(express.Router(), loanController, authMiddleware));
+app.use('/mfa', setupMfaRoutes(express.Router(), mfaController, authMiddleware));
 app.get('/exports/financial-data', authMiddleware.verifyToken, dataExportController.exportUserData.bind(dataExportController));
 
 // OAuth routes
