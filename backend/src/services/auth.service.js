@@ -7,8 +7,9 @@ const {
 } = require('../utils/constants');
 
 class AuthService {
-    constructor(authModel) {
+    constructor(authModel, mfaModel) {
         this.authModel = authModel;
+        this.mfaModel = mfaModel;
     }
 
     async loginUser(email, password) {
@@ -19,8 +20,25 @@ class AuthService {
                 throw new AuthenticationError(MESSAGE_INVALID_CREDENTIALS);
             }
 
+            // Check if MFA is enabled for this user
+            let mfaRequired = false;
+            if (this.mfaModel) {
+                try {
+                    const mfaSettings = await this.mfaModel.getMfaSettings(user.id);
+                    mfaRequired = mfaSettings.enabled || false;
+                } catch (error) {
+                    console.error('Error checking MFA status:', error);
+                    // Continue login process even if MFA check fails
+                }
+            }
+
             const token = await admin.auth().createCustomToken(email);
-            return { token, user };
+
+            return {
+                token,
+                user,
+                mfaRequired
+            };
         } catch (error) {
             if (error instanceof AuthenticationError) {
                 throw error;
@@ -50,7 +68,8 @@ class AuthService {
                 dob,
                 email,
                 password,
-                notificationsEnabled: false  // Set default value when creating user
+                notificationsEnabled: false,  // Set default value when creating user
+                mfaEnabled: false             // Initialize MFA as disabled
             });
 
             return {
@@ -80,6 +99,33 @@ class AuthService {
             return decodedToken;
         } catch (error) {
             throw new AuthenticationError('Invalid token');
+        }
+    }
+
+    async validateMfa(userId, verificationCode) {
+        try {
+            if (!this.mfaModel) {
+                return { success: true };
+            }
+
+            // Check if MFA is enabled
+            const mfaSettings = await this.mfaModel.getMfaSettings(userId);
+            if (!mfaSettings.enabled) {
+                return { success: true };
+            }
+
+            // Verify the code
+            const result = await this.mfaModel.verifyMfaCode(userId, verificationCode);
+            if (!result.success) {
+                throw new AuthenticationError('Invalid MFA verification code');
+            }
+
+            return { success: true };
+        } catch (error) {
+            if (error instanceof AuthenticationError) {
+                throw error;
+            }
+            throw new DatabaseError('MFA validation failed');
         }
     }
 }
