@@ -199,7 +199,7 @@ function PreferencesPage() {
                                 onUserUpdated={() => {
                                     fetchUserDetails();
                                     setShowUpdateForm(false);
-                                    toast('User details updated successfully', { type: 'success' });
+                                    toast('User details updated successfully', {type: 'success'});
                                 }}
                                 onClose={() => setShowUpdateForm(false)}
                             />
@@ -319,6 +319,30 @@ function PreferencesPage() {
                         </p>
                         <DataExport/>
                     </section>
+
+                    <section className={styles.card}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Product Tour</h2>
+                        </div>
+                        <p className={styles.notificationDescription}>
+                            Take the product tour again to re-familiarize yourself with the StudentWallet features.
+                        </p>
+                        <button
+                            onClick={() => {
+                                // Remove the tutorial completed flag
+                                localStorage.removeItem(`tutorial_completed_${currentUser.uid}`);
+                                // Navigate to the landing page
+                                navigate('/plaid-link');
+                                // Show success message before navigation
+                                toast('Product tour restarted! Redirecting to dashboard...', {type: 'success'});
+                            }}
+                            className={styles.primaryButton}
+                            style={{marginTop: '1rem'}}
+                        >
+                            Restart Product Tour
+                        </button>
+                    </section>
+
                     {/* Account Deletion Section */}
                     <section className={styles.deleteSection}>
                         <DeleteAccountButton currentUser={currentUser}/>
