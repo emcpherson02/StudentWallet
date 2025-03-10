@@ -28,7 +28,6 @@ const LoanNotificationService = require('./services/loan.notification.service');
 const DataExportService = require('./services/dataExport.service');
 const EmailSummaryService = require('./services/EmailSummaryService');
 const SchedulerService = require('./services/schedular');
-const generateEmailHTML = require('./templates/email-summary-template');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -71,9 +70,6 @@ const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budget
 const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel, budgetAnalyticsService);
 const emailSummaryService = new EmailSummaryService(userModel, transactionModel, budgetService, loanModel, budgetAnalyticsService);
 const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
-
-// Add this line to attach the HTML template generator
-emailSummaryService.generateEmailHTML = generateEmailHTML;
 
 // Initialize controllers
 const authController = new AuthController(authService);
