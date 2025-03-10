@@ -48,6 +48,13 @@ function PreferencesPage() {
         }
     };
 
+    // Add this new useEffect
+    useEffect(() => {
+        if (currentUser) {
+            fetchUserDetails();
+        }
+    }, [currentUser]);
+
     useEffect(() => {
         if (currentUser) {
             fetchNotificationStatus();
@@ -61,27 +68,31 @@ function PreferencesPage() {
             const token = await currentUser.getIdToken();
             const response = await axios.get(getApiUrl(`/user/user-data`), {
                 params: { userId: currentUser.uid },
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+                headers: { Authorization: `Bearer ${token}` }
             });
-            const { linkedBank, accounts } = response.data;
+
+            // Destructure the response correctly
+            const { linkedBank, accounts, emailPreferences: serverEmailPreferences } = response.data;
+
             setLinkedBank(linkedBank);
             setAccounts(accounts || []);
+
+            // Set email preferences DIRECTLY from server response
             setEmailPreferences({
-                weeklySummary: emailPreferences.weeklySummary ?? false,
-                summaryDay: emailPreferences.summaryDay ?? 'sunday',
-                includeTransactions: emailPreferences.includeTransactions ?? true,
-                includeBudgets: emailPreferences.includeBudgets ?? true,
-                includeLoans: emailPreferences.includeLoans ?? true,
-                includeRecommendations: emailPreferences.includeRecommendations ?? true
+                weeklySummary: serverEmailPreferences?.weeklySummary ?? false,
+                summaryDay: serverEmailPreferences?.summaryDay ?? 'sunday',
+                includeTransactions: serverEmailPreferences?.includeTransactions ?? true,
+                includeBudgets: serverEmailPreferences?.includeBudgets ?? true,
+                includeLoans: serverEmailPreferences?.includeLoans ?? true,
+                includeRecommendations: serverEmailPreferences?.includeRecommendations ?? true
             });
+
             if (response.data.displayName && response.data.displayName !== currentUser.displayName) {
                 await currentUser.updateProfile({ displayName: response.data.displayName });
             }
         } catch (error) {
             console.error('Error fetching user details:', error);
-            toast('Failed to fetch user details. Please try again later.', { type: 'error' });
+            toast.error('Failed to fetch user details');
         }
     };
 
