@@ -130,6 +130,21 @@ class UserService {
             throw new DatabaseError('Failed to fetch notification history');
         }
     }
+
+    // Add method to handle email preferences
+    async updateEmailPreferences(userId, emailPreferences) {
+        try {
+            const updated = await this.userModel.updateEmailPreferences(userId, emailPreferences);
+            if (!updated) {
+                throw new NotFoundError('User not found');
+            }
+            return updated;
+        } catch (error) {
+            if (error instanceof NotFoundError) throw error;
+            throw new DatabaseError('Failed to update email preferences');
+        }
+    }
+
 }
 
 module.exports = UserService;

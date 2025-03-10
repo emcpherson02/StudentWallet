@@ -50,6 +50,13 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.getNotificationHistory.bind(userController)
     );
 
+    router.put(
+        '/email-preferences/:userId',
+        authMiddleware.verifyToken,
+        userController.updateEmailPreferences.bind(userController)
+    );
+
+
     return router;
 };
 
