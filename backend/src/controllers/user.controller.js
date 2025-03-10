@@ -138,6 +138,20 @@ class UserController {
             next(error);
         }
     }
+
+    async getEmailPreferences(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const emailPreferences = await this.userService.getEmailPreferences(userId);
+
+            res.status(200).json({
+                status: 'success',
+                data: emailPreferences
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = UserController;

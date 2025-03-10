@@ -16,21 +16,23 @@ class UserService {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            // Return both linkedBank and notificationsEnabled status
-            return {
-                linkedBank: userData.linkedBank || false,
-                notificationsEnabled: userData.notificationsEnabled || false
-            };
-
-            // Get linked accounts if bank is connected
+            // Get all necessary data
             const accounts = await this.userModel.getLinkedAccounts(userId);
+            const emailPreferences = await this.userModel.getEmailPreferences(userId);
 
-            // Return both linkedBank and notificationsEnabled status
             return {
                 linkedBank: userData.linkedBank || false,
-                notificationsEnabled: userData.notificationsEnabled || false
+                notificationsEnabled: userData.notificationsEnabled || false,
+                accounts: accounts || [],
+                emailPreferences: emailPreferences || {
+                    weeklySummary: false,
+                    summaryDay: 'sunday',
+                    includeTransactions: true,
+                    includeBudgets: true,
+                    includeLoans: true,
+                    includeRecommendations: true
+                }
             };
-
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -144,6 +146,7 @@ class UserService {
             throw new DatabaseError('Failed to update email preferences');
         }
     }
+
 
 }
 
