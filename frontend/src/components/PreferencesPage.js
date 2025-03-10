@@ -22,6 +22,14 @@ function PreferencesPage() {
     const [linkedBank, setLinkedBank] = useState(false);
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
+    const [emailPreferences, setEmailPreferences] = useState({
+        weeklySummary: false,
+        summaryDay: 'sunday',
+        includeTransactions: true,
+        includeBudgets: true,
+        includeLoans: true,
+        includeRecommendations: true
+    });
 
     const fetchNotificationStatus = async () => {
         if (!currentUser) return;
@@ -60,6 +68,14 @@ function PreferencesPage() {
             const { linkedBank, accounts } = response.data;
             setLinkedBank(linkedBank);
             setAccounts(accounts || []);
+            setEmailPreferences({
+                weeklySummary: emailPreferences.weeklySummary ?? false,
+                summaryDay: emailPreferences.summaryDay ?? 'sunday',
+                includeTransactions: emailPreferences.includeTransactions ?? true,
+                includeBudgets: emailPreferences.includeBudgets ?? true,
+                includeLoans: emailPreferences.includeLoans ?? true,
+                includeRecommendations: emailPreferences.includeRecommendations ?? true
+            });
             if (response.data.displayName && response.data.displayName !== currentUser.displayName) {
                 await currentUser.updateProfile({ displayName: response.data.displayName });
             }
@@ -96,6 +112,36 @@ function PreferencesPage() {
             navigate('/login');
         } catch (error) {
             console.error('Error logging out:', error);
+        }
+    };
+
+    const handleEmailPreferenceChange = (key, value) => {
+        setEmailPreferences(prev => {
+            // If value is not provided, toggle the boolean value
+            const newValue = value !== undefined ? value : !prev[key];
+
+            return {
+                ...prev,
+                [key]: newValue
+            };
+        });
+    };
+
+    const saveEmailPreferences = async () => {
+        try {
+            const token = await currentUser.getIdToken();
+            await axios.put(
+                getApiUrl(`/user/email-preferences/${currentUser.uid}`),
+                { emailPreferences },
+                {
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            toast('Email preferences updated successfully', { type: 'success' });
+        } catch (error) {
+            console.error('Error updating email preferences:', error);
+            toast('Failed to update email preferences', { type: 'error' });
         }
     };
 
@@ -198,6 +244,91 @@ function PreferencesPage() {
                         <p className={styles.notificationDescription}>
                             Get timely updates about your budgets, loan instalments, and important account activities.
                         </p>
+                    </section>
+                    <section className={styles.card}>
+                        <div className={styles.sectionHeader}>
+                            <h2>Email Notifications</h2>
+                        </div>
+                        <div className={styles.emailPreferences}>
+                            <div className={styles.preferenceItem}>
+                                <label>
+                                    <input
+                                        type="checkbox"
+                                        checked={emailPreferences.weeklySummary}
+                                        onChange={() => handleEmailPreferenceChange('weeklySummary')}
+                                    />
+                                    Receive weekly summary emails
+                                </label>
+                            </div>
+
+                            {emailPreferences.weeklySummary && (
+                                <>
+                                    <div className={styles.preferenceItem}>
+                                        <label>Preferred day:</label>
+                                        <select
+                                            value={emailPreferences.summaryDay}
+                                            onChange={(e) => handleEmailPreferenceChange('summaryDay', e.target.value)}
+                                        >
+                                            <option value="sunday">Sunday</option>
+                                            <option value="monday">Monday</option>
+                                            <option value="saturday">Saturday</option>
+                                        </select>
+                                    </div>
+
+                                    <div className={styles.preferenceItem}>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={emailPreferences.includeTransactions}
+                                                onChange={() => handleEmailPreferenceChange('includeTransactions')}
+                                            />
+                                            Include transaction information
+                                        </label>
+                                    </div>
+
+                                    <div className={styles.preferenceItem}>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={emailPreferences.includeBudgets}
+                                                onChange={() => handleEmailPreferenceChange('includeBudgets')}
+                                            />
+                                            Include budget information
+                                        </label>
+                                    </div>
+
+                                    <div className={styles.preferenceItem}>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={emailPreferences.includeLoans}
+                                                onChange={() => handleEmailPreferenceChange('includeLoans')}
+                                            />
+                                            Include loan information
+                                        </label>
+                                    </div>
+
+                                    <div className={styles.preferenceItem}>
+                                        <label>
+                                            <input
+                                                type="checkbox"
+                                                checked={emailPreferences.includeRecommendations}
+                                                onChange={() => handleEmailPreferenceChange('includeRecommendations')}
+                                            />
+                                            Include personalized recommendations
+                                        </label>
+                                    </div>
+                                </>
+                            )}
+                        </div>
+                        <div className={styles.buttonGroup}>
+                            <button
+                                onClick={saveEmailPreferences}
+                                className={styles.primaryButton}
+                            >
+                                Save Email Preferences
+                            </button>
+                        </div>
                     </section>
                     {/* Categories Management Section */}
                     <section className={styles.card}>
