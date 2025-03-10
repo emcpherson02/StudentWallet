@@ -326,7 +326,7 @@ function PreferencesPage() {
                                                 checked={emailPreferences.includeRecommendations}
                                                 onChange={() => handleEmailPreferenceChange('includeRecommendations')}
                                             />
-                                            Include personalized recommendations
+                                            Include personalised recommendations
                                         </label>
                                     </div>
                                 </>
