@@ -357,3 +357,13 @@ input:focus + .slider {
 input:checked + .slider:before {
     transform: translateX(24px);
 }
+
+.preferencesSubgroup {
+    margin-left: 2rem;
+    border-left: 2px solid #e5e7eb;
+    padding-left: 1rem;
+}
+
+.primaryOption {
+    font-weight: 500;
+}

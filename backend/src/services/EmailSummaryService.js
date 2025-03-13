@@ -34,15 +34,7 @@ class EmailSummaryService {
                     continue;
                 }
 
-                // Check if today matches the user's preferred day for summary
-                const today = new Date().toLocaleLowerCase('en-US', { weekday: 'long' });
-                const preferredDay = emailPreferences.summaryDay || 'sunday';
-
-                if (today !== preferredDay) {
-                    console.log(`Skipping user ${user.id} as their preferred day is ${preferredDay} but today is ${today}`);
-                    continue;
-                }
-
+                // All emails are sent on Sunday (no day preference)
                 console.log(`Processing weekly summary for user ${user.id}`);
                 await this.generateAndSendSummary(user.id, emailPreferences);
             } catch (error) {
@@ -62,7 +54,6 @@ class EmailSummaryService {
         if (!emailPreferences) {
             emailPreferences = {
                 weeklySummary: true,
-                summaryDay: 'sunday',
                 includeTransactions: true,
                 includeBudgets: true,
                 includeLoans: true,
@@ -303,7 +294,8 @@ class EmailSummaryService {
             includeTransactions: true,
             includeBudgets: true,
             includeLoans: true,
-            includeRecommendations: true
+            includeRecommendations: true,
+            weeklySummary: true
         };
 
         // Extract the user's name or use a default

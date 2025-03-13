@@ -217,7 +217,7 @@ function PreferencesPage() {
                                 onUserUpdated={() => {
                                     fetchUserDetails();
                                     setShowUpdateForm(false);
-                                    toast('User details updated successfully', { type: 'success' });
+                                    toast('User details updated successfully', {type: 'success'});
                                 }}
                                 onClose={() => setShowUpdateForm(false)}
                             />
@@ -258,7 +258,7 @@ function PreferencesPage() {
                     </section>
                     <section className={styles.card}>
                         <div className={styles.sectionHeader}>
-                            <h2>Email Notifications</h2>
+                            <h2>Weekly Summary Email</h2>
                         </div>
                         <div className={styles.emailPreferences}>
                             <div className={styles.preferenceItem}>
@@ -268,24 +268,12 @@ function PreferencesPage() {
                                         checked={emailPreferences.weeklySummary}
                                         onChange={() => handleEmailPreferenceChange('weeklySummary')}
                                     />
-                                    Receive weekly summary emails
+                                    <span className={styles.primaryOption}>Receive weekly summary emails</span>
                                 </label>
                             </div>
 
                             {emailPreferences.weeklySummary && (
-                                <>
-                                    <div className={styles.preferenceItem}>
-                                        <label>Preferred day:</label>
-                                        <select
-                                            value={emailPreferences.summaryDay}
-                                            onChange={(e) => handleEmailPreferenceChange('summaryDay', e.target.value)}
-                                        >
-                                            <option value="sunday">Sunday</option>
-                                            <option value="monday">Monday</option>
-                                            <option value="saturday">Saturday</option>
-                                        </select>
-                                    </div>
-
+                                <div className={styles.preferencesSubgroup}>
                                     <div className={styles.preferenceItem}>
                                         <label>
                                             <input
@@ -293,7 +281,7 @@ function PreferencesPage() {
                                                 checked={emailPreferences.includeTransactions}
                                                 onChange={() => handleEmailPreferenceChange('includeTransactions')}
                                             />
-                                            Include transaction information
+                                            <span>Include transaction information</span>
                                         </label>
                                     </div>
 
@@ -304,7 +292,7 @@ function PreferencesPage() {
                                                 checked={emailPreferences.includeBudgets}
                                                 onChange={() => handleEmailPreferenceChange('includeBudgets')}
                                             />
-                                            Include budget information
+                                            <span>Include budget information</span>
                                         </label>
                                     </div>
 
@@ -315,7 +303,7 @@ function PreferencesPage() {
                                                 checked={emailPreferences.includeLoans}
                                                 onChange={() => handleEmailPreferenceChange('includeLoans')}
                                             />
-                                            Include loan information
+                                            <span>Include loan information</span>
                                         </label>
                                     </div>
 
@@ -326,10 +314,10 @@ function PreferencesPage() {
                                                 checked={emailPreferences.includeRecommendations}
                                                 onChange={() => handleEmailPreferenceChange('includeRecommendations')}
                                             />
-                                            Include personalised recommendations
+                                            <span>Include personalised recommendations</span>
                                         </label>
                                     </div>
-                                </>
+                                </div>
                             )}
                         </div>
                         <div className={styles.buttonGroup}>
