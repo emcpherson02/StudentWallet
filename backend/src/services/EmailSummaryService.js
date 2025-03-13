@@ -1,12 +1,14 @@
+// Updated EmailSummaryService.js
 const nodemailer = require("nodemailer");
 
 class EmailSummaryService {
     constructor(userModel, transactionModel, budgetService, loanModel, budgetAnalyticsService) {
         this.userModel = userModel;
         this.transactionModel = transactionModel;
-        this.budgetService = budgetService;  // Changed from budgetModel
+        this.budgetService = budgetService;
         this.loanModel = loanModel;
         this.budgetAnalyticsService = budgetAnalyticsService;
+        this.db = userModel.db; // Add this to fix the storeNotification method
         this.transporter = nodemailer.createTransport({
             service: 'gmail',
             auth: {
@@ -19,10 +21,30 @@ class EmailSummaryService {
     async processWeeklySummaries() {
         // Get all users with notifications enabled
         const users = await this.userModel.findAllWithNotifications();
+        console.log(`Found ${users.length} users with notifications enabled`);
 
         for (const user of users) {
             try {
-                await this.generateAndSendSummary(user.id);
+                // Check if user has email preferences and weekly summary enabled
+                const emailPreferences = await this.userModel.getEmailPreferences(user.id);
+
+                // Skip users who haven't enabled weekly summary emails
+                if (!emailPreferences || !emailPreferences.weeklySummary) {
+                    console.log(`User ${user.id} has not enabled weekly summary emails`);
+                    continue;
+                }
+
+                // Check if today matches the user's preferred day for summary
+                const today = new Date().toLocaleLowerCase('en-US', { weekday: 'long' });
+                const preferredDay = emailPreferences.summaryDay || 'sunday';
+
+                if (today !== preferredDay) {
+                    console.log(`Skipping user ${user.id} as their preferred day is ${preferredDay} but today is ${today}`);
+                    continue;
+                }
+
+                console.log(`Processing weekly summary for user ${user.id}`);
+                await this.generateAndSendSummary(user.id, emailPreferences);
             } catch (error) {
                 console.error(`Failed to process summary for user ${user.id}:`, error);
                 // Log error but continue with next user
@@ -30,21 +52,39 @@ class EmailSummaryService {
         }
     }
 
-    async generateAndSendSummary(userId) {
+    async generateAndSendSummary(userId, emailPreferences = null) {
+        // If emailPreferences wasn't passed, try to fetch it
+        if (!emailPreferences) {
+            emailPreferences = await this.userModel.getEmailPreferences(userId);
+        }
+
+        // Use default preferences if none found
+        if (!emailPreferences) {
+            emailPreferences = {
+                weeklySummary: true,
+                summaryDay: 'sunday',
+                includeTransactions: true,
+                includeBudgets: true,
+                includeLoans: true,
+                includeRecommendations: true
+            };
+        }
+
         // Calculate date range for past week
         const endDate = new Date();
         const startDate = new Date();
         startDate.setDate(startDate.getDate() - 7);
 
-        // Generate summary data
+        // Generate summary data with preferences
         const summaryData = await this.generateWeeklySummary(
             userId,
             startDate.toISOString(),
-            endDate.toISOString()
+            endDate.toISOString(),
+            emailPreferences
         );
 
         // Format email content
-        const emailContent = this.formatEmailContent(summaryData);
+        const emailContent = this.formatEmailContent(summaryData, emailPreferences);
 
         // Send email
         await this.sendSummaryEmail(userId, emailContent);
@@ -74,58 +114,75 @@ class EmailSummaryService {
         }
     }
 
-
-    async generateWeeklySummary(userId, startDate, endDate) {
-        console.log('===== BEGIN EMAIL SUMMARY DEBUG =====');
+    async generateWeeklySummary(userId, startDate, endDate, emailPreferences = null) {
         console.log(`Generating summary for user ${userId} from ${startDate} to ${endDate}`);
+
+        // If emailPreferences wasn't passed, try to fetch it
+        if (!emailPreferences) {
+            emailPreferences = await this.userModel.getEmailPreferences(userId);
+        }
+
+        // Use default preferences if none found
+        if (!emailPreferences) {
+            emailPreferences = {
+                weeklySummary: true,
+                summaryDay: 'sunday',
+                includeTransactions: true,
+                includeBudgets: true,
+                includeLoans: true,
+                includeRecommendations: true
+            };
+        }
 
         // Fetch user data
         const user = await this.userModel.findById(userId);
-        console.log('User data:', JSON.stringify(user, null, 2));
 
-        // Fetch transactions for the date range
-        const transactions = await this.transactionModel.findByUserId(userId);
-        console.log('All transactions:', JSON.stringify(transactions, null, 2));
+        // Initialize data objects
+        let weeklyTransactions = [];
+        let budgetSummary = null;
+        let loanInfo = [];
+        let recommendations = [];
 
-        const weeklyTransactions = transactions.filter(tx => {
-            const txDate = new Date(tx.date);
-            const result = txDate >= new Date(startDate) && txDate <= new Date(endDate);
-            return result;
-        });
-        console.log(`Filtered weekly transactions (${weeklyTransactions.length}):`, JSON.stringify(weeklyTransactions, null, 2));
+        // Fetch transactions if enabled in preferences
+        if (emailPreferences.includeTransactions) {
+            const transactions = await this.transactionModel.findByUserId(userId);
 
-        // Get budget summary
-        console.log('About to fetch budget summary');
-        const budgetSummary = await this.budgetService.getBudgetSummary(userId);
-        console.log('Budget summary:', JSON.stringify(budgetSummary, null, 2));
+            weeklyTransactions = transactions.filter(tx => {
+                const txDate = new Date(tx.date);
+                return txDate >= new Date(startDate) && txDate <= new Date(endDate);
+            });
+        }
 
-        // Get loan information
-        console.log('About to fetch loan information');
-        const loanInfo = await this.loanModel.findByUserId(userId);
-        console.log('Loan information:', JSON.stringify(loanInfo, null, 2));
+        // Fetch budget data if enabled in preferences
+        if (emailPreferences.includeBudgets) {
+            budgetSummary = await this.budgetService.getBudgetSummary(userId);
+        }
+
+        // Fetch loan information if enabled in preferences
+        if (emailPreferences.includeLoans) {
+            loanInfo = await this.loanModel.findByUserId(userId);
+        }
 
         // Calculate key metrics
         const totalSpent = weeklyTransactions.reduce((sum, tx) =>
             sum + Math.abs(tx.Amount || 0), 0);
-        console.log('Total spent this week:', totalSpent);
 
         // Group transactions by day
         const dailySpending = this.calculateDailySpending(weeklyTransactions);
-        console.log('Daily spending breakdown:', JSON.stringify(dailySpending, null, 2));
 
         // Group transactions by category
         const categoryBreakdown = this.calculateCategoryBreakdown(weeklyTransactions);
-        console.log('Category breakdown:', JSON.stringify(categoryBreakdown, null, 2));
 
-        // Generate recommendations
-        const recommendations = this.generateRecommendations(
-            weeklyTransactions,
-            budgetSummary,
-            loanInfo.length > 0 ? loanInfo[0] : null
-        );
-        console.log('Recommendations:', JSON.stringify(recommendations, null, 2));
+        // Generate recommendations if enabled in preferences
+        if (emailPreferences.includeRecommendations) {
+            recommendations = this.generateRecommendations(
+                weeklyTransactions,
+                budgetSummary,
+                loanInfo.length > 0 ? loanInfo[0] : null
+            );
+        }
 
-        const summaryData = {
+        return {
             user,
             dateRange: { startDate, endDate },
             totalSpent,
@@ -134,13 +191,9 @@ class EmailSummaryService {
             categoryBreakdown,
             budgetSummary,
             loan: loanInfo.length > 0 ? loanInfo[0] : null,
-            recommendations
+            recommendations,
+            preferences: emailPreferences // Include preferences for formatting
         };
-
-        console.log('Final summary data structure:', Object.keys(summaryData));
-        console.log('===== END EMAIL SUMMARY DEBUG =====');
-
-        return summaryData;
     }
 
     calculateDailySpending(transactions) {
@@ -180,14 +233,13 @@ class EmailSummaryService {
         }));
     }
 
-    identifyLargestTransactions(transactions) {
-        return [...transactions]
-            .sort((a, b) => Math.abs(b.Amount || 0) - Math.abs(a.Amount || 0))
-            .slice(0, 5);
-    }
-
-    generateRecommendations(transactions, budgetSummary, loan, analytics) {
+    generateRecommendations(transactions, budgetSummary, loan) {
         const recommendations = [];
+
+        // Skip if any required data is missing
+        if (!budgetSummary || !budgetSummary.categoryBreakdown) {
+            return recommendations;
+        }
 
         // Check for categories approaching budget limits
         budgetSummary.categoryBreakdown.forEach(category => {
@@ -245,7 +297,15 @@ class EmailSummaryService {
         return recommendations;
     }
 
-    formatEmailContent(summaryData) {
+    formatEmailContent(summaryData, emailPreferences = null) {
+        // Use provided preferences or fall back to the ones in summaryData
+        const preferences = emailPreferences || summaryData.preferences || {
+            includeTransactions: true,
+            includeBudgets: true,
+            includeLoans: true,
+            includeRecommendations: true
+        };
+
         // Extract the user's name or use a default
         const userName = summaryData.user?.displayName || 'there';
 
@@ -254,81 +314,127 @@ class EmailSummaryService {
         const endDate = new Date(summaryData.dateRange.endDate);
         const dateRangeText = `${startDate.toLocaleDateString()} to ${endDate.toLocaleDateString()}`;
 
-        // Build budget section
-        let budgetsHtml = '<h2>Budget Status</h2>';
-        if (summaryData.budgetSummary && summaryData.budgetSummary.categoryBreakdown) {
-            budgetsHtml += '<div class="budgets-container">';
+        // Build budget section if enabled
+        let budgetsHtml = '';
+        if (preferences.includeBudgets && summaryData.budgetSummary) {
+            budgetsHtml = '<h2>Budget Status</h2>';
+            if (summaryData.budgetSummary.categoryBreakdown && summaryData.budgetSummary.categoryBreakdown.length > 0) {
+                budgetsHtml += '<div class="budgets-container">';
 
-            summaryData.budgetSummary.categoryBreakdown.forEach(budget => {
-                const percentUsed = parseFloat(budget.percentageUsed);
-                let progressClass = 'progress-normal';
+                summaryData.budgetSummary.categoryBreakdown.forEach(budget => {
+                    const percentUsed = parseFloat(budget.percentageUsed);
+                    let progressClass = 'progress-normal';
 
-                if (percentUsed > 85) progressClass = 'progress-danger';
-                else if (percentUsed > 70) progressClass = 'progress-warning';
+                    if (percentUsed > 85) progressClass = 'progress-danger';
+                    else if (percentUsed > 70) progressClass = 'progress-warning';
 
-                budgetsHtml += `
-                <div class="budget-item">
-                    <h3>${budget.category}</h3>
-                    <div class="budget-details">
-                        <div class="progress-container">
-                            <div class="progress-bar">
-                                <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentUsed, 100)}%"></div>
+                    budgetsHtml += `
+                    <div class="budget-item">
+                        <h3>${budget.category}</h3>
+                        <div class="budget-details">
+                            <div class="progress-container">
+                                <div class="progress-bar">
+                                    <div class="progress-fill ${progressClass}" style="width: ${Math.min(percentUsed, 100)}%"></div>
+                                </div>
+                                <div class="progress-text">${percentUsed}% Used</div>
                             </div>
-                            <div class="progress-text">${percentUsed}% Used</div>
-                        </div>
-                        <div class="budget-amounts">
-                            <div class="amount-row">
-                                <span>Budget:</span>
-                                <span>£${budget.budgetAmount.toFixed(2)}</span>
-                            </div>
-                            <div class="amount-row">
-                                <span>Spent:</span>
-                                <span>£${budget.spent.toFixed(2)}</span>
-                            </div>
-                            <div class="amount-row amount-remaining">
-                                <span>Remaining:</span>
-                                <span>£${budget.remaining.toFixed(2)}</span>
+                            <div class="budget-amounts">
+                                <div class="amount-row">
+                                    <span>Budget:</span>
+                                    <span>£${budget.budgetAmount.toFixed(2)}</span>
+                                </div>
+                                <div class="amount-row">
+                                    <span>Spent:</span>
+                                    <span>£${budget.spent.toFixed(2)}</span>
+                                </div>
+                                <div class="amount-row amount-remaining">
+                                    <span>Remaining:</span>
+                                    <span>£${budget.remaining.toFixed(2)}</span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            `;
-            });
+                `;
+                });
 
-            budgetsHtml += '</div>';
-        } else {
-            budgetsHtml += '<p>No active budgets for this period.</p>';
+                budgetsHtml += '</div>';
+            } else {
+                budgetsHtml += '<p>No active budgets for this period.</p>';
+            }
         }
 
-        // Build transactions section
-        let transactionsHtml = '<h2>Recent Transactions</h2>';
+        // Build transactions section if enabled
+        let transactionsHtml = '';
+        if (preferences.includeTransactions) {
+            transactionsHtml = '<h2>Recent Transactions</h2>';
 
-        if (summaryData.weeklyTransactions && summaryData.weeklyTransactions.length > 0) {
-            transactionsHtml += '<div class="transactions-list">';
+            if (summaryData.weeklyTransactions && summaryData.weeklyTransactions.length > 0) {
+                transactionsHtml += '<div class="transactions-list">';
 
-            summaryData.weeklyTransactions.forEach(transaction => {
-                const txDate = new Date(transaction.date).toLocaleDateString();
-                transactionsHtml += `
-                <div class="transaction-item">
-                    <div class="transaction-info">
-                        <div class="transaction-name">${transaction.Description}</div>
-                        <div class="transaction-date">${txDate}</div>
+                summaryData.weeklyTransactions.forEach(transaction => {
+                    const txDate = new Date(transaction.date).toLocaleDateString();
+                    transactionsHtml += `
+                    <div class="transaction-item">
+                        <div class="transaction-info">
+                            <div class="transaction-name">${transaction.Description}</div>
+                            <div class="transaction-date">${txDate}</div>
+                        </div>
+                        <div class="transaction-category">${transaction.category || 'Uncategorized'}</div>
+                        <div class="transaction-amount">£${Math.abs(transaction.Amount).toFixed(2)}</div>
                     </div>
-                    <div class="transaction-category">${transaction.category || 'Uncategorized'}</div>
-                    <div class="transaction-amount">£${Math.abs(transaction.Amount).toFixed(2)}</div>
-                </div>
-            `;
-            });
+                `;
+                });
 
-            transactionsHtml += '</div>';
-        } else {
-            transactionsHtml += '<p>No transactions recorded for this period.</p>';
+                transactionsHtml += '</div>';
+            } else {
+                transactionsHtml += '<p>No transactions recorded for this period.</p>';
+            }
         }
 
-        // Build recommendations section
-        let recommendationsHtml = '<h2>Personalized Recommendations</h2>';
+        // Build loan information section if enabled
+        let loanHtml = '';
+        if (preferences.includeLoans && summaryData.loan) {
+            const loan = summaryData.loan;
+            loanHtml = `
+            <h2>Loan Status</h2>
+            <div class="loan-container">
+                <div class="loan-details">
+                    <div class="loan-row">
+                        <span>Total Loan Amount:</span>
+                        <span>£${loan.totalAmount.toFixed(2)}</span>
+                    </div>
+                    <div class="loan-row">
+                        <span>Remaining Amount:</span>
+                        <span>£${loan.remainingAmount.toFixed(2)}</span>
+                    </div>
+                </div>
+            `;
 
-        if (summaryData.recommendations && summaryData.recommendations.length > 0) {
+            // Add next installment if available
+            const nextInstallment = loan.instalmentDates
+                .map((date, index) => ({ date, amount: loan.instalmentAmounts[index] }))
+                .find(inst => new Date(inst.date) > new Date());
+
+            if (nextInstallment) {
+                const daysUntil = Math.ceil((new Date(nextInstallment.date) - new Date()) / (1000 * 60 * 60 * 24));
+                loanHtml += `
+                <div class="next-installment">
+                    <h3>Next Installment</h3>
+                    <div class="installment-info">
+                        <p>Amount: £${nextInstallment.amount.toFixed(2)}</p>
+                        <p>Due: ${new Date(nextInstallment.date).toLocaleDateString()} (${daysUntil} days)</p>
+                    </div>
+                </div>
+                `;
+            }
+
+            loanHtml += '</div>';
+        }
+
+        // Build recommendations section if enabled
+        let recommendationsHtml = '';
+        if (preferences.includeRecommendations && summaryData.recommendations && summaryData.recommendations.length > 0) {
+            recommendationsHtml = '<h2>Personalized Recommendations</h2>';
             recommendationsHtml += '<div class="recommendations-list">';
 
             summaryData.recommendations.forEach(rec => {
@@ -341,6 +447,9 @@ class EmailSummaryService {
                 } else if (rec.type === 'alert') {
                     iconClass = 'alert-icon';
                     titleText = 'Alert';
+                } else if (rec.type === 'info') {
+                    iconClass = 'info-icon';
+                    titleText = 'Info';
                 }
 
                 recommendationsHtml += `
@@ -355,18 +464,6 @@ class EmailSummaryService {
             });
 
             recommendationsHtml += '</div>';
-        } else {
-            recommendationsHtml += `
-            <div class="recommendation-item tip">
-                <div class="tip-icon"></div>
-                <div class="recommendation-content">
-                    <div class="recommendation-title">Tip</div>
-                    <div class="recommendation-message">
-                        Try setting up more detailed budgets to track your spending patterns better.
-                    </div>
-                </div>
-            </div>
-        `;
         }
 
         // Complete email template
@@ -576,6 +673,10 @@ class EmailSummaryService {
                     background-color: #fce8e6;
                 }
                 
+                .info {
+                    background-color: #e6f4ea;
+                }
+                
                 .recommendation-title {
                     font-weight: bold;
                     margin-bottom: 5px;
@@ -594,6 +695,46 @@ class EmailSummaryService {
                 .alert-icon:before {
                     content: "🚨";
                     font-size: 20px;
+                }
+                
+                .info-icon:before {
+                    content: "ℹ️";
+                    font-size: 20px;
+                }
+                
+                .loan-container {
+                    background-color: #f8f9fa;
+                    border-radius: 6px;
+                    padding: 15px;
+                    margin-bottom: 15px;
+                }
+                
+                .loan-details {
+                    margin-bottom: 15px;
+                }
+                
+                .loan-row {
+                    display: flex;
+                    justify-content: space-between;
+                    padding: 5px 0;
+                    font-size: 14px;
+                }
+                
+                .next-installment {
+                    background-color: #e6f4ea;
+                    padding: 10px;
+                    border-radius: 6px;
+                }
+                
+                .next-installment h3 {
+                    font-size: 14px;
+                    margin-bottom: 8px;
+                    color: #188038;
+                }
+                
+                .installment-info p {
+                    font-size: 14px;
+                    margin: 4px 0;
                 }
                 
                 .email-footer {
@@ -637,6 +778,8 @@ class EmailSummaryService {
                     ${budgetsHtml}
                     
                     ${transactionsHtml}
+                    
+                    ${loanHtml}
                     
                     ${recommendationsHtml}
                     
