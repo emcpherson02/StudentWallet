@@ -7,7 +7,7 @@ import PieChartComponent from './PieChartComponent';
 import {signOut} from "firebase/auth";
 import {auth} from "../utils/firebase";
 import { useNavigate} from 'react-router-dom';
-import {Plus, Trash2} from 'lucide-react';
+import {Plus, Trash2, Loader} from 'lucide-react';
 import BudgetForm from './BudgetForm';
 import {getApiUrl} from "../utils/api";
 import { toast } from 'react-toastify';
@@ -152,7 +152,7 @@ const BudgetDashboard = () => {
         }
     }, [navigate]);
 
-// Function to prepare data for the Budget Allocation pie chart
+    // Function to prepare data for the Budget Allocation pie chart
     const prepareBudgetAllocationData = () => {
         if (!budgetData) return [];
 
@@ -220,31 +220,26 @@ const BudgetDashboard = () => {
         fetchData();
     }, [currentUser]);
 
-    if (loading) {
-        return <div className={styles.loading}>Loading budget data...</div>;
-    }
-
-    if (error) {
-        return <div className={styles.error}>{error}</div>;
-    }
-
-    if (!budgetData) return null;
-
-    return (
-        <Layout CurrentUser={currentUser} onLogout={handleLogout} showNav={true}>
-            <div className={styles.dashboard}>
-                <div className={styles.dashboardHeader}>
-                    <h1>Budget Overview</h1>
-                    <div className={styles.headerActions}>
-                        <button
-                            onClick={() => setIsBudgetModalOpen(true)}
-                            className={styles.iconButton}
-                        >
-                            <Plus className="w-5 h-5"/>
-                        </button>
+    const renderDashboardContent = () => {
+        if (loading) {
+            return (
+                <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}>
+                        <Loader size={40} className={styles.loadingIcon} />
                     </div>
+                    <p>Loading budget data...</p>
                 </div>
+            );
+        }
 
+        if (error) {
+            return <div className={styles.error}>{error}</div>;
+        }
+
+        if (!budgetData) return null;
+
+        return (
+            <>
                 <div className={styles.summaryGrid}>
                     <div className={styles.summaryCard}>
                         <h3>Total Budget</h3>
@@ -370,6 +365,27 @@ const BudgetDashboard = () => {
                         ))}
                     </div>
                 </div>
+            </>
+        );
+    };
+
+    return (
+        <Layout currentUser={currentUser} onLogout={handleLogout} showNav={true}>
+            <div className={styles.dashboard}>
+                <div className={styles.dashboardHeader}>
+                    <h1>Budget Overview</h1>
+                    <div className={styles.headerActions}>
+                        <button
+                            onClick={() => setIsBudgetModalOpen(true)}
+                            className={styles.iconButton}
+                        >
+                            <Plus className="w-5 h-5"/>
+                        </button>
+                    </div>
+                </div>
+
+                {renderDashboardContent()}
+
                 {isBudgetModalOpen && (
                     <BudgetForm
                         userId={currentUser?.uid}

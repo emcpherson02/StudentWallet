@@ -8,8 +8,9 @@ import Layout from './Layout';
 import CountdownTimer from './CountdownTimer';
 import SpendingTrend from './SpendingTrend';
 import { ButtonGroup, AddLoanButton } from "./LoanButtonGroup";
-import {getApiUrl} from "../utils/api";
-import {toast } from 'react-toastify';
+import { getApiUrl } from "../utils/api";
+import { toast } from 'react-toastify';
+import { Loader } from 'lucide-react';
 
 const LoanDashboard = () => {
     const { currentUser } = useAuth();
@@ -165,9 +166,174 @@ const LoanDashboard = () => {
         }
     };
 
-    if (loading) {
-        return <div className={styles.loading}>Loading loan data...</div>;
-    }
+    const renderDashboardContent = () => {
+        if (loading) {
+            return (
+                <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}>
+                        <Loader size={40} className={styles.loadingIcon} />
+                    </div>
+                    <p>Loading loan data...</p>
+                </div>
+            );
+        }
+
+        if (error) {
+            return (
+                <div className={styles.error}>
+                    {error}
+                </div>
+            );
+        }
+
+        if (!loanData) {
+            return (
+                <div className={styles.emptyStateContainer}>
+                    <p>No loan data available. Add your student loan details to get started.</p>
+                </div>
+            );
+        }
+
+        return (
+            <div className={styles.loanCard}>
+                <div className={styles.loanDetails}>
+                    <div className={styles.detailItem}>
+                        <h4>Total Loan Amount</h4>
+                        <p>£{loanData.totalAmount.toFixed(2)}</p>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <h4>Currently Available</h4>
+                        <p>£{calculateAvailableAmount(loanData).toFixed(2)}</p>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <h4>Remaining Balance</h4>
+                        <p>£{(calculateAvailableAmount(loanData) -
+                            (loanData.transactions?.reduce((total, transaction) =>
+                                total + Math.abs(transaction.Amount), 0) || 0)
+                        ).toFixed(2)}</p>
+                    </div>
+                    <div className={styles.detailItem}>
+                        <h4>Living Option</h4>
+                        <p>{loanData.livingOption === 'away' ? 'Living Away' : 'Living at Home'}</p>
+                    </div>
+                </div>
+
+                <>
+                    {/* Find next instalment */}
+                    {(() => {
+                        const nextInstalment = loanData.instalmentDates
+                            .map((date, index) => ({
+                                date,
+                                amount: loanData.instalmentAmounts[index]
+                            }))
+                            .find(inst => new Date(inst.date) > new Date());
+
+                        return nextInstalment ? (
+                            <CountdownTimer
+                                nextInstalmentDate={nextInstalment.date}
+                                amount={nextInstalment.amount}
+                            />
+                        ) : null;
+                    })()}
+
+                    {/* Add Spending Trend if there are transactions */}
+                    {loanData.transactions && loanData.transactions.length > 0 && (
+                        <SpendingTrend transactions={loanData.transactions} />
+                    )}
+                </>
+
+                <div className={styles.instalments}>
+                    <h3>Instalments</h3>
+                    <div className={styles.instalmentGrid}>
+                        {loanData.instalmentDates.map((date, index) => (
+                            <div key={index} className={styles.instalmentCard}>
+                                <div className={styles.instalmentHeader}>
+                                    <h4>Instalment {index + 1}</h4>
+                                    {(() => {
+                                        const instalmentDate = new Date(date);
+                                        const currentDate = new Date();
+                                        const isReceived = currentDate >= instalmentDate;
+                                        const isUpcoming = !isReceived &&
+                                            instalmentDate <= new Date(currentDate.setDate(currentDate.getDate() + 14));
+
+                                        return (
+                                            <span className={`${styles.statusBadge} ${
+                                                isReceived ? styles.received :
+                                                    isUpcoming ? styles.upcoming :
+                                                        styles.pending
+                                            }`}>
+                        {isReceived ? 'Received' :
+                            isUpcoming ? 'Due Soon' :
+                                'Pending'}
+                    </span>
+                                        );
+                                    })()}
+                                </div>
+                                <div className={styles.instalmentDetails}>
+                                    <div className={styles.detail}>
+                                        <span className={styles.label}>Date:</span>
+                                        <span className={styles.value}>
+                    {new Date(date).toLocaleDateString()}
+                </span>
+                                    </div>
+                                    <div className={styles.detail}>
+                                        <span className={styles.label}>Amount:</span>
+                                        <span className={styles.value}>
+                    £{loanData.instalmentAmounts[index].toFixed(2)}
+                </span>
+                                    </div>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {loanData.trackedTransactions && loanData.trackedTransactions.length > 0 && (
+                    <div className={styles.transactionsList}>
+                        <h3>Linked Transactions</h3>
+                        <div className={styles.progressBarContainer}>
+                            {/* Calculate total from transactions */}
+                            {(() => {
+                                const availableAmount = calculateAvailableAmount(loanData);
+                                const usedAmount = loanData.transactions?.reduce((total, transaction) =>
+                                    total + Math.abs(transaction.Amount), 0) || 0;
+                                const percentageUsed = (usedAmount / availableAmount) * 100;
+
+                                return (
+                                    <>
+                                        <div className={styles.progressBar}>
+                                            <div
+                                                className={styles.progressFill}
+                                                style={{
+                                                    width: `${percentageUsed}%`
+                                                }}
+                                            />
+                                            <span className={styles.progressLabel}>
+                                                {percentageUsed.toFixed(1)}%
+                                            </span>
+                                        </div>
+                                        <p className={styles.progressText}>
+                                            Used £{usedAmount.toFixed(2)} out of £{availableAmount.toFixed(2)}
+                                        </p>
+                                    </>
+                                );
+                            })()}
+                        </div>
+
+                        {loanData.transactions && loanData.transactions.map((transaction, index) => (
+                            <div key={index} className={styles.transactionItem}>
+                                <div>
+                                    <p className={styles.transactionDescription}>{transaction.Description}</p>
+                                    <p className={styles.transactionDate}>{new Date(transaction.date).toLocaleDateString()}</p>
+                                </div>
+                                <p className={styles.transactionAmount}>£{Math.abs(transaction.Amount).toFixed(2)}</p>
+                            </div>
+                        ))}
+                    </div>
+                )}
+            </div>
+        );
+    };
 
     return (
         <Layout currentUser={currentUser}>
@@ -196,151 +362,7 @@ const LoanDashboard = () => {
                     </div>
                 )}
 
-                {error && (
-                    <div className={styles.error}>
-                        {error}
-                    </div>
-                )}
-
-                {loanData && (
-                    <div className={styles.loanCard}>
-                        <div className={styles.loanDetails}>
-                            <div className={styles.detailItem}>
-                                <h4>Total Loan Amount</h4>
-                                <p>£{loanData.totalAmount.toFixed(2)}</p>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <h4>Currently Available</h4>
-                                <p>£{calculateAvailableAmount(loanData).toFixed(2)}</p>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <h4>Remaining Balance</h4>
-                                <p>£{(calculateAvailableAmount(loanData) -
-                                    (loanData.transactions?.reduce((total, transaction) =>
-                                        total + Math.abs(transaction.Amount), 0) || 0)
-                                ).toFixed(2)}</p>
-                            </div>
-                            <div className={styles.detailItem}>
-                                <h4>Living Option</h4>
-                                <p>{loanData.livingOption === 'away' ? 'Living Away' : 'Living at Home'}</p>
-                            </div>
-                        </div>
-
-                        <>
-                            {/* Find next instalment */}
-                            {(() => {
-                                const nextInstalment = loanData.instalmentDates
-                                    .map((date, index) => ({
-                                        date,
-                                        amount: loanData.instalmentAmounts[index]
-                                    }))
-                                    .find(inst => new Date(inst.date) > new Date());
-
-                                return nextInstalment ? (
-                                    <CountdownTimer
-                                        nextInstalmentDate={nextInstalment.date}
-                                        amount={nextInstalment.amount}
-                                    />
-                                ) : null;
-                            })()}
-
-                            {/* Add Spending Trend if there are transactions */}
-                            {loanData.transactions && loanData.transactions.length > 0 && (
-                                <SpendingTrend transactions={loanData.transactions} />
-                            )}
-                        </>
-
-                        <div className={styles.instalments}>
-                            <h3>Instalments</h3>
-                            <div className={styles.instalmentGrid}>
-                                {loanData.instalmentDates.map((date, index) => (
-                                    <div key={index} className={styles.instalmentCard}>
-                                        <div className={styles.instalmentHeader}>
-                                            <h4>Instalment {index + 1}</h4>
-                                            {(() => {
-                                                const instalmentDate = new Date(date);
-                                                const currentDate = new Date();
-                                                const isReceived = currentDate >= instalmentDate;
-                                                const isUpcoming = !isReceived &&
-                                                    instalmentDate <= new Date(currentDate.setDate(currentDate.getDate() + 14));
-
-                                                return (
-                                                    <span className={`${styles.statusBadge} ${
-                                                        isReceived ? styles.received :
-                                                            isUpcoming ? styles.upcoming :
-                                                                styles.pending
-                                                    }`}>
-                                {isReceived ? 'Received' :
-                                    isUpcoming ? 'Due Soon' :
-                                        'Pending'}
-                            </span>
-                                                );
-                                            })()}
-                                        </div>
-                                        <div className={styles.instalmentDetails}>
-                                            <div className={styles.detail}>
-                                                <span className={styles.label}>Date:</span>
-                                                <span className={styles.value}>
-                            {new Date(date).toLocaleDateString()}
-                        </span>
-                                            </div>
-                                            <div className={styles.detail}>
-                                                <span className={styles.label}>Amount:</span>
-                                                <span className={styles.value}>
-                            £{loanData.instalmentAmounts[index].toFixed(2)}
-                        </span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                ))}
-                            </div>
-                        </div>
-
-                        {loanData.trackedTransactions && loanData.trackedTransactions.length > 0 && (
-                            <div className={styles.transactionsList}>
-                                <h3>Linked Transactions</h3>
-                                <div className={styles.progressBarContainer}>
-                                    {/* Calculate total from transactions */}
-                                    {(() => {
-                                        const availableAmount = calculateAvailableAmount(loanData);
-                                        const usedAmount = loanData.transactions?.reduce((total, transaction) =>
-                                            total + Math.abs(transaction.Amount), 0) || 0;
-                                        const percentageUsed = (usedAmount / availableAmount) * 100;
-
-                                        return (
-                                            <>
-                                                <div className={styles.progressBar}>
-                                                    <div
-                                                        className={styles.progressFill}
-                                                        style={{
-                                                            width: `${percentageUsed}%`
-                                                        }}
-                                                    />
-                                                    <span className={styles.progressLabel}>
-                                                        {percentageUsed.toFixed(1)}%
-                                                    </span>
-                                                </div>
-                                                <p className={styles.progressText}>
-                                                    Used £{usedAmount.toFixed(2)} out of £{availableAmount.toFixed(2)}
-                                                </p>
-                                            </>
-                                        );
-                                    })()}
-                                </div>
-
-                                {loanData.transactions && loanData.transactions.map((transaction, index) => (
-                                    <div key={index} className={styles.transactionItem}>
-                                        <div>
-                                            <p className={styles.transactionDescription}>{transaction.Description}</p>
-                                            <p className={styles.transactionDate}>{new Date(transaction.date).toLocaleDateString()}</p>
-                                        </div>
-                                        <p className={styles.transactionAmount}>£{Math.abs(transaction.Amount).toFixed(2)}</p>
-                                    </div>
-                                ))}
-                            </div>
-                        )}
-                    </div>
-                )}
+                {renderDashboardContent()}
 
                 {isLoanFormOpen && (
                     <LoanForm
