@@ -18,51 +18,54 @@ import {
 import styles from '../styles/TransactionDashboard.module.css';
 import UncategorizedTransactions from './UncategorisedTransaction';
 import TransactionInsights from './TransactionInsights';
-import {Trash2, Banknote, RefreshCw} from "lucide-react";
+import {Trash2, Banknote, RefreshCw, Plus, Loader} from "lucide-react";
+import TransactionForm from "./TransactionForm";
 
 const TransactionDashboard = () => {
     const { currentUser } = useAuth();
     const [analytics, setAnalytics] = useState(null);
-    const [transactions, setTransactions] = useState([]); // Add this state
+    const [transactions, setTransactions] = useState([]);
     const [loading, setLoading] = useState(true);
     const [insights, setInsights] = useState(null);
+    const [isTransactionModalOpen, setIsTransactionModalOpen] = useState(false);
+
+    const fetchData = async () => {
+        if (!currentUser) return;
+
+        try {
+            const token = await currentUser.getIdToken();
+
+            // Fetch analytics
+            const analyticsResponse = await axios.get(
+                getApiUrl('/transactions/analytics'),
+                {
+                    params: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            // Fetch transactions
+            const transactionsResponse = await axios.get(
+                getApiUrl('/transactions/user-transactions'),
+                {
+                    params: { userId: currentUser.uid },
+                    headers: { Authorization: `Bearer ${token}` }
+                }
+            );
+
+            setAnalytics(analyticsResponse.data.data);
+            setTransactions(transactionsResponse.data.Transaction || []);
+            setLoading(false);
+        } catch (error) {
+            console.error('Error fetching data:', error);
+            setLoading(false);
+        }
+    };
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!currentUser) return;
-
-            try {
-                const token = await currentUser.getIdToken();
-
-                // Fetch analytics
-                const analyticsResponse = await axios.get(
-                    getApiUrl('/transactions/analytics'),
-                    {
-                        params: { userId: currentUser.uid },
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                // Fetch transactions
-                const transactionsResponse = await axios.get(
-                    getApiUrl('/transactions/user-transactions'),
-                    {
-                        params: { userId: currentUser.uid },
-                        headers: { Authorization: `Bearer ${token}` }
-                    }
-                );
-
-                setAnalytics(analyticsResponse.data.data);
-                setTransactions(transactionsResponse.data.Transaction || []); // Set transactions from response
-                setLoading(false);
-            } catch (error) {
-                console.error('Error fetching data:', error);
-                setLoading(false);
-            }
-        };
-
         fetchData();
     }, [currentUser]);
+
 
     useEffect(() => {
         const fetchInsights = async () => {
@@ -99,20 +102,12 @@ const TransactionDashboard = () => {
             setTransactions(prevTransactions =>
                 prevTransactions.filter(transaction => transaction.id !== transactionId)
             );
+            toast('Transaction deleted successfully', { type: 'success' });
         } catch (error) {
             console.error('Error deleting transaction:', error);
+            toast('Failed to delete transaction', { type: 'error' });
         }
     };
-
-    if (loading) {
-        return (
-            <Layout currentUser={currentUser}>
-                <div className={styles.dashboard}>
-                    <p>Loading transaction data...</p>
-                </div>
-            </Layout>
-        );
-    }
 
     const prepareTransactionSourceData = (transactions) => {
         const plaidTransactions = transactions.filter(t => t.isPlaidTransaction).length;
@@ -143,14 +138,20 @@ const TransactionDashboard = () => {
         }));
     };
 
-    return (
-        <Layout currentUser={currentUser}>
-            <div className={styles.dashboard}>
-                <header className={styles.header}>
-                    <h1 className={styles.title}>Transaction Analytics</h1>
-                    <p className={styles.subtitle}>Analyse your spending patterns and trends</p>
-                </header>
+    const renderDashboardContent = () => {
+        if (loading) {
+            return (
+                <div className={styles.loadingContainer}>
+                    <div className={styles.loadingSpinner}>
+                        <Loader size={40} className={styles.loadingIcon} />
+                    </div>
+                    <p>Loading transaction data...</p>
+                </div>
+            );
+        }
 
+        return (
+            <>
                 <div className={styles.statsGrid}>
                     <div className={styles.statCard}>
                         <p className={styles.statLabel}>Average Transaction</p>
@@ -211,7 +212,7 @@ const TransactionDashboard = () => {
                 </section>
 
                 <section className={styles.transactionsSection}>
-                    {insights && <TransactionInsights insights={insights} />}
+                    {insights && <TransactionInsights insights={insights}/>}
                 </section>
 
                 <section className={styles.transactionsSection}>
@@ -221,7 +222,16 @@ const TransactionDashboard = () => {
                 <section className={styles.transactionsSection}>
                     <div className={styles.transactionsHeader}>
                         <h2 className={styles.transactionsTitle}>Transaction History</h2>
+                        <div className={styles.headerActions}>
+                            <button
+                                onClick={() => setIsTransactionModalOpen(true)}
+                                className={styles.iconButton}
+                            >
+                                <Plus className="w-5 h-5"/>
+                            </button>
+                        </div>
                     </div>
+
 
                     {transactions.length > 0 ? (
                         <div className={styles.transactionsList}>
@@ -303,6 +313,32 @@ const TransactionDashboard = () => {
                         </div>
                     )}
                 </section>
+            </>
+        );
+    };
+
+    return (
+        <Layout currentUser={currentUser}>
+            <div className={styles.dashboard}>
+                <header className={styles.header}>
+                    <h1 className={styles.title}>Transaction Analytics</h1>
+                    <p className={styles.subtitle}>Analyse your spending patterns and trends</p>
+                </header>
+
+                {renderDashboardContent()}
+
+                {isTransactionModalOpen && (
+                    <TransactionForm
+                        userId={currentUser?.uid}
+                        onTransactionAdded={() => {
+                            fetchData();
+                            setIsTransactionModalOpen(false);
+                        }}
+                        setMessage={() => {
+                        }}
+                        onClose={() => setIsTransactionModalOpen(false)}
+                    />
+                )}
             </div>
         </Layout>
     );

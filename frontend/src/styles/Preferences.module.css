@@ -114,11 +114,12 @@
     cursor: help;
     padding: 0.25rem;
     border-radius: 9999px;
-    transition: color 0.2s ease;
+    transition: all 0.2s ease;
 }
 
 .infoIcon:hover {
     color: #374151;
+    background-color: #f3f4f6;
 }
 
 .notificationDescription {
@@ -143,7 +144,6 @@
     border: 1px solid #fee2e2;
 }
 
-/* Form styles for when update form is open */
 .formOverlay {
     position: fixed;
     top: 0;
@@ -198,7 +198,6 @@
     margin-top: 2rem;
 }
 
-/* Responsive adjustments */
 @media (max-width: 768px) {
     .pageContainer {
         padding: 1rem;
@@ -222,3 +221,65 @@
         width: 100%;
     }
 }
+
+.unlinkButton {
+    background-color: #dc2626;
+}
+
+.unlinkButton:hover {
+    background-color: #b91c1c;
+}
+.tabsContainer {
+    width: 100%;
+    margin-bottom: 2rem;
+}
+
+.tabNav {
+    display: flex;
+    border-bottom: 1px solid #e5e7eb;
+    margin-bottom: 2rem;
+    overflow-x: auto;
+}
+
+.tabButton {
+    background: none;
+    border: none;
+    padding: 1rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    color: #6b7280;
+    cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.tabButton:hover {
+    color: #1a73e8;
+}
+
+.tabButton.active {
+    color: #1a73e8;
+    border-bottom-color: #1a73e8;
+}
+
+.tabContent {
+    width: 100%;
+}
+
+.sectionGap {
+    height: 1.5rem;
+}
+
+@media (max-width: 768px) {
+    .tabNav {
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+
+    .tabButton {
+        padding: 0.75rem 1rem;
+        font-size: 0.875rem;
+    }
+}
+

@@ -24,13 +24,13 @@ const tourSteps = [
         title: "Recent Transactions",
         content: "View your latest transactions here. You can also add manual transactions for cash spending.",
         target: '.transactionsContainer',
-        position: 'left'
+        position: 'bottom'  // Changed from 'right' to 'bottom'
     },
     {
         title: "Active Budgets",
         content: "Set up and track your budgets to manage your spending effectively.",
         target: '.budgetsContainer',
-        position: 'right'
+        position: 'bottom'  // Changed from 'right' to 'bottom'
     },
     {
         title: "Navigation Menu",
@@ -64,26 +64,43 @@ const ProductTour = ({ onComplete }) => {
         // Remove any existing highlights
         document.querySelectorAll('.tour-highlight').forEach(el => {
             el.classList.remove('tour-highlight');
-            el.style.removeProperty('z-index');
-            el.style.removeProperty('background');
-            el.style.removeProperty('position');
         });
 
+        // Remove any previous step specific classes
+        document.body.classList.remove('tour-modal-step');
+        document.body.classList.remove('tour-sidebar-step');
+        document.body.classList.remove('tour-top-bar-step');
+
+        // Handle modal type
         if (currentTourStep.type === 'modal') {
+            document.body.classList.add('tour-modal-step');
             setPopupStyle({
                 position: 'fixed',
                 top: '50%',
                 left: '50%',
-                transform: 'translate(-50%, -50%)'
+                transform: 'translate(-50%, -50%)',
+                zIndex: 10000
             });
             return;
         }
 
-        // Log for debugging
-        console.log('Looking for element:', currentTourStep.target);
+        // Determine which element to highlight
+        let targetElement = null;
 
-        const targetElement = document.querySelector(currentTourStep.target);
-        console.log('Found element:', targetElement);
+        // For sidebar navigation
+        if (currentTourStep.target === '.sidebarNav') {
+            document.body.classList.add('tour-sidebar-step');
+            targetElement = document.querySelector(currentTourStep.target);
+        }
+        // For notification button or user menu
+        else if (currentTourStep.target === '.notification-button' || currentTourStep.target === '.userBtn') {
+            document.body.classList.add('tour-top-bar-step');
+            targetElement = document.querySelector(currentTourStep.target);
+        }
+        // For all other elements
+        else {
+            targetElement = document.querySelector(currentTourStep.target);
+        }
 
         if (!targetElement) {
             console.log(`Target element not found: ${currentTourStep.target}`);
@@ -92,14 +109,14 @@ const ProductTour = ({ onComplete }) => {
 
         // Add highlight to current element
         targetElement.classList.add('tour-highlight');
-        targetElement.style.zIndex = '1000';
-        targetElement.style.position = 'relative';
-        targetElement.style.background = 'white';
 
         // Get element position
         const rect = targetElement.getBoundingClientRect();
         const scrollY = window.scrollY;
-        const style = { position: 'absolute', zIndex: '1001' };
+        const style = {
+            position: 'absolute',
+            zIndex: 12000  // Very high z-index to ensure visibility
+        };
 
         switch (currentTourStep.position) {
             case 'right':
@@ -108,16 +125,10 @@ const ProductTour = ({ onComplete }) => {
                 style.transform = 'translateY(-50%)';
                 break;
             case 'left':
-                // Special handling for notification button and user menu
-                if (currentTourStep.target.includes('notification-button') || currentTourStep.target.includes('userBtn')) {
-                    // Calculate if there's enough space above
-                    const spaceAbove = rect.top;
-                    const popupHeight = 180; // Approximate height of popup
-
-                    style.top = `${Math.max(popupHeight, rect.top + scrollY)}px`;
-                    style.left = `${Math.max(20, rect.left - 420)}px`;
-                    // Remove vertical centering transform for these elements
-                    style.transform = 'none';
+                if (currentTourStep.target.includes('notification-button') ||
+                    currentTourStep.target.includes('userBtn')) {
+                    style.top = `${rect.top + scrollY + rect.height + 15}px`;
+                    style.left = `${rect.left - 320}px`;
                 } else {
                     style.top = `${rect.top + scrollY + (rect.height / 2)}px`;
                     style.left = `${Math.max(20, rect.left - 420)}px`;
@@ -126,8 +137,7 @@ const ProductTour = ({ onComplete }) => {
                 break;
             case 'bottom':
                 style.top = `${rect.bottom + scrollY + 20}px`;
-                style.left = `${rect.left + (rect.width / 2)}px`;
-                style.transform = 'translateX(-50%)';
+                style.left = `${rect.left + (rect.width / 2) - 190}px`; // Center horizontally
                 break;
             case 'top':
                 style.top = `${rect.top + scrollY - 180}px`;
@@ -137,14 +147,13 @@ const ProductTour = ({ onComplete }) => {
         }
 
         // Ensure popup stays within viewport
-        if (style.top < 0) {
-            style.top = '20px';
+        const viewportWidth = window.innerWidth;
+        if (style.left && parseFloat(style.left) + 420 > viewportWidth) {
+            style.left = `${viewportWidth - 440}px`;
         }
 
-        // Also check right edge of screen
-        const viewportWidth = window.innerWidth;
-        if (parseFloat(style.left) + 420 > viewportWidth) { // 420 is popup width
-            style.left = `${viewportWidth - 440}px`; // 20px margin from right edge
+        if (style.top && style.top < window.scrollY) {
+            style.top = `${window.scrollY + 20}px`;
         }
 
         // Ensure the element is in view
@@ -158,18 +167,33 @@ const ProductTour = ({ onComplete }) => {
         setPopupStyle(style);
     }, [currentStep]);
 
+    // Check if tour has been completed previously
     useEffect(() => {
-        const hasCompletedTutorial = localStorage.getItem(`tutorial_completed_${currentUser.uid}`);
+        const hasCompletedTutorial = localStorage.getItem(`tutorial_completed_${currentUser?.uid}`);
         if (hasCompletedTutorial) {
             setIsVisible(false);
         }
-    }, [currentUser.uid]);
+    }, [currentUser?.uid]);
 
+    // Update position on step change and window resize
     useEffect(() => {
         updatePosition();
         window.addEventListener('resize', updatePosition);
-        return () => window.removeEventListener('resize', updatePosition);
+        return () => {
+            window.removeEventListener('resize', updatePosition);
+            cleanup();
+        };
     }, [updatePosition]);
+
+    // Cleanup function to remove all tour-related classes
+    const cleanup = () => {
+        document.body.classList.remove('tour-modal-step');
+        document.body.classList.remove('tour-sidebar-step');
+        document.body.classList.remove('tour-top-bar-step');
+        document.querySelectorAll('.tour-highlight').forEach(el => {
+            el.classList.remove('tour-highlight');
+        });
+    };
 
     const handleNext = () => {
         if (currentStep < tourSteps.length - 1) {
@@ -181,10 +205,12 @@ const ProductTour = ({ onComplete }) => {
 
     const handleComplete = () => {
         setIsVisible(false);
-        localStorage.setItem(`tutorial_completed_${currentUser.uid}`, 'true');
-        document.querySelectorAll('.tour-highlight').forEach(el => {
-            el.classList.remove('tour-highlight');
-        });
+        cleanup();
+
+        if (currentUser?.uid) {
+            localStorage.setItem(`tutorial_completed_${currentUser.uid}`, 'true');
+        }
+
         if (onComplete) onComplete();
     };
 
@@ -200,7 +226,7 @@ const ProductTour = ({ onComplete }) => {
 
     return (
         <div className="tour-container">
-            <div className="tour-overlay" />
+            <div className="tour-overlay"></div>
 
             <div className="tour-popup" style={popupStyle}>
                 <button className="tour-close" onClick={handleSkip}>
