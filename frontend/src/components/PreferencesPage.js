@@ -214,7 +214,6 @@ function PreferencesPage() {
                         onComplete={() => setShowPasswordForm(false)}
                     />
                 )}
-                <ChangePassword currentUser={currentUser}/>
             </section>
 
             <div className={styles.sectionGap}></div>
