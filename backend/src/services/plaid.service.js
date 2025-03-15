@@ -185,6 +185,20 @@ class PlaidService {
             throw new DatabaseError('Could not fetch balances.');
         }
     }
+
+    async unlinkBank(userId) {
+        try {
+            if (!userId) {
+                throw new Error('UserId is required');
+            }
+
+            await this.plaidModel.deletePlaidData(userId);
+            return true;
+        } catch (error) {
+            console.error('Error unlinking bank:', error);
+            throw new DatabaseError('Could not unlink bank account.');
+        }
+    }
 }
 
 module.exports = PlaidService;

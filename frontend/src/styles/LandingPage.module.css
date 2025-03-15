@@ -1,9 +1,17 @@
+/* Base container styles */
 .pageContainer {
     padding: 1.5rem;
     max-width: 1400px;
     margin: 0 auto;
+    opacity: 0;
+    animation: fadeIn 0.6s ease-out forwards;
 }
 
+.pageLoaded {
+    opacity: 1;
+}
+
+/* Welcome section */
 .welcomeSection {
     margin-bottom: 2rem;
 }
@@ -27,8 +35,11 @@
     border-radius: 0.5rem;
     color: #166534;
     border: 1px solid #dcfce7;
+    animation: slideDown 0.5s ease forwards;
+    position: relative;
 }
 
+/* Quick action buttons */
 .quickActions {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -45,8 +56,9 @@
     background: white;
     border-radius: 1rem;
     border: 1px solid #e5e7eb;
-    transition: all 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    position: relative;
 }
 
 .actionCard:hover {
@@ -55,6 +67,7 @@
     0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
+/* Main grid layout */
 .mainGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
@@ -120,6 +133,7 @@
     color: #364195;
 }
 
+/* Empty state styling */
 .emptyStateCard {
     display: flex;
     flex-direction: column;
@@ -158,6 +172,13 @@
     background: #364195;
 }
 
+/* Account styling */
+.accountsContainer,
+.transactionsContainer,
+.budgetsContainer {
+    min-height: 200px;
+}
+
 .accountsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
@@ -172,6 +193,12 @@
     background: #f9fafb;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.accountCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .accountIcon {
@@ -198,9 +225,17 @@
 }
 
 .accountType {
-    font-size: 0.875rem;
+    font-size: 0.75rem;
     color: #6b7280;
+    text-transform: capitalize;
     margin: 0 0 0.25rem 0;
+}
+
+.accountBalanceContainer {
+    display: flex;
+    align-items: baseline;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
 }
 
 .accountBalance {
@@ -210,6 +245,12 @@
     margin: 0;
 }
 
+.transactionCount {
+    font-size: 0.75rem;
+    color: #6b7280;
+}
+
+/* Transaction styling */
 .transactionsList {
     display: flex;
     flex-direction: column;
@@ -224,6 +265,12 @@
     background: #f9fafb;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.transactionItem:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .transactionInfo h4 {
@@ -245,6 +292,7 @@
     color: #1f2937;
 }
 
+/* Budget styling */
 .budgetsGrid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
@@ -256,6 +304,12 @@
     background: #f9fafb;
     border-radius: 0.75rem;
     border: 1px solid #e5e7eb;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.budgetCard:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 .budgetHeader {
@@ -307,12 +361,74 @@
     color: #6b7280;
 }
 
+/* Loading states */
+.loadingGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.loadingCard {
+    background: #f9fafb;
+    border-radius: 0.75rem;
+    border: 1px solid #e5e7eb;
+    overflow: hidden;
+    min-height: 80px;
+    position: relative;
+}
+
+.loadingCard::after {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: -150%;
+    background: linear-gradient(90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%);
+    animation: shimmer 1.5s infinite;
+}
+
+.accountPlaceholder,
+.transactionPlaceholder,
+.budgetPlaceholder {
+    padding: 1rem;
+}
+
+.shimmerLine {
+    height: 12px;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.shimmerLine.short {
+    width: 60%;
+}
+
+.shimmerBar {
+    height: 8px;
+    width: 100%;
+    background-color: #e5e7eb;
+    border-radius: 4px;
+    margin: 0.5rem 0;
+}
+
+/* Refresh icon animation */
+.refreshIcon {
+    animation: none;
+    transition: transform 0.2s ease-in-out;
+}
+
+.spinning {
+    animation: spin 1s linear infinite;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
-    .pageContainer {
-        padding: 1rem;
-    }
-
     .mainGrid {
         grid-template-columns: 1fr;
     }
@@ -331,61 +447,144 @@
     }
 }
 
-/* Animation for message banner */
-@keyframes slideIn {
-    from {
-        transform: translateY(-1rem);
+/* Initial loading animation container */
+.initialLoadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: calc(100vh - 64px); /* Adjust based on your header height */
+    width: 100%;
+    background-color: #f9fafb;
+    padding: 2rem;
+    text-align: center;
+    opacity: 1;
+    transition: opacity 0.6s ease-out;
+}
+
+.fadeOut {
+    opacity: 0;
+}
+
+.loadingLogo {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 80px;
+    height: 80px;
+    background-color: #1a73e8;
+    border-radius: 50%;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 0 0 0 rgba(40, 44, 52, 0.4);
+    animation: gentlePulse 2s infinite linear;
+}
+
+.loadingIcon {
+    color: white;
+    /*animation: bounce 1.5s infinite ease-in-out;*/
+}
+
+.loadingTitle {
+    font-size: 1.75rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.5rem;
+}
+
+.loadingSubtitle {
+    font-size: 1rem;
+    color: #6b7280;
+    margin-bottom: 2rem;
+}
+
+.loadingSpinner {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.spinnerDot {
+    width: 12px;
+    height: 12px;
+    background-color: #282c34;
+    border-radius: 50%;
+    animation: dotPulse 1.5s infinite ease-in-out;
+    opacity: 0.9; /* Ensure dots never fully disappear */
+}
+
+.spinnerDot:nth-child(2) {
+    animation-delay: 0.2s;
+}
+
+.spinnerDot:nth-child(3) {
+    animation-delay: 0.4s;
+}
+
+/* Animations */
+@keyframes slideDown {
+    0% {
+        transform: translateY(-20px);
         opacity: 0;
     }
-    to {
+    100% {
         transform: translateY(0);
         opacity: 1;
     }
 }
 
-.messageBanner {
-    animation: slideIn 0.3s ease-out;
+@keyframes shimmer {
+    to {
+        left: 150%;
+    }
 }
 
-/* Hover effects */
-.accountCard:hover,
-.transactionItem:hover,
-.budgetCard:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    transition: all 0.2s ease;
+@keyframes spin {
+    from {
+        transform: rotate(0deg);
+    }
+    to {
+        transform: rotate(360deg);
+    }
 }
 
-.accountInstitution {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #1f2937;
-    margin: 0 0 0.25rem 0;
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
 }
 
-.accountType {
-    font-size: 0.75rem;
-    color: #6b7280;
-    text-transform: capitalize;
-    margin: 0 0 0.25rem 0;
+@keyframes gentlePulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(40, 44, 52, 0.4);
+    }
+    50% {
+        box-shadow: 0 0 0 10px rgba(40, 44, 52, 0.2);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(40, 44, 52, 0.4);
+    }
 }
 
-.accountBalanceContainer {
-    display: flex;
-    align-items: baseline;
-    gap: 0.5rem;
-    margin-top: 0.5rem;
+@keyframes bounce {
+    0%, 100% {
+        transform: scale(1);
+    }
+    50% {
+        transform: scale(0.92);
+    }
 }
 
-.accountBalance {
-    font-size: 1.125rem;
-    font-weight: 600;
-    color: #282c34;
-    margin: 0;
+@keyframes dotPulse {
+    0%, 100% {
+        transform: scale(1);
+        opacity: 0.9;
+    }
+    50% {
+        transform: scale(0.7);
+        opacity: 0.7;
+    }
 }
-
-.transactionCount {
-    font-size: 0.75rem;
-    color: #6b7280;
-}
-

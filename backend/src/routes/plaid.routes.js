@@ -189,6 +189,12 @@ const setupPlaidRoutes = (router, plaidController, authMiddleware) => {
         plaidController.getBalances.bind(plaidController)
     );
 
+    router.delete(
+        '/unlink-bank/:userId',
+        authMiddleware.verifyToken,
+        plaidController.unlinkBank.bind(plaidController)
+    );
+
     return router;
 };
 

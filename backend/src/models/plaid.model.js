@@ -1,6 +1,7 @@
 class PlaidModel {
     constructor(db) {
         this.db = db;
+        this.collection = 'users';
     }
 
     async storeTokens(userId, { accessToken, itemId }) {
@@ -93,6 +94,37 @@ class PlaidModel {
             id: doc.id,
             ...doc.data()
         }));
+    }
+
+    async deletePlaidData(userId) {
+        try {
+            const userRef = this.db.collection('users').doc(userId);
+
+            // Delete tokens
+            await userRef.collection('plaidTokens').doc('tokens').delete();
+
+            // Get and delete Plaid transactions
+            const transactionsSnapshot = await userRef
+                .collection('Transactions')
+                .where('isPlaidTransaction', '==', true)
+                .get();
+
+            const batch = this.db.batch();
+            transactionsSnapshot.docs.forEach((doc) => {
+                batch.delete(doc.ref);
+            });
+            await batch.commit();
+
+            // Update linkedBank status
+            await userRef.update({
+                linkedBank: false
+            });
+
+            return true;
+        } catch (error) {
+            console.error('Error deleting Plaid data:', error);
+            return false;
+        }
     }
 }
 

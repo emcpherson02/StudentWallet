@@ -23,6 +23,23 @@ function Register() {
         return strength;
     };
 
+    //Sets minimum age requirement to 13 years old
+    const validateAge = (birthDate) => {
+        const today = new Date();
+        const birth = new Date(birthDate);
+        
+        // Calculate age
+        let age = today.getFullYear() - birth.getFullYear();
+        const monthDiff = today.getMonth() - birth.getMonth();
+        
+        // If birthday hasn't occurred yet this year, subtract a year
+        if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birth.getDate())) {
+            age--;
+        }
+        
+        return age >= 13;
+    };
+
     const handleRegister = async (e) => {
         e.preventDefault();
 
@@ -33,6 +50,11 @@ function Register() {
 
         if (passwordStrength < 3) {
             setMessage("Please create a stronger password");
+            return;
+        }
+
+        if (!validateAge(dob)) {
+            setMessage("You must be at least 13 years old to create an account.");
             return;
         }
 
@@ -100,6 +122,7 @@ function Register() {
                                     value={dob}
                                     onChange={(e) => setDob(e.target.value)}
                                     required
+                                    max={new Date().toISOString().split('T')[0]} // Prevent future dates
                                 />
                             </div>
                         </div>

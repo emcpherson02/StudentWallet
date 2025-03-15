@@ -365,3 +365,56 @@
     background-color: #dc2626;
     color: white;
 }
+
+
+.loadingContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background-color: rgba(249, 250, 251, 0.8);
+    border-radius: 0.75rem;
+    text-align: center;
+    min-height: 300px;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.loadingSpinner {
+    margin-bottom: 1rem;
+}
+
+.loadingIcon {
+    color: #1a73e8;
+    animation: spin 1.5s linear infinite;
+}
+
+.emptyStateContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4rem 2rem;
+    background-color: white;
+    border-radius: 0.75rem;
+    text-align: center;
+    min-height: 300px;
+    margin: 1rem 0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.emptyStateContainer p {
+    color: #6b7280;
+    font-size: 1.125rem;
+    margin-bottom: 1.5rem;
+}
+
+@keyframes spin {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
