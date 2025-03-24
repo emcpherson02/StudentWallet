@@ -8,7 +8,6 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.getUserData.bind(userController)
     );
 
-    // Add new endpoint for getting detailed user information including DOB
     router.get(
         '/user-details',
         authMiddleware.verifyToken,

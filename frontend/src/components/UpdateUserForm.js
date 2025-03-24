@@ -70,7 +70,6 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
 
             // Convert dob to a consistent format
             if (formData.dob) {
-                // Ensure it's a valid date
                 const dobDate = new Date(formData.dob);
                 if (!isNaN(dobDate.getTime())) {
                     // Store as ISO string to maintain consistency
@@ -86,7 +85,6 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
                     });
                 } catch (profileError) {
                     console.error('Error updating profile:', profileError);
-                    // Continue with backend update even if Firebase update fails
                 }
             }
 
@@ -136,11 +134,10 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
             setError(errorMessage);
             toast(errorMessage, { type: 'error' });
 
-            // If it was an error updating the email, we should refresh the form data
             if (error.code && error.code.startsWith('auth/')) {
                 setFormData(prev => ({
                     ...prev,
-                    email: currentUser.email // Reset to current email
+                    email: currentUser.email
                 }));
             }
         } finally {
