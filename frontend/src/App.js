@@ -17,6 +17,8 @@ import './styles/darkMode.css';
 import { ToastContainer, Bounce } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import { Navigate } from 'react-router-dom';
+import EmailTestComponent from './components/EmailTestComponent';
+
 function App() {
     return (
         <AuthProvider>
@@ -90,6 +92,14 @@ function App() {
                             element={
                                 <ProtectedRoute>
                                     <PreferencesPage />
+                                </ProtectedRoute>
+                            }
+                        />
+                        <Route
+                            path="/dev/email-test"
+                            element={
+                                <ProtectedRoute>
+                                    <EmailTestComponent />
                                 </ProtectedRoute>
                             }
                         />

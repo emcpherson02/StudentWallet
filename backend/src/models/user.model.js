@@ -151,6 +151,17 @@ class UserModel {
         await categoriesRef.update({ categories: updatedCategories });
         return true;
     }
+
+    // Add specific method for email preferences
+    async updateEmailPreferences(userId, emailPreferences) {
+        return this.update(userId, { emailPreferences });
+    }
+
+    async getEmailPreferences(userId) {
+        const doc = await this.db.collection(this.collection).doc(userId).get();
+        return doc.exists ? doc.data().emailPreferences : null;
+    }
+
 }
 
 module.exports = UserModel;
