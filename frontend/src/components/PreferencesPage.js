@@ -12,7 +12,7 @@ import Layout from './Layout';
 import CategoryManagement from './CustomCategoryManagement';
 import { getApiUrl } from "../utils/api";
 import { toast } from "react-toastify";
-import DataExport from "../components/DataExportComponent";
+import DataExport from "./DataExportComponent";
 
 function PreferencesPage() {
     const { currentUser } = useAuth();
@@ -23,8 +23,13 @@ function PreferencesPage() {
     const [accounts, setAccounts] = useState([]);
     const [notificationsEnabled, setNotificationsEnabled] = useState(false);
     const [showPasswordForm, setShowPasswordForm] = useState(false);
-    const [userData, setUserData] = useState({});
     const [activeTab, setActiveTab] = useState('account');
+    const [userData, setUserData] = useState({
+        displayName: '',
+        email: '',
+        dob: 'Not set',
+        createdAt: 'Not available'
+    });
     const [emailPreferences, setEmailPreferences] = useState({
         weeklySummary: false,
         summaryDay: 'sunday',
@@ -61,7 +66,6 @@ function PreferencesPage() {
     useEffect(() => {
         if (currentUser) {
             fetchUserPreferences();
-            fetchUserDetails();
         } else {
             navigate('/login');
         }
@@ -76,10 +80,35 @@ function PreferencesPage() {
                     Authorization: `Bearer ${token}`
                 }
             });
+
             const { linkedBank, accounts, dob, emailPreferences: serverEmailPreferences } = response.data;
             setLinkedBank(linkedBank);
             setAccounts(accounts || []);
-            // Set email preferences DIRECTLY from server response
+
+            // Process date of birth
+            let formattedDob = 'Not set';
+            if (dob) {
+                try {
+                    const dobDate = new Date(dob);
+                    if (!isNaN(dobDate.getTime())) {
+                        formattedDob = dobDate.toLocaleDateString('en-GB');
+                    }
+                } catch (e) {
+                    console.error('Error formatting DOB:', e);
+                }
+            }
+
+            // Update user data with values from the database
+            setUserData({
+                displayName: currentUser.displayName || '',
+                email: currentUser.email || '',
+                dob: formattedDob,
+                createdAt: currentUser.metadata?.creationTime
+                    ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
+                    : 'Not available'
+            });
+
+            // Set email preferences from server response
             setEmailPreferences({
                 weeklySummary: serverEmailPreferences?.weeklySummary ?? false,
                 summaryDay: serverEmailPreferences?.summaryDay ?? 'sunday',
@@ -89,10 +118,6 @@ function PreferencesPage() {
                 includeRecommendations: serverEmailPreferences?.includeRecommendations ?? true
             });
 
-            setUserData(response.data); // Store all user data
-            if (response.data.displayName && response.data.displayName !== currentUser.displayName) {
-                await currentUser.updateProfile({ displayName: response.data.displayName });
-            }
         } catch (error) {
             console.error('Error fetching user details:', error);
             toast('Failed to fetch user details. Please try again later.', { type: 'error' });
@@ -147,13 +172,8 @@ function PreferencesPage() {
 
     const handleEmailPreferenceChange = (key, value) => {
         setEmailPreferences(prev => {
-            // If value is not provided, toggle the boolean value
             const newValue = value !== undefined ? value : !prev[key];
-
-            return {
-                ...prev,
-                [key]: newValue
-            };
+            return { ...prev, [key]: newValue };
         });
     };
 
@@ -202,29 +222,25 @@ function PreferencesPage() {
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Name</span>
                         <span className={styles.detailValue}>
-                            {currentUser.displayName || 'Not set'}
+                            {userData.displayName || 'Not set'}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Email</span>
                         <span className={styles.detailValue}>
-                            {currentUser.email}
+                            {userData.email}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Date of Birth</span>
                         <span className={styles.detailValue}>
-                            {userData.dob
-                                ? new Date(userData.dob).toLocaleDateString('en-GB')
-                                : 'Not set'}
+                            {userData.dob}
                         </span>
                     </div>
                     <div className={styles.detailItem}>
                         <span className={styles.detailLabel}>Account Created</span>
                         <span className={styles.detailValue}>
-                            {currentUser.metadata?.creationTime
-                                ? new Date(currentUser.metadata.creationTime).toLocaleDateString()
-                                : 'Not available'}
+                            {userData.createdAt}
                         </span>
                     </div>
                 </div>
