@@ -120,6 +120,38 @@ class UserController {
             next(error);
         }
     }
+
+    // Add method to handle email preferences
+    async updateEmailPreferences(req, res, next) {
+        try {
+            const { userId } = req.params;
+            const { emailPreferences } = req.body;
+
+            const updatedUser = await this.userService.updateEmailPreferences(userId, emailPreferences);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Email preferences updated successfully',
+                data: updatedUser
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getEmailPreferences(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const emailPreferences = await this.userService.getEmailPreferences(userId);
+
+            res.status(200).json({
+                status: 'success',
+                data: emailPreferences
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
 }
 
 module.exports = UserController;
