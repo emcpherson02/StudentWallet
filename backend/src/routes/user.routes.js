@@ -68,6 +68,12 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.getEmailPreferences.bind(userController)
     );
 
+    router.post(
+        '/change-email',
+        authMiddleware.verifyToken,
+        userController.changeEmail.bind(userController)
+    );
+
     return router;
 };
 
