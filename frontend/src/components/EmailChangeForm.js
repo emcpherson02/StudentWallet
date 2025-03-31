@@ -26,7 +26,7 @@ const EmailChangeForm = ({ userId, currentEmail, currentUser, onSuccess, onCance
             // Get token using Firebase's getIdToken method
             const token = await currentUser.getIdToken(true);
 
-            // Call our new backend endpoint
+            // Call new backend endpoint
             await axios.post(
                 getApiUrl('/user/change-email'),
                 {
@@ -47,7 +47,7 @@ const EmailChangeForm = ({ userId, currentEmail, currentUser, onSuccess, onCance
             const errorResponse = error.response?.data;
             let errorMessage = 'Failed to change email address';
 
-            // Handle specific error codes
+            // Specific error codes
             if (errorResponse?.code) {
                 switch (errorResponse.code) {
                     case 'auth/requires-recent-login':

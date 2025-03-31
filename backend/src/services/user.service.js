@@ -228,7 +228,7 @@ class UserService {
 
                 // If we get here, the Firebase update was successful
 
-                // Now update the email in our Firestore database
+                // Update the email in Firestore database
                 const updated = await this.userModel.update(userId, { email: newEmail });
 
                 if (!updated) {
