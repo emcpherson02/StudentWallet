@@ -8,6 +8,12 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.getUserData.bind(userController)
     );
 
+    router.get(
+        '/user-details',
+        authMiddleware.verifyToken,
+        userController.getUserDetails.bind(userController)
+    );
+
     router.put(
         '/update_user/:userId',
         authMiddleware.verifyToken,
@@ -56,6 +62,11 @@ const setupUserRoutes = (router, userController, authMiddleware) => {
         userController.updateEmailPreferences.bind(userController)
     );
 
+    router.get(
+        '/email-preferences',
+        authMiddleware.verifyToken,
+        userController.getEmailPreferences.bind(userController)
+    );
 
     return router;
 };

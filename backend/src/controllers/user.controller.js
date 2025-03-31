@@ -20,6 +20,23 @@ class UserController {
         }
     }
 
+    async getUserDetails(req, res, next) {
+        try {
+            const { userId } = req.query;
+
+            if (!userId) {
+                return res.status(400).json({
+                    message: 'Missing userId parameter'
+                });
+            }
+
+            const userDetails = await this.userService.getUserDetails(userId);
+            res.json(userDetails);
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async updateUser(req, res, next) {
         try {
             const { userId } = req.params;
