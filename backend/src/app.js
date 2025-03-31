@@ -26,6 +26,8 @@ const LoanService = require('./services/loan.service');
 const BudgetRolloverSchedulerService = require('./services/budgetRolloverScheduler.service');
 const LoanNotificationService = require('./services/loan.notification.service');
 const DataExportService = require('./services/dataExport.service');
+const EmailSummaryService = require('./services/EmailSummaryService');
+const SchedulerService = require('./services/schedular');
 
 // Import controllers
 const AuthController = require('./controllers/auth.controller');
@@ -49,6 +51,7 @@ const setupUserRoutes = require('./routes/user.routes');
 const setupBudgetHistoryRoutes = require('./routes/budgetHistory.routes');
 const setupLoanRoutes = require('./routes/loan.routes');
 const setupExportRoutes = require('./routes/export.routes');
+const setupEmailTestRoutes = require('./routes/email-test.routes');
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -65,8 +68,7 @@ const budgetRolloverService = new BudgetRolloverService(budgetModel, budgetHisto
 const budgetAnalyticsService = new BudgetAnalyticsService(budgetHistoryModel);
 const budgetRolloverSchedulerService = new BudgetRolloverSchedulerService(budgetService, budgetRolloverService);
 const dataExportService = new DataExportService(userModel, transactionModel, budgetModel, loanModel, budgetHistoryModel, budgetAnalyticsService);
-
-
+const emailSummaryService = new EmailSummaryService(userModel, transactionModel, budgetService, loanModel, budgetAnalyticsService);
 const loanService = new LoanService(loanModel, transactionModel, loanNotificationService);
 
 // Initialize controllers
@@ -84,6 +86,8 @@ const authMiddleware = new AuthMiddleware(authService);
 
 // Initialize Passport
 const passport = initializePassport(userService);
+
+//const schedulerService = new SchedulerService(emailSummaryService);
 
 // Middleware
 app.use(bodyParser.json());
@@ -107,6 +111,7 @@ app.use('/user', setupUserRoutes(express.Router(), userController, authMiddlewar
 app.use('/history', setupBudgetHistoryRoutes(express.Router(), budgetHistoryController, authMiddleware));
 app.use('/loan', setupLoanRoutes(express.Router(), loanController, authMiddleware));
 app.get('/exports/financial-data', authMiddleware.verifyToken, dataExportController.exportUserData.bind(dataExportController));
+app.use('/api/test', setupEmailTestRoutes(express.Router(), emailSummaryService, authMiddleware));
 
 // OAuth routes
 app.get('/auth/google',

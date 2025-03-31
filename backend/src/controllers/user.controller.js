@@ -20,6 +20,23 @@ class UserController {
         }
     }
 
+    async getUserDetails(req, res, next) {
+        try {
+            const { userId } = req.query;
+
+            if (!userId) {
+                return res.status(400).json({
+                    message: 'Missing userId parameter'
+                });
+            }
+
+            const userDetails = await this.userService.getUserDetails(userId);
+            res.json(userDetails);
+        } catch (error) {
+            next(error);
+        }
+    }
+
     async updateUser(req, res, next) {
         try {
             const { userId } = req.params;
@@ -115,6 +132,38 @@ class UserController {
             res.status(200).json({
                 status: 'success',
                 message: 'Category deleted successfully'
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    // Add method to handle email preferences
+    async updateEmailPreferences(req, res, next) {
+        try {
+            const { userId } = req.params;
+            const { emailPreferences } = req.body;
+
+            const updatedUser = await this.userService.updateEmailPreferences(userId, emailPreferences);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Email preferences updated successfully',
+                data: updatedUser
+            });
+        } catch (error) {
+            next(error);
+        }
+    }
+
+    async getEmailPreferences(req, res, next) {
+        try {
+            const { userId } = req.query;
+            const emailPreferences = await this.userService.getEmailPreferences(userId);
+
+            res.status(200).json({
+                status: 'success',
+                data: emailPreferences
             });
         } catch (error) {
             next(error);

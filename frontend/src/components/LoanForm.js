@@ -14,8 +14,39 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
         totalAmount: 0
     });
 
+    const [errors, setErrors] = useState({
+        instalmentAmounts: ['', '', '']
+    });
+
+    const validateAmount = (value, index) => {
+        if (parseFloat(value) < 0) {
+            const newErrors = [...errors.instalmentAmounts];
+            newErrors[index] = 'Amount cannot be negative';
+            setErrors({...errors, instalmentAmounts: newErrors});
+            return false;
+        } else {
+            const newErrors = [...errors.instalmentAmounts];
+            newErrors[index] = '';
+            setErrors({...errors, instalmentAmounts: newErrors});
+            return true;
+        }
+    };
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        let hasErrors = false;
+        formData.instalmentAmounts.forEach((amount, index) => {
+            if (!validateAmount(amount, index)) {
+                hasErrors = true;
+            }
+        });
+
+        if (hasErrors) {
+            toast('Please fix the errors in the form', { type: 'error' });
+            return;
+        }
+
         try {
             const token = await currentUser.getIdToken(true);
             const response = await axios.post(
@@ -52,6 +83,7 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
             newData.instalmentDates[index] = value;
         } else {
             newData.instalmentAmounts[index] = value;
+            validateAmount(value, index);
             newData.totalAmount = newData.instalmentAmounts.reduce((a, b) => Number(a) + Number(b), 0);
         }
         setFormData(newData);
@@ -91,8 +123,14 @@ const LoanForm = ({ userId, onLoanAdded, setMessage, onClose }) => {
                             onChange={(e) => handleInstallmentChange(index, 'amounts', e.target.value)}
                             required
                             placeholder="0.00"
+                            min="0" 
                         />
-                    </div>
+
+                        {/* NEW: Added error message display */}
+                        {errors.instalmentAmounts[index] && (
+                            <div className="error-message">{errors.instalmentAmounts[index]}</div>
+                        )}
+                     </div>
                 ))}
 
                 <div className="form-group">

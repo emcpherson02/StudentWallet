@@ -16,21 +16,24 @@ class UserService {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
             }
 
-            // Return both linkedBank and notificationsEnabled status
-            return {
-                linkedBank: userData.linkedBank || false,
-                notificationsEnabled: userData.notificationsEnabled || false
-            };
-
-            // Get linked accounts if bank is connected
+            // Get all necessary data
             const accounts = await this.userModel.getLinkedAccounts(userId);
+            const emailPreferences = await this.userModel.getEmailPreferences(userId);
 
-            // Return both linkedBank and notificationsEnabled status
             return {
                 linkedBank: userData.linkedBank || false,
-                notificationsEnabled: userData.notificationsEnabled || false
+                notificationsEnabled: userData.notificationsEnabled || false,
+                accounts: accounts || [],
+                dob: userData.dob || null, // Make sure DOB is included in response
+                emailPreferences: emailPreferences || {
+                    weeklySummary: false,
+                    summaryDay: 'sunday',
+                    includeTransactions: true,
+                    includeBudgets: true,
+                    includeLoans: true,
+                    includeRecommendations: true
+                }
             };
-
         } catch (error) {
             if (error instanceof NotFoundError) {
                 throw error;
@@ -39,8 +42,44 @@ class UserService {
         }
     }
 
+    async getUserDetails(userId) {
+        try {
+            const userData = await this.userModel.findById(userId);
+            if (!userData) {
+                throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
+            }
+
+            // Return only essential user details
+            return {
+                id: userData.id,
+                displayName: userData.displayName || null,
+                email: userData.email || null,
+                dob: userData.dob || null,
+                createdAt: userData.createdAt ? userData.createdAt.toDate() : null
+            };
+        } catch (error) {
+            if (error instanceof NotFoundError) {
+                throw error;
+            }
+            throw new DatabaseError('Failed to fetch user details');
+        }
+    }
+
     async updateUser(userId, updates) {
         try {
+            // Ensure DOB is properly processed before saving
+            if (updates.dob) {
+                try {
+                    // Convert to Date object and back to ISO string for consistent storage
+                    const dobDate = new Date(updates.dob);
+                    if (!isNaN(dobDate.getTime())) {
+                        updates.dob = dobDate.toISOString();
+                    }
+                } catch (e) {
+                    console.error('Error formatting DOB during update:', e);
+                }
+            }
+
             const updatedUser = await this.userModel.update(userId, updates);
             if (!updatedUser) {
                 throw new NotFoundError(MESSAGE_USER_NOT_FOUND);
@@ -64,7 +103,7 @@ class UserService {
             // Remove user from Firebase Authentication
             await admin.auth().deleteUser(userId);
 
-            return { success: true, message: 'User and associated data deleted successfully' };
+            return {success: true, message: 'User and associated data deleted successfully'};
         } catch (error) {
             throw new DatabaseError('Failed to delete user');
         }
@@ -112,11 +151,11 @@ class UserService {
         }
 
         try {
-            const updated = await this.userModel.update(userId, { notificationsEnabled: enabled });
+            const updated = await this.userModel.update(userId, {notificationsEnabled: enabled});
             if (!updated) {
                 throw new NotFoundError('User not found');
             }
-            return { notificationsEnabled: enabled };
+            return {notificationsEnabled: enabled};
         } catch (error) {
             if (error instanceof NotFoundError) throw error;
             throw new DatabaseError('Failed to update notification settings');
@@ -128,6 +167,40 @@ class UserService {
             return await this.userModel.getNotificationHistory(userId);
         } catch (error) {
             throw new DatabaseError('Failed to fetch notification history');
+        }
+    }
+
+    // Add method to handle email preferences
+    async updateEmailPreferences(userId, emailPreferences) {
+        try {
+            const updated = await this.userModel.updateEmailPreferences(userId, emailPreferences);
+            if (!updated) {
+                throw new NotFoundError('User not found');
+            }
+            return updated;
+        } catch (error) {
+            if (error instanceof NotFoundError) throw error;
+            throw new DatabaseError('Failed to update email preferences');
+        }
+    }
+
+    async getEmailPreferences(userId) {
+        try {
+            const preferences = await this.userModel.getEmailPreferences(userId);
+            if (!preferences) {
+                // Return default preferences if none exist
+                return {
+                    weeklySummary: false,
+                    summaryDay: 'sunday',
+                    includeTransactions: true,
+                    includeBudgets: true,
+                    includeLoans: true,
+                    includeRecommendations: true
+                };
+            }
+            return preferences;
+        } catch (error) {
+            throw new DatabaseError('Failed to fetch email preferences');
         }
     }
 }
