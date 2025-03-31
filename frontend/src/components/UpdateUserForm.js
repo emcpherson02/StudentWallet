@@ -3,16 +3,17 @@ import axios from 'axios';
 import styles from '../styles/Preferences.module.css';
 import { getApiUrl } from "../utils/api";
 import { toast } from "react-toastify";
-import { updateProfile, updateEmail } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
+import EmailChangeForm from './EmailChangeForm';
 
 const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
     const [formData, setFormData] = useState({
         displayName: currentUser.displayName || '',
-        email: currentUser.email || '',
         dob: ''
     });
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
+    const [isChangingEmail, setIsChangingEmail] = useState(false);
 
     // Fetch existing user data
     useEffect(() => {
@@ -39,7 +40,6 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
 
                 setFormData({
                     displayName: currentUser.displayName || '',
-                    email: currentUser.email || '',
                     dob: dobValue
                 });
 
@@ -88,16 +88,6 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
                 }
             }
 
-            // Update the user email in Firebase Auth if changed
-            if (formData.email !== currentUser.email) {
-                try {
-                    await updateEmail(currentUser, formData.email);
-                } catch (emailError) {
-                    console.error('Error updating email:', emailError);
-                    throw emailError; // Re-throw email errors as they're critical
-                }
-            }
-
             // Update user in backend database
             await axios.put(
                 getApiUrl(`/user/update_user/${userId}`),
@@ -111,110 +101,112 @@ const UpdateUserForm = ({ userId, currentUser, onUserUpdated, onClose }) => {
             toast('User details updated successfully', { type: 'success' });
         } catch (error) {
             console.error('Error updating user:', error);
-
-            let errorMessage = 'Failed to update user details';
-
-            // Handle specific Firebase errors
-            if (error.code) {
-                switch (error.code) {
-                    case 'auth/requires-recent-login':
-                        errorMessage = 'For security reasons, please log out and log back in to change your email address';
-                        break;
-                    case 'auth/email-already-in-use':
-                        errorMessage = 'This email is already in use by another account';
-                        break;
-                    case 'auth/invalid-email':
-                        errorMessage = 'Please enter a valid email address';
-                        break;
-                    default:
-                        errorMessage = `Failed to update: ${error.message || 'Unknown error'}`;
-                }
-            }
-
-            setError(errorMessage);
-            toast(errorMessage, { type: 'error' });
-
-            if (error.code && error.code.startsWith('auth/')) {
-                setFormData(prev => ({
-                    ...prev,
-                    email: currentUser.email
-                }));
-            }
+            setError('Failed to update user details');
+            toast('Failed to update user details', { type: 'error' });
         } finally {
             setLoading(false);
         }
     };
 
+    const handleEmailChangeSuccess = (newEmail) => {
+        // After successful email change, we need to refresh the page or redirect to login
+        // since Firebase requires re-authentication after email change
+        toast('Email updated successfully. Please sign in with your new email.', { type: 'success' });
+        setTimeout(() => {
+            // Sign out and redirect to login page
+            sessionStorage.removeItem('user');
+            sessionStorage.removeItem('token');
+            sessionStorage.removeItem('userId');
+            localStorage.removeItem('token');
+            window.location.href = '/login';
+        }, 3000);
+    };
+
     return (
         <div className={styles.formOverlay}>
             <div className={styles.formContainer}>
-                <h2>Update User Details</h2>
+                {isChangingEmail ? (
+                    <EmailChangeForm
+                        userId={userId}
+                        currentEmail={currentUser.email}
+                        currentUser={currentUser}
+                        onSuccess={handleEmailChangeSuccess}
+                        onCancel={() => setIsChangingEmail(false)}
+                    />
+                ) : (
+                    <>
+                        <h2>Update User Details</h2>
 
-                {error && (
-                    <div className={styles.errorMessage}>
-                        {error}
-                    </div>
-                )}
-
-                <form onSubmit={handleSubmit}>
-                    <div className={styles.formGroup}>
-                        <label htmlFor="displayName">Display Name</label>
-                        <input
-                            id="displayName"
-                            type="text"
-                            name="displayName"
-                            value={formData.displayName}
-                            onChange={handleChange}
-                            required
-                        />
-                    </div>
-
-                    <div className={styles.formGroup}>
-                        <label htmlFor="email">Email Address</label>
-                        <input
-                            id="email"
-                            type="email"
-                            name="email"
-                            value={formData.email}
-                            onChange={handleChange}
-                            required
-                        />
-                        {formData.email !== currentUser.email && (
-                            <p className={styles.warningText}>
-                                Note: Changing your email will require you to log in again
-                            </p>
+                        {error && (
+                            <div className={styles.errorMessage}>
+                                {error}
+                            </div>
                         )}
-                    </div>
 
-                    <div className={styles.formGroup}>
-                        <label htmlFor="dob">Date of Birth</label>
-                        <input
-                            id="dob"
-                            type="date"
-                            name="dob"
-                            value={formData.dob}
-                            onChange={handleChange}
-                        />
-                    </div>
+                        <form onSubmit={handleSubmit}>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="displayName">Display Name</label>
+                                <input
+                                    id="displayName"
+                                    type="text"
+                                    name="displayName"
+                                    value={formData.displayName}
+                                    onChange={handleChange}
+                                    required
+                                />
+                            </div>
 
-                    <div className={styles.buttonGroup}>
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className={`${styles.primaryButton} ${styles.cancelButton}`}
-                            disabled={loading}
-                        >
-                            Cancel
-                        </button>
-                        <button
-                            type="submit"
-                            className={styles.primaryButton}
-                            disabled={loading}
-                        >
-                            {loading ? 'Updating...' : 'Update'}
-                        </button>
-                    </div>
-                </form>
+                            <div className={styles.formGroup}>
+                                <label htmlFor="email">Email Address</label>
+                                <div className={styles.emailContainer}>
+                                    <input
+                                        id="email"
+                                        type="email"
+                                        value={currentUser.email}
+                                        disabled
+                                        className={styles.disabledInput}
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setIsChangingEmail(true)}
+                                        className={styles.changeEmailButton}
+                                    >
+                                        Change
+                                    </button>
+                                </div>
+                            </div>
+
+                            <div className={styles.formGroup}>
+                                <label htmlFor="dob">Date of Birth</label>
+                                <input
+                                    id="dob"
+                                    type="date"
+                                    name="dob"
+                                    value={formData.dob}
+                                    onChange={handleChange}
+                                />
+                            </div>
+
+                            <div className={styles.buttonGroup}>
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className={`${styles.primaryButton} ${styles.cancelButton}`}
+                                    disabled={loading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    type="submit"
+                                    className={styles.primaryButton}
+                                    disabled={loading}
+                                >
+                                    {loading ? 'Updating...' : 'Update'}
+                                </button>
+                            </div>
+                        </form>
+                    </>
+                )}
             </div>
         </div>
     );
