@@ -203,6 +203,62 @@ class UserService {
             throw new DatabaseError('Failed to fetch email preferences');
         }
     }
+
+    async changeEmail(userId, newEmail, currentPassword) {
+        try {
+            // Validate inputs
+            if (!userId || !newEmail || !currentPassword) {
+                throw new ValidationError('Missing required parameters');
+            }
+
+            // Get the user from Firebase Auth
+            const userRecord = await admin.auth().getUser(userId);
+
+            if (!userRecord) {
+                throw new NotFoundError('User not found');
+            }
+
+            try {
+                // Update email in Firebase Auth - we can directly update it with admin SDK
+                // The admin SDK doesn't need re-authentication
+                await admin.auth().updateUser(userId, {
+                    email: newEmail,
+                    emailVerified: false // Reset email verification status
+                });
+
+                // If we get here, the Firebase update was successful
+
+                // Now update the email in our Firestore database
+                const updated = await this.userModel.update(userId, { email: newEmail });
+
+                if (!updated) {
+                    throw new DatabaseError('Failed to update user in database');
+                }
+
+                return { email: newEmail };
+
+            } catch (error) {
+                if (error.code === 'auth/email-already-exists') {
+                    throw new ValidationError('The email address is already in use by another account.');
+                } else if (error.code === 'auth/invalid-email') {
+                    throw new ValidationError('The email address is not valid.');
+                } else {
+                    throw error;
+                }
+            }
+        } catch (error) {
+            // Pass through Firebase Auth errors
+            if (error.code && error.code.startsWith('auth/')) {
+                throw error;
+            }
+
+            if (error instanceof ValidationError || error instanceof NotFoundError) {
+                throw error;
+            }
+
+            throw new DatabaseError('Failed to change email: ' + error.message);
+        }
+    }
 }
 
 module.exports = UserService;

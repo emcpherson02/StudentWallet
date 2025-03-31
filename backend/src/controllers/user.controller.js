@@ -169,6 +169,36 @@ class UserController {
             next(error);
         }
     }
+
+    async changeEmail(req, res, next) {
+        try {
+            const { userId, email, currentPassword } = req.body;
+
+            if (!userId || !email || !currentPassword) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: 'Missing required parameters'
+                });
+            }
+
+            const result = await this.userService.changeEmail(userId, email, currentPassword);
+
+            res.status(200).json({
+                status: 'success',
+                message: 'Email updated successfully',
+                data: result
+            });
+        } catch (error) {
+            if (error.code) {
+                return res.status(400).json({
+                    status: 'error',
+                    message: error.message,
+                    code: error.code
+                });
+            }
+            next(error);
+        }
+    }
 }
 
 module.exports = UserController;
